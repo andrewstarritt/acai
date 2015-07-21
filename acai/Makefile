@@ -11,7 +11,7 @@ DIRS := $(DIRS) $(filter-out $(DIRS), configure)
 DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard *Sup))
 DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard *App))
 DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard iocBoot))
-DIRS := $(DIRS) $(filter-out $(DIRS), documentation)
+#DIRS := $(DIRS) $(filter-out $(DIRS), documentation)
 
 define DIR_template
  $(1)_DEPEND_DIRS = configure
