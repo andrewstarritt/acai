@@ -1,0 +1,40 @@
+/* $File: //depot/sw/epics/acai/acaiSup/acai_private_common.h $
+ * $Revision: #1 $
+ * $DateTime: 2015/06/20 17:10:39 $
+ * $Author: andrew $
+ *
+ * This file is part of the ACAI library. It provides utilities considered
+ * private tto the library.
+ *
+ * Copyright (C) 2015  Andrew C. Starritt
+ *
+ * This ACAI library is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This ACAI library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with the ACAI library.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Contact details:
+ * starritt@netspace.net.au
+ * PO Box 3118, Prahran East, Victoria 3181, Australia.
+ *
+ */
+ 
+#ifndef ACAI__PRIVATE_COMMON_H_
+#define ACAI__PRIVATE_COMMON_H_
+
+// Iterate over std::set or std::list (infact any std container)
+//
+#define ITERATE(ContainerType, container, item)                 \
+   for (ContainerType::iterator item = container.begin ();      \
+        item != container.end (); ++item)
+
+
+#endif   // ACAI__PRIVATE_COMMON_H_

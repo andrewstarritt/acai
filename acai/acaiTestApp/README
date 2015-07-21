@@ -1,0 +1,4 @@
+The is a simple command line programs that use the ACAI framework.
+This programs mimics the EPICS base programs camonitor.
+This program is intended as example (and test) ACAI framework rather than as
+replacements for the afore mentioned camonitor program.
