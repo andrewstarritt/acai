@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.h $
- * $Revision: #10 $
- * $DateTime: 2015/06/22 20:47:28 $
+ * $Revision: #12 $
+ * $DateTime: 2015/07/26 01:56:54 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -40,7 +40,7 @@ namespace ACAI {
 
 /// Defines common ACAI macros, types and pseudo EPICS CA types.
 ///
-#define ACAI_VERSION_STRING     "ACAI 1.1.1"
+#define ACAI_VERSION_STRING     "ACAI 1.1.2"
 
 // Place holder to deal with shared stuff.
 // Not really important for Linux.
@@ -193,14 +193,14 @@ ACAI::ClientString clientFieldTypeImage (const ACAI::ClientFieldType clientField
 /// Like snprintf except targets a ACAI::ClientString.
 ///
 /// The size_t size paramter is used for an internal buffer (note: this is on the stack)
-/// and will constrains the final string size.
+/// and will constrain the final string size.
 ///
 int csnprintf (ACAI::ClientString& target, size_t size, const char* format, ...);
 
 /// This creates and returns a ACAI::ClientString
 ///
 /// The size_t size paramter is used for an internal buffer (note: this is on the stack)
-/// and will constrains the final string size.
+/// and will constrain the final string size.
 ///
 ACAI::ClientString csnprintf (size_t size, const char* format, ...);
 
