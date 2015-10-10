@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.h $
- * $Revision: #12 $
- * $DateTime: 2015/07/21 22:48:50 $
+ * $Revision: #13 $
+ * $DateTime: 2015/09/27 12:59:44 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. 
@@ -219,6 +219,19 @@ public:
    /// Returns the current long string setting.
    ///
    bool isLongString () const;
+
+   /// Determines if long string processing required. This may be either
+   /// explicit (by setting longString to true - field type must be DBF_CHAR)
+   /// or implicit (PV name ends with $).
+   //
+   /// Note: As of 3.14.11, IOCs now provides support for strings longer than 40
+   /// characters. Adding the suffix '$' to the field name of an IOC PV name
+   /// causes the native type of that field to be reported as DBF_CHAR and number
+   /// of element sufficient to cope with actual field length provided that the
+   /// actual field type is one of:
+   /// DBF_STRING, DBF_INLINK, DBF_OUTLINK or DBF_FWDLINK.
+   ///
+   bool processingAsLongString () const;
 
    /// Sets whether the channel is opened in subscrbing mode or single read mode or no read mode.
    /// When readMode is Subscribe, the client subscribes for updates.
@@ -497,6 +510,7 @@ public:
    ClientString getEnumeration (int state) const;
 
    /// Get all state strings.
+   /// Returns empty array if native type is not enumeration.
    ///
    ClientStringArray getEnumerationStates () const;
 
@@ -602,19 +616,6 @@ protected:
    /// Essentialy checks if the PV name ends with ".STAT"
    ///
    bool isAlarmStatusPv () const;
-
-   /// Determines if long string processing required. This may be either
-   /// explicit (by setting longString to true - field type must be DBF_CHAR)
-   /// or implicit (PV name ends with $).
-   //
-   /// Note: As of 3.14.11, IOCs now provides support for strings longer than 40
-   /// characters. Adding the suffix '$' to the field name of an IOC PV name
-   /// causes the native type of that field to be reported as DBF_CHAR and number
-   /// of element sufficient to cope with actual field length provided that the
-   /// actual field type is one of:
-   /// DBF_STRING, DBF_INLINK, DBF_OUTLINK or DBF_FWDLINK.
-   ///
-   bool doProcessAsLongString () const;
 
 private:
    int magic_number;    // used to verify void* to Client* conversions.

@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.cpp $
- * $Revision: #8 $
- * $DateTime: 2015/06/22 21:01:58 $
+ * $Revision: #9 $
+ * $DateTime: 2015/09/27 12:59:44 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. The class was based on the pv_client
@@ -671,12 +671,12 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
 {
    char append_units[MAX_UNITS_SIZE + 2];
    char format[20];
-   char image[50];
    char c;
    int enum_state;
+   int p;
    ACAI::ClientString result;
 
-   result = ClientString ("");
+   result = ClientString ("");     // set default
 
    if (!this->dataIsAvailable ()) {
       return result;
@@ -684,7 +684,7 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
 
    // Is this PV to be treated as a long string?
    //
-   if (this->doProcessAsLongString ()) {
+   if (this->processingAsLongString ()) {
 
       result.reserve (this->pd->data_element_count);
       for (unsigned j = 0; j < this->pd->data_element_count; j++) {
@@ -708,15 +708,15 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
 
       switch (this->pd->data_field_type) {
          case ACAI::ClientFieldSTRING:
-            result = ClientString (this->pd->dataValues.stringRef [index]);
+            // Do not copy more than MAX_STRING_SIZE characters.
+            //
+            result = ClientString (this->pd->dataValues.stringRef [index], MAX_STRING_SIZE);
             break;
 
          case ACAI::ClientFieldCHAR:
          case ACAI::ClientFieldSHORT:
          case ACAI::ClientFieldLONG:
-            snprintf (image, sizeof (image), "%d%s",
-                      this->getInteger (index), append_units);
-            result = ACAI::ClientString (image);
+            result = ACAI::csnprintf (50, "%d%s", this->getInteger (index), append_units);
             break;
 
          case ACAI::ClientFieldENUM:
@@ -726,11 +726,11 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
 
          case ACAI::ClientFieldFLOAT:
          case ACAI::ClientFieldDOUBLE:
-            snprintf (format, sizeof (format), "%%.%df%%s",
-                      this->precision ());
-            snprintf (image, sizeof (image), format,
-                      this->getFloating (index), append_units);
-            result = ACAI::ClientString (image);
+            // Set up the format string.
+            p = this->precision ();
+            p = LIMIT (p, 0, 15);
+            snprintf (format, sizeof (format), "%%.%df%%s", p);
+            result = ACAI::csnprintf (50, format, this->getFloating (index), append_units);
             break;
 
          default:
@@ -867,7 +867,7 @@ bool ACAI::Client::putFloatingArray (const ACAI::ClientFloating* valueArray, con
 bool ACAI::Client::putFloatingArray (const ACAI::ClientFloatingArray& valueArray)
 {
    const unsigned int count = (unsigned int) valueArray.size ();
-   const ACAI::ClientFloating* podPtr = &valueArray [0];
+   const ACAI::ClientFloating* podPtr = &valueArray [0];  // convert to "Plain Old Data" type.
 
    return this->putFloatingArray (podPtr ,count);
 }
@@ -875,7 +875,7 @@ bool ACAI::Client::putFloatingArray (const ACAI::ClientFloatingArray& valueArray
 
 //------------------------------------------------------------------------------
 //
-bool ACAI::Client::putIntegerArray  (const ACAI::ClientInteger* valueArray, const unsigned int count)
+bool ACAI::Client::putIntegerArray (const ACAI::ClientInteger* valueArray, const unsigned int count)
 {
    bool result = false;
    int status;
@@ -889,7 +889,7 @@ bool ACAI::Client::putIntegerArray  (const ACAI::ClientInteger* valueArray, cons
 
 //------------------------------------------------------------------------------
 //
-bool ACAI::Client::putIntegerArray  (const ACAI::ClientIntegerArray& valueArray)
+bool ACAI::Client::putIntegerArray (const ACAI::ClientIntegerArray& valueArray)
 {
    const unsigned int count = (unsigned int) valueArray.size ();
    const ACAI::ClientInteger* podPtr = &valueArray [0];
@@ -972,23 +972,24 @@ int ACAI::Client::enumerationStatesCount () const
 ACAI::ClientString ACAI::Client::getEnumeration (int state) const
 {
    ACAI::ClientString result;
-   char image [MAX_ENUM_STRING_SIZE + 1];
-   int n;
-   const char* source;
 
    // Set default.
    //
-   snprintf (image, sizeof (image), "#%d", state);
-
-   n = this->enumerationStatesCount ();
+   result = ACAI::csnprintf (12, "#%d", state);
 
    if (this->dataFieldType () == ClientFieldENUM) {
+
+      int n = this->enumerationStatesCount ();
 
       // Is specified state in range ?
       //
       if ((state >= 0) && (state < n)) {
+         const char* source;
 
-         // Is this an alarm status PV ?
+         // Is this an alarm status PV ? i.e. {recordname}.STAT
+         // Of course, if some creates a portable CA server and defines a PV of
+         // the form {xxxx}.STAT then this will not do what might be expected, but
+         // if they do, shame on them for being perverse.
          //
          if (this->isAlarmStatusPv ()) {
             // Yes - use alarm status strings - there are more than the 16
@@ -1002,13 +1003,14 @@ ACAI::ClientString ACAI::Client::getEnumeration (int state) const
             source = this->pd->enum_strings [state];
          }
 
-         // snprintf ensures zero terminated.
+         // If the enum values are at max size, there is no null end-of-string
+         // character at the end of the value.  Do not run into next enum value
+         // Do not copy more than MAX_ENUM_STRING_SIZE characters.
          //
-         snprintf (image, sizeof (image), "%s", source);
+         result = ACAI::ClientString (source, MAX_ENUM_STRING_SIZE);
       }
    }
 
-   result = ClientString (image);
    return result;
 }
 
@@ -1188,7 +1190,7 @@ bool ACAI::Client::isAlarmStatusPv () const
 
 //------------------------------------------------------------------------------
 //
-bool ACAI::Client::doProcessAsLongString () const
+bool ACAI::Client::processingAsLongString () const
 {
    ACAI::ClientString pvName = this->pvName ();
    int l = pvName.length ();

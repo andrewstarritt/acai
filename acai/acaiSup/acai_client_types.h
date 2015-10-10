@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.h $
- * $Revision: #12 $
- * $DateTime: 2015/07/26 01:56:54 $
+ * $Revision: #13 $
+ * $DateTime: 2015/09/27 12:59:44 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -40,7 +40,7 @@ namespace ACAI {
 
 /// Defines common ACAI macros, types and pseudo EPICS CA types.
 ///
-#define ACAI_VERSION_STRING     "ACAI 1.1.2"
+#define ACAI_VERSION_STRING     "ACAI 1.1.3"
 
 // Place holder to deal with shared stuff.
 // Not really important for Linux.
@@ -59,11 +59,13 @@ namespace ACAI {
 
 
 /// Controls how channel operates when channel opened.
+///
 enum ReadModes {
    NoRead,             ///< just connects
    SingleRead,         ///< single one-off read only
    Subscribe           ///< read plus subscription - default mode.
 };
+
 
 //------------------------------------------------------------------------------
 // Defines client string, integer and floating point data types.
@@ -116,10 +118,11 @@ typedef std::vector<ClientString>     ClientStringArray;
 // library header files without the need to include EPICS header files.
 //
 // These types effectively replicate the EPICS types. Must be kept is step.
-// But these types really really stable so this is not a hassle.
+// But these types are really really stable so this is not a hassle.
 //
 // MUST be consistent with alarm.h
 /// Extends stardard EPICS severity to include a disconnected state.
+//
 typedef enum {
    ClientSevNone  = 0,
    ClientSevMinor = 1,
@@ -131,6 +134,7 @@ typedef enum {
 
 
 /// Severity status - essentially a copy of the epicsAlarmCondition.
+///
 typedef enum {
    ClientAlarmNone = 0,
    ClientAlarmRead,
@@ -159,6 +163,7 @@ typedef enum {
 
 
 /// Time stamp structure - essentially a copy of epicsTimeStamp.
+///
 typedef struct {
    ACAI::ClientUInt32 secPastEpoch;     ///< seconds since 0000 Jan 1, 1990  UTC.
    ACAI::ClientUInt32 nsec;             ///< nanoseconds within second
@@ -167,6 +172,7 @@ typedef struct {
 
 // MUST be consistent with db_access.h
 /// Field type. Essentially a copy of db_access.h with addtion of a default type used for requests only.
+///
 typedef enum {
    ClientFieldSTRING    = 0,
    ClientFieldSHORT     = 1,

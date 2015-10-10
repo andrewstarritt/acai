@@ -1,6 +1,6 @@
 // $File: //depot/sw/epics/acai/acaiTestApp/acai_monitor.cpp $
-// $Revision: #4 $
-// $DateTime: 2015/06/22 20:49:29 $
+// $Revision: #5 $
+// $DateTime: 2015/09/27 12:59:44 $
 // Last checked in by: $Author: andrew $
 //
 
@@ -15,13 +15,22 @@
 static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdate)
 {
    if (client) {
-      // On connection, we get the read response (firstupdate true) immediatly
+      // On connection, we get the read response (firstupdate true) immediately
       // followed by first subscription update (firstupdate false).
       // Don't need do a double output.
       //
+      if (firstupdate) {
+         int n = client->enumerationStatesCount();
+         for (int j = 0; j < n; j++) {
+            std::cout << "[" << j << "/" << n << "] " << client->getEnumeration (j) <<  std::endl;
+         }
+      }
       if (!firstupdate || (client->readMode() != ACAI::Subscribe)) {
          std::cout << client->pvName () << " ";
-         const unsigned int n = client->dataElementCount ();
+
+         unsigned int n = client->dataElementCount ();
+         if (client->processingAsLongString ()) n = 1;
+
          if (n > 1) {
             std::cout << "[" << n << "]";
          }
