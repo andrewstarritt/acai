@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.h $
- * $Revision: #13 $
- * $DateTime: 2015/09/27 12:59:44 $
+ * $Revision: #16 $
+ * $DateTime: 2015/10/29 22:03:11 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -40,7 +40,7 @@ namespace ACAI {
 
 /// Defines common ACAI macros, types and pseudo EPICS CA types.
 ///
-#define ACAI_VERSION_STRING     "ACAI 1.1.3"
+#define ACAI_VERSION_STRING     "ACAI 1.1.4"
 
 // Place holder to deal with shared stuff.
 // Not really important for Linux.
@@ -123,19 +123,19 @@ typedef std::vector<ClientString>     ClientStringArray;
 // MUST be consistent with alarm.h
 /// Extends stardard EPICS severity to include a disconnected state.
 //
-typedef enum {
+enum ClientAlarmSeverity {
    ClientSevNone  = 0,
    ClientSevMinor = 1,
    ClientSevMajor = 2,
    ClientSevInvalid = 3,
    ClientDisconnected = 4,
    CLIENT_ALARM_NSEV
-} ClientAlarmSeverity;
+};
 
 
 /// Severity status - essentially a copy of the epicsAlarmCondition.
 ///
-typedef enum {
+enum ClientAlarmCondition {
    ClientAlarmNone = 0,
    ClientAlarmRead,
    ClientAlarmWrite,
@@ -159,21 +159,21 @@ typedef enum {
    ClientAlarmReadAccess,
    ClientAlarmWriteAccess,
    CLIENT_ALARM_NSTATUS
-} ClientAlarmCondition;
+};
 
 
 /// Time stamp structure - essentially a copy of epicsTimeStamp.
 ///
-typedef struct {
+struct ClientTimeStamp {
    ACAI::ClientUInt32 secPastEpoch;     ///< seconds since 0000 Jan 1, 1990  UTC.
    ACAI::ClientUInt32 nsec;             ///< nanoseconds within second
-} ClientTimeStamp;
+};
 
 
 // MUST be consistent with db_access.h
 /// Field type. Essentially a copy of db_access.h with addtion of a default type used for requests only.
 ///
-typedef enum {
+enum ClientFieldType {
    ClientFieldSTRING    = 0,
    ClientFieldSHORT     = 1,
    ClientFieldFLOAT     = 2,
@@ -185,7 +185,19 @@ typedef enum {
    // Additional pseudo field type used for requests.
    // Mixing control and data here, but this is pragmatic.
    ClientFieldDefault   = 8
-} ClientFieldType;
+};
+
+/// Controls event subscriptions - ref to caeventmask.h for details.
+/// Default mode is Value | Alarm
+// Keep consistant with caeventmask.h
+//
+enum EventMasks {
+   EventNone = 0,           ///< No trigger. Included for completeness
+   EventValue =    (1<<0),  ///< Trigger an event when a significant change in the channel's value (usually defined by MDEL)
+   EventArchive =  (1<<1),  ///< Trigger an event when an archive significant change in the channel's valuu occurs (usually defined by ADEL)
+   EventAlarm =    (1<<2),  ///< Trigger an event when the alarm state changes
+   EventProperty = (1<<3)   ///< Trigger an event when a property change (control limit, graphical limit, status string, enum string ...) occurs.
+};
 
 
 //------------------------------------------------------------------------------

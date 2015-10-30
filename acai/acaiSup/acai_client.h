@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.h $
- * $Revision: #13 $
- * $DateTime: 2015/09/27 12:59:44 $
+ * $Revision: #16 $
+ * $DateTime: 2015/10/29 22:03:11 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. 
@@ -39,34 +39,33 @@ class Abstract_Client_User;    // differed declaration.
 
 /// \brief The ACAI::Client class is main class within the ACAI library.
 ///
-/// While the ACAI::Client_Set and ACAI::Abstract_Client_User classes provide
-/// some usefull meta functionality, an application can be created that only uses
+/// The ACAI::Client_Set and ACAI::Abstract_Client_User classes provide some optional
+/// support functionality, however an application can be created that only uses
 /// ACAI::Client objects.
 ///
 /// An ACAI::Client object has number of attributes, but of primary importance is it's
-/// process variable (PV) name. The default settings for other attributes often suitable
-/// and as such need not be changed.
-/// The PV name attribute is the only attribute that may be set during construction,
-/// all other attributes have their own set and get functions.
+/// process variable (PV) name and this is the only attribute that may be set during
+/// construction. All other attributes have their own set and get functions. The default
+/// settings for these other attributes often suitable and as such need not be changed.
 ///
 /// It should be noted that many attributes only take effect when Client::openChannel
-/// is called (which calls ca_create_channel) or when a successfull connection occurs
-/// (when ca_array_get_callback and ca_create_subscription are called).
+/// function is called (which calls ca_create_channel) or when a successfull connection
+/// occurs (when ca_array_get_callback and ca_create_subscription are called).
 ///
 /// When a channel disconnects any subscription is cancelled. If/when the channel
-/// reconnects, the channels meta data is re-read and the subscription reestablished.
-/// Rationale: the underlying meta data may haved changed (precision, engineering units,
-/// enumeration state values etc.), or even the field type and/or number of elements
-/// may have changed.
+/// reconnects, the channels meta data is re-read and the subscription re-established.
+/// Rationale: the underlying meta data may haved changed (e.g. precision, engineering
+/// units, enumeration state values etc.), or even the field type and/or number of
+/// elements may have changed.
 ///
 /// PV data get and put functions.
 /// The get functions extract data currently stored in the object from the most recent update.
 /// The put functions calls the underlying ca_put_array function. Put data goes "around
-/// the loop", i.e. to the IOC and back again as an event update before the object's data
-/// is updated and available to the get functions.
+/// the loop", i.e. to the PV server (IOC) and back again as an event update before the
+/// object's data is updated and available to the get functions.
 ///
 /// ACAI Client users may be notified of connection and/or update events in one
-/// of three ways. These are (and occur in the order listed below:
+/// of three ways. These are (and occur) in the order listed below:
 ///
 /// a) Override the class Client::connectionUpdate and Client::dataUpdate virtual functions
 ///    in a derived class;
@@ -93,19 +92,21 @@ public:
    // considered as different and distinct types.
    //
    /// Defines the traditional connection handler function signature.
-   /// This call back is set by Client::setConnectionHandler and read by Client::connectionHandler.
+   /// This call back is specified by Client::setConnectionHandler and obtained
+   /// by Client::connectionHandler.
    ///
    typedef void (*ConnectionHandlers) (ACAI::Client* client, const bool isConnected);
 
    /// Defines the traditional event/data update handler function signature.
-   /// This call back is set by Client::setUpdateHandler and read by  Client::updateHandler.
+   /// This call back is set specified Client::setUpdateHandler and obtained by
+   /// Client::updateHandler.
    ///
    typedef void (*UpdateHandlers)     (ACAI::Client* client, const bool firstUpdate);
 
 
    // static functions ---------------------------------------------------------
    //
-   // Thes fuctiions handle context creation/deletion and calls to flush io.
+   // Thes fuctiions handle context creation/deletion and calls to CA flush io.
    //
    /// The initialise function must be the first ACAI fuction called.
    /// It should be called in the thread that is to be used for channel access.
@@ -133,7 +134,7 @@ public:
    // object functions ---------------------------------------------------------
    //
    /// Class constructor. The PV name may be set during construction or (re)set
-   /// later on using Client::setPvName. All other attributes have theitr own set
+   /// later on using Client::setPvName. All other attributes have their own set
    /// and get functions.
    ///
    explicit Client (const ClientString& pvName = "");
@@ -143,8 +144,8 @@ public:
    virtual ~Client ();
 
    /// Sets or resets the channel PV name.
-   /// Unless doImmediateReopen is set true, setting PV name while channel connected
-   /// has no immediate effect. The channel must be closed and re-opended.
+   /// Unless doImmediateReopen is set true, setting PV name while the channel is
+   /// connected has no immediate effect. The channel must be closed and re-opended.
    /// When doImmediateReopen is true the function closes and reopnes the channel
    /// immediately.
    ///
@@ -181,7 +182,7 @@ public:
    ///
    /// Note: In either case (limit or no limit), the actual number of PV elements
    /// requested is subject to any constraint imposed by the EPICS_CA_MAX_ARRAY_BYTES
-   /// environment variable and the number of elements availbe from the server
+   /// environment variable and the number of elements available from the server
    /// (as indicated by the hostElementCount function).
    //
    /// Note: for newer versions of EPICS, IOCs interpret a request for zero elements
@@ -202,7 +203,7 @@ public:
    /// The default is greater than 0 so that lesser values may be
    /// specified for large (e.g. image) array PVs.
    ///
-   /// Note: The channle priority only taked effect the next time the channel is opened.
+   /// Note: The channel priority only taked effect the next time the channel is opened.
    ///
    void setPriority (const unsigned int priority);
 
@@ -236,6 +237,7 @@ public:
    /// Sets whether the channel is opened in subscrbing mode or single read mode or no read mode.
    /// When readMode is Subscribe, the client subscribes for updates.
    /// When readMode is SingleRead, the client does a single read per connection.
+   /// When readMode is NoRead, the client does not read any data nor meta data.
    /// The default setting when the client object is constructed is Subscribe.
    ///
    /// Note: once the channel is open, updating the readMode hase no effect on the
@@ -247,6 +249,20 @@ public:
    /// Returns the current client read mode.
    ///
    ACAI::ReadModes readMode () const;
+
+   /// Set the subscription event mask.
+   ///
+   /// Note: once the channel is open, updating the eventMask hase no effect on the
+   /// the current subscription (or lack there of). The eventMask is essentially
+   /// only used when the channel first connects or re-connects.
+   /// The default setting when the client object is constructed is:
+   ///    ACAI::EventValue | ACAI::EventAlarm
+   ///
+   void setEventMask (const ACAI::EventMasks eventMask);
+
+   /// Returns the current client event mask.
+   ///
+   ACAI::EventMasks eventMask () const;
 
    /// Create channel, and once connected and read data (with all meta data) and
    /// optionally subscribe for updates. Returns true if create channel okay.
@@ -264,13 +280,13 @@ public:
    /// When a channel is connected, this function causes the data to be re-read once.
    /// If not connected this function does nothing.
    /// This intented for channels opened with read mode set to SingleRead (or NoRead)
-   /// however this will force a reread (including meta data) of a subscribing object.
+   /// however this will force a reread (including meta data) of a subscribing channel.
    ///
    bool reReadChannel ();
 
-   /// Returns whether the channel is currenlty connected. The put data functions may
+   /// Returns whether the channel is currently connected. The put data functions may
    /// be used on a connected channel, however the dataIsAvailable function should be
-   /// used prior ti called the get data functions.
+   /// used prior to called the get data functions.
    ///
    bool isConnected () const;
 
@@ -354,12 +370,14 @@ public:
    ClientString hostName () const;
 
    /// Returns the nuber of PV array elements as defined by PV server (IOC).
+   /// When the channel is not connected, the function returns 0.
    ///
    unsigned int hostElementCount () const;
 
    /// Returns the nuber of PV array elements available in the clinet objects,
    /// i.e.  as returned by most recent update.
-   /// 
+   /// When the channel is not connected, the function returns 0.
+   ///
    /// This can be less than hostElementCount because it has been limited by a
    /// call to setRequestCount and/or because the EPICS_CA_MAX_ARRAY_BYTES
    /// environment variables is less than is needed to handle all elements.
@@ -367,36 +385,40 @@ public:
    unsigned int dataElementCount () const;
 
    /// Returns the PV's native field type as defined by PV server (IOC).
-   /// 
-   ClientFieldType hostFieldType () const;
+   /// When the channel is not connected, the function returns ClientFieldNO_ACCESS
+   ///
+   ACAI::ClientFieldType hostFieldType () const;
 
    /// Returns the data type stored within the client object as returned by
    /// most recent update - see setDataRequestType.
+   /// When the channel is not connected, the function returns ClientFieldNO_ACCESS
    ///
-   ClientFieldType dataFieldType () const;
+   ACAI::ClientFieldType dataFieldType () const;
 
    /// Returns the data element, e.g. DBF_LONG = 4
+   /// When the channel is not connected, the function returns 0.
    ///
    unsigned int dataElementSize () const;
 
    /// Returns the channel channel alarm status.
+   /// When the channel is not connected, the function returns ClientAlarmNone
    ///
-   ClientAlarmCondition alarmStatus () const;
+   ACAI::ClientAlarmCondition alarmStatus () const;
    
    /// Returns the channel channel alarm severity. This maps directly to the regular
    /// channel severity as provided by Channel Access, but for a disconnected channel
    /// this function returns ACAI::ClientDisconnected which is "more sever" than
    /// ACAI::ClientSevInvalid.
    ///
-   ClientAlarmSeverity alarmSeverity () const;
+   ACAI::ClientAlarmSeverity alarmSeverity () const;
 
    /// This function returns a textual/displayable form of the channel's severity.
    ///
-   ClientString alarmStatusImage () const;      // alarmStatusString defined as macro
+   ACAI::ClientString alarmStatusImage () const;  // alarmStatusString defined as macro
 
    /// This function returns a textual/displayable form of the channel's alarm status.
    ///
-   ClientString alarmSeverityImage () const;    // alarmSeverityString defined as macro
+   ACAI::ClientString alarmSeverityImage () const;    // alarmSeverityString defined as macro
 
    /// This function returns the channel's read access permission.
    ///
@@ -416,12 +438,13 @@ public:
    /// Data update time stamps are based on the time stamp provided by the EPICS
    /// PV server, while connection/disconnection time stamps are based on local
    /// time.
-   ClientTimeStamp timeStamp () const;
+   ///
+   ACAI::ClientTimeStamp timeStamp () const;
 
    /// Format is: "yyyy-mm-dd hh:nn:ss[.ffff]"
    /// Without fractions, this is a suitable format for MySql.
    ///
-   ClientString utcTimeImage (int precision = 0) const;
+   ACAI::ClientString utcTimeImage (int precision = 0) const;
 
    // Get PV value as basic scaler. For array (e.g. waveform) records, index
    // can be used to specify which element of the array is required.
@@ -429,11 +452,11 @@ public:
    //
    /// Returns the index-th element of the channle data store in the client as a floating value.
    ///
-   ClientFloating getFloating (unsigned int index = 0) const;
+   ACAI::ClientFloating getFloating (unsigned int index = 0) const;
 
    /// Returns the index-th element of the channle data store in the client as an integer value.
    ///
-   ClientInteger  getInteger  (unsigned int index = 0) const;
+   ACAI::ClientInteger  getInteger  (unsigned int index = 0) const;
 
    /// Returns the index-th element of the channle data store in the client as a string value.
    ///
@@ -445,19 +468,19 @@ public:
    /// NOTE: This function is virtual and may be overridden by a sub-class in
    /// order to allow a more sophisticated formatting if required.
    ///
-   virtual ClientString getString (unsigned int index = 0) const;
+   virtual ACAI::ClientString getString (unsigned int index = 0) const;
 
    /// Get client array (waveform) data as an array of floating values.
    ///
-   ClientFloatingArray getFloatingArray () const;
+   ACAI::ClientFloatingArray getFloatingArray () const;
 
    /// Get client array (waveform) data as an array of integer values.
    ///
-   ClientIntegerArray  getIntegerArray  () const;
+   ACAI::ClientIntegerArray  getIntegerArray  () const;
 
    /// Get client array (waveform) data as an array of string values.
    ///
-   ClientStringArray   getStringArray   () const;
+   ACAI::ClientStringArray   getStringArray   () const;
 
    // MAYBE: Add put_callback on/off switch or optional parameter??
    /// Write scaler value to channel.
@@ -507,12 +530,16 @@ public:
    /// NOTE: Does a special for {recordname}.STAT which has more than 16 states.
    /// Others (like sscan.FAZE) are not addressed here.
    ///
-   ClientString getEnumeration (int state) const;
+   /// Of course, if some one creates a portable CA server and defines a PV of
+   /// the form {xxxx}.STAT then this function will not do what might be expected,
+   /// but if they do, shame on them for being perverse.
+   ///
+   ACAI::ClientString getEnumeration (int state) const;
 
    /// Get all state strings.
-   /// Returns empty array if native type is not enumeration.
+   /// Returns an empty array if native type is not enumeration.
    ///
-   ClientStringArray getEnumerationStates () const;
+   ACAI::ClientStringArray getEnumerationStates () const;
 
    /// Extract the number of enumeration states.
    ///
@@ -553,7 +580,7 @@ public:
    /// Set traditional callback handler, which is called in response
    /// to a connection event.
    ///
-   /// Only one per client can be set at any one time.
+   /// Only one callback handler per client can be set at any one time.
    /// Note: Last in - best dressed!
    ///
    /// Also see Abstract_Client_User class and the connectionUpdate function
@@ -568,7 +595,7 @@ public:
    /// Set traditional callback handler, which is called in response
    /// to a data update event .
    ///
-   /// Only one per client can be set at any one time.
+   /// Only one callback handler per client can be set at any one time.
    /// Note: Last in - best dressed!
    ///
    /// See Client::updateHandler.
@@ -587,27 +614,27 @@ public:
    ///
    int userTag;
 
-   /// A reference tag: not used by the class per se but available for access by client
-   /// users and call back handlers to use and abuse as they see fit.
+   /// A reference tag: not used by the class per se but available for access by
+   /// client users and call back handlers to use and abuse as they see fit.
    ///
    void* userRefTag;
 
-   /// A string tag: not used by the class per se but available for access by client
-   /// users and call back handlers to use and abuse as they see fit.
+   /// A string tag: not used by the class per se but available for access by
+   /// client users and call back handlers to use and abuse as they see fit.
    ///
-   ClientString userStringTag;
+   ACAI::ClientString userStringTag;
 
 protected:
    /// This is a hook functions. It should not / can not be called from
-   /// outside of the ACAI::Client, but may be overriden by sub classes to
-   /// allow them to handle connections events.
+   /// outside of the ACAI::Client, but may be overriden by a sub-class to
+   /// allow it to handle connections events.
    /// Note: This function is called prior to any connection callback handler.
    ///
    virtual void connectionUpdate (const bool isConnected);
 
    /// This is a hook functions. It should not / can not be called from
-   /// outside of the ACAI::Client, but may be overriden by sub classes to
-   /// allow them to handle event updates.
+   /// outside of the ACAI::Client, but may be overriden by a sub-classes to
+   /// allow it to handle event updates.
    /// Note: This function is called prior to any event callback handlers.
    ///
    virtual void dataUpdate (const bool firstUpdate);
@@ -633,7 +660,7 @@ private:
 
    // Registered users.
    //
-   typedef std::set<Abstract_Client_User*> RegisteredUsers;
+   typedef std::set<ACAI::Abstract_Client_User*> RegisteredUsers;
    RegisteredUsers registeredUsers;
 
    // These function are used within the ACAI::Client object to
@@ -645,11 +672,9 @@ private:
 
    /// Manage Client/Abstract_Client_User associations.
    ///
-   void registerUser (Abstract_Client_User* user);
-   void deregisterUser (Abstract_Client_User* user);
+   void registerUser (ACAI::Abstract_Client_User* user);
+   void deregisterUser (ACAI::Abstract_Client_User* user);
    void removeClientFromAllUserLists ();
-
-   friend class Abstract_Client_User;
 
    bool readChannel (const ACAI::ReadModes readMode);
    void unsubscribeChannel ();
@@ -658,12 +683,13 @@ private:
    void updateHandler (struct event_handler_args* args);
    void eventHandler (struct event_handler_args* args);
 
-   friend class Client_Private;
-
    // Validates the channel id. If valid, returns referance to a ACAI::Client
    // object otherwise returns NULL.
    //
    static Client* validateChannelId (const void* channel_id);
+
+   friend class Abstract_Client_User;
+   friend class Client_Private;
 };
 
 }

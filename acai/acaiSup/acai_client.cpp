@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.cpp $
- * $Revision: #9 $
- * $DateTime: 2015/09/27 12:59:44 $
+ * $Revision: #12 $
+ * $DateTime: 2015/10/29 22:03:11 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. The class was based on the pv_client
@@ -138,6 +138,7 @@ public:
    ConnectionStatus connectionStatus;  // do we need this??
    bool lastIsConnected;        // previous value - allows calls to Connection_Bu to be filtered
    ACAI::ReadModes readMode;    // subscription v. single read. v. no read at all
+   ACAI::EventMasks eventMask;  // event update tigger specification
 
    unsigned int priority;       // 0 .. 99
    bool isLongString;
@@ -174,7 +175,7 @@ public:
    unsigned int data_field_size;           // element size  LONG = 4 etc.
    ACAI::ClientFieldType data_field_type;  // as per request - typically same as host_field_type
    unsigned int data_element_count;        // number of elements received (as opposed to
-                                           // number on (IOC) server, channel_element_count).
+   // number on (IOC) server, channel_element_count).
    epicsAlarmCondition status;             // status of value
    epicsAlarmSeverity severity;            // severity of alarm
    epicsTimeStamp	timeStamp;
@@ -241,6 +242,7 @@ ACAI::Client::PrivateData::PrivateData (ACAI::Client* ownerIn)
    //
    this->magic_number = MAGIC_NUMBER_P;
    this->readMode = ACAI::Subscribe;
+   this->eventMask = ACAI::EventMasks (ACAI::EventValue | ACAI::EventAlarm);
 
    this->connectionStatus = csNull;
    this->channel_id = NULL;
@@ -481,14 +483,26 @@ bool ACAI::Client::isLongString () const
 
 //------------------------------------------------------------------------------
 //
-void ACAI::Client::setReadMode (const ACAI::ReadModes readMode)
+void ACAI::Client::setReadMode (const ACAI::ReadModes readModeIn)
 {
-   this->pd->readMode = readMode;
+   this->pd->readMode = readModeIn;
 }
 
 ACAI::ReadModes ACAI::Client::readMode () const
 {
-    return this->pd->readMode;
+   return this->pd->readMode;
+}
+
+//------------------------------------------------------------------------------
+//
+void ACAI::Client::setEventMask (const ACAI::EventMasks eventMaskIn)
+{
+   this->pd->eventMask = eventMaskIn;
+}
+
+ACAI::EventMasks ACAI::Client::eventMask () const
+{
+   return this->pd->eventMask;
 }
 
 //------------------------------------------------------------------------------
@@ -582,8 +596,8 @@ bool ACAI::Client::isConnected () const
 bool ACAI::Client::dataIsAvailable () const
 {
    return (this->isConnected ()) &&
-          (this->pd->dataValues.genericRef) &&
-          (this->pd->logical_data_size > 0);
+         (this->pd->dataValues.genericRef) &&
+         (this->pd->logical_data_size > 0);
 }
 
 //------------------------------------------------------------------------------
@@ -671,7 +685,6 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
 {
    char append_units[MAX_UNITS_SIZE + 2];
    char format[20];
-   char c;
    int enum_state;
    int p;
    ACAI::ClientString result;
@@ -683,14 +696,13 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
    }
 
    // Is this PV to be treated as a long string?
+   // If so, only the default 'element 0' yields the string.
    //
    if (this->processingAsLongString ()) {
-
-      result.reserve (this->pd->data_element_count);
-      for (unsigned j = 0; j < this->pd->data_element_count; j++) {
-         c = this->pd->dataValues.charRef [j];
-         if (c == '\0') break;
-         result.push_back (c);
+      if (index == 0) {
+         result = ACAI::ClientString (*(this->pd->dataValues.charRef), this->pd->data_element_count);
+      } else {
+         result = "";
       }
       return result;
    }
@@ -710,7 +722,7 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
          case ACAI::ClientFieldSTRING:
             // Do not copy more than MAX_STRING_SIZE characters.
             //
-            result = ClientString (this->pd->dataValues.stringRef [index], MAX_STRING_SIZE);
+            result = ACAI::ClientString (this->pd->dataValues.stringRef [index], MAX_STRING_SIZE);
             break;
 
          case ACAI::ClientFieldCHAR:
@@ -798,7 +810,7 @@ ACAI::ClientStringArray ACAI::Client::getStringArray () const
 
 //------------------------------------------------------------------------------
 //
-bool ACAI::Client::putFloating (const ClientFloating value)
+bool ACAI::Client::putFloating (const ACAI::ClientFloating value)
 {
    const dbr_double_t dbr_value = (dbr_double_t) value;
    bool result = false;
@@ -813,7 +825,7 @@ bool ACAI::Client::putFloating (const ClientFloating value)
 
 //------------------------------------------------------------------------------
 //
-bool ACAI::Client::putInteger (const ClientInteger value)
+bool ACAI::Client::putInteger (const ACAI::ClientInteger value)
 {
    const dbr_long_t dbr_value = (dbr_long_t) value;
    bool result = false;
@@ -828,7 +840,7 @@ bool ACAI::Client::putInteger (const ClientInteger value)
 
 //------------------------------------------------------------------------------
 //
-bool ACAI::Client::putString (const ClientString& value)
+bool ACAI::Client::putString (const ACAI::ClientString& value)
 {
    bool result = false;
    int status;
@@ -948,7 +960,7 @@ int ACAI::Client::enumerationStatesCount () const
    int result;
 
    if (this->dataFieldType () == ClientFieldENUM) {
-      // Is this an alarm status PV ?
+      // Is this an alarm status (.STAT) PV ?
       //
       if (this->isAlarmStatusPv ()) {
          // Yes - use alarm status strings - there are more than the 16
@@ -987,9 +999,6 @@ ACAI::ClientString ACAI::Client::getEnumeration (int state) const
          const char* source;
 
          // Is this an alarm status PV ? i.e. {recordname}.STAT
-         // Of course, if some creates a portable CA server and defines a PV of
-         // the form {xxxx}.STAT then this will not do what might be expected, but
-         // if they do, shame on them for being perverse.
          //
          if (this->isAlarmStatusPv ()) {
             // Yes - use alarm status strings - there are more than the 16
@@ -1041,7 +1050,7 @@ size_t ACAI::Client::rawDataSize () const
 //------------------------------------------------------------------------------
 //
 void ACAI::Client::rawDataPointer (void* dest, const size_t size,
-                               unsigned int &count) const
+                                   unsigned int &count) const
 {
    count = MIN (size, this->pd->logical_data_size);
    memcpy (dest, this->pd->dataValues.genericRef, count);
@@ -1196,7 +1205,7 @@ bool ACAI::Client::processingAsLongString () const
    int l = pvName.length ();
 
    return (this->pd->host_field_type == ACAI::ClientFieldCHAR) &&
-          (this->pd->isLongString || (l >= 1 && this->pvName() [l - 1] == '$'));
+         (this->pd->isLongString || (l >= 1 && this->pvName() [l - 1] == '$'));
 }
 
 //------------------------------------------------------------------------------
@@ -1319,7 +1328,7 @@ bool ACAI::Client::readChannel (const ACAI::ReadModes readMode)
       reportError ("PV (%s) request count truncated from %ld to %ld elements\n",
                    this->pd->pv_name, count, truncated);
       reportError ("Effective EPICS_CA_MAX_ARRAY_BYTES = %ld\n",
-                    max_array_size);
+                   max_array_size);
 
       count = truncated;
    }
@@ -1329,6 +1338,7 @@ bool ACAI::Client::readChannel (const ACAI::ReadModes readMode)
    if ((readMode == ACAI::SingleRead) || (readMode == ACAI::Subscribe)) {
       status = ca_array_get_callback (initial_type, count, this->pd->channel_id,
                                       buffered_event_handler, &Get);
+
       if (status != ECA_NORMAL) {
          reportError ("ca_array_get_callback (%s) failed (%s)\n", this->pd->pv_name,
                       ca_message (status));
@@ -1342,9 +1352,8 @@ bool ACAI::Client::readChannel (const ACAI::ReadModes readMode)
       // ... and now subscribe for time stamped data updates as well.
       //
       status = ca_create_subscription (update_type, count, this->pd->channel_id,
-                                       DBE_LOG | DBE_ALARM,
-                                       buffered_event_handler, &Event,
-                                       &this->pd->event_id);
+                                       this->pd->eventMask, buffered_event_handler,
+                                       &Event, &this->pd->event_id);
 
       if (status != ECA_NORMAL) {
          reportError ("ca_create_subscription (%s) failed (%s)\n",
@@ -1406,9 +1415,9 @@ void ACAI::Client::updateHandler (struct event_handler_args* args)
    PrivateData* tpd = this->pd;      // alias
    const union db_access_val* pDbr;
 
-// Local macro "functons" that make use of naming regularity
-// The inital updates have no time - so we use time now.
-//
+   // Local macro "functons" that make use of naming regularity
+   // The inital updates have no time - so we use time now.
+   //
 #define ASSIGN_STATUS(from)                                                \
    tpd->data_element_count = args->count;                                  \
    tpd->status = (epicsAlarmCondition) from.status;                        \
@@ -1416,10 +1425,10 @@ void ACAI::Client::updateHandler (struct event_handler_args* args)
    tpd->timeStamp = epicsTime::getCurrent ();
 
 
-// Convert EPICS time to system time.
-// EPICS is number seconds since 01-Jan-1990 where as
-// System time is number seconds since 01-Jan-1970.
-//
+   // Convert EPICS time to system time.
+   // EPICS is number seconds since 01-Jan-1990 where as
+   // System time is number seconds since 01-Jan-1970.
+   //
 #define ASSIGN_STATUS_AND_TIME(from)                                       \
    tpd->data_element_count = args->count;                                  \
    tpd->status = (epicsAlarmCondition) from.status;                        \
@@ -1491,7 +1500,7 @@ void ACAI::Client::updateHandler (struct event_handler_args* args)
    //
    switch (args->type) {
 
-   /// Control updates set all meta data plus initial values
+      /// Control updates set all meta data plus initial values
 
       case DBR_STS_STRING:
          tpd->data_field_type = ClientFieldSTRING;
@@ -1538,7 +1547,7 @@ void ACAI::Client::updateHandler (struct event_handler_args* args)
          ASSIGN_META_DATA (pDbr->cdblval, pDbr->cdblval.precision);
          break;
 
-   /// Time updates values [count], time, severity and status
+         /// Time updates values [count], time, severity and status
 
       case DBR_TIME_STRING:
          tpd->data_field_type = ClientFieldSTRING;
@@ -1783,7 +1792,7 @@ void ACAI::Client::callDataUpdate (const bool isFirstUpdateIn)
 }
 
 //------------------------------------------------------------------------------
-//
+// static
 void ACAI::Client::initialise ()
 {
    int status;
@@ -1821,8 +1830,8 @@ void ACAI::Client::initialise ()
    }
 }
 
- //------------------------------------------------------------------------------
- //
+//------------------------------------------------------------------------------
+// static
 void ACAI::Client::finalise ()
 {
    int status;
@@ -1836,7 +1845,7 @@ void ACAI::Client::finalise ()
 }
 
 //------------------------------------------------------------------------------
-//
+// static
 void ACAI::Client::poll (const int maximum)
 {
    int status;
@@ -1855,15 +1864,15 @@ void ACAI::Client::poll (const int maximum)
 // value if the channel is not connected.
 //
 #define GET_META_DATA(type, getName, member, when_not_connected)     \
-                                                                     \
-type ACAI::Client::getName () const                                  \
+   \
+   type ACAI::Client::getName () const                                  \
 {                                                                    \
    if (this->isConnected ()) {                                       \
-      return (type) this->pd->member;                                \
+   return (type) this->pd->member;                                \
    } else {                                                          \
-      return (type) when_not_connected;                              \
+   return (type) when_not_connected;                              \
    }                                                                 \
-}
+   }
 
 
 GET_META_DATA (ACAI::ClientAlarmSeverity,  alarmSeverity,      severity,              ClientDisconnected)
@@ -1904,7 +1913,7 @@ ACAI::Client* ACAI::Client::validateChannelId (const void* channel_idx)
    const chid channel_id = (const chid) channel_idx;
 
    void* user_data = NULL;
-   Client* result = NULL;
+   ACAI::Client* result = NULL;
 
    // Hypothesize something wrong unless we pass all checks.
    //
@@ -1915,7 +1924,7 @@ ACAI::Client* ACAI::Client::validateChannelId (const void* channel_idx)
 
    user_data = ca_puser (channel_id);
    if (user_data == NULL) {
-      reportError ("Unassigned user data\n");
+      reportError ("ACAI::Client::validateChannelId: Unassigned channel_id user data\n");
       return NULL;
    }
 
@@ -1926,11 +1935,12 @@ ACAI::Client* ACAI::Client::validateChannelId (const void* channel_idx)
       // been closed.
       //
       // reportError ("User data does not reference a ACAI::Client object (magic number check)\n");
+      //
       return NULL;
    }
 
    if (result->pd == NULL) {
-      reportError ("ACAI::Client has no associated private data\n");
+      reportError ("ACAI::Client::validateChannelId: client has no associated private data\n");
       return NULL;
    }
 
@@ -1939,7 +1949,6 @@ ACAI::Client* ACAI::Client::validateChannelId (const void* channel_idx)
       // unexpected to get an update for a channel that has just recently
       // been closed.
       //
-      // reportError ("ACAI::Client object does not reference a Private Data object (magic number check)\n");
       return NULL;
    }
 
@@ -1948,7 +1957,6 @@ ACAI::Client* ACAI::Client::validateChannelId (const void* channel_idx)
       // unexpected to get an update for a channel that has just recently
       // been closed.
       //
-      // reportError ("ACAI::Client has unassigned channel id\n");
       return NULL;
    }
 
@@ -1956,7 +1964,6 @@ ACAI::Client* ACAI::Client::validateChannelId (const void* channel_idx)
       // Similarly this a sensible check and also no need to report this error,
       // it is not unexpected for this to occur if/when a client is recycled.
       //
-      // reportError ("Channel id mis-match\n");
       return NULL;
    }
 
@@ -2002,7 +2009,7 @@ void ACAI::Client::removeClientFromAllUserLists ()
 
 
 //==============================================================================
-// Channel Access library all back handling
+// Channel Access library call back handling
 //
 // ACAI::Client_Private is a friend class of ACAI::Client, and as such is allowed
 // access to private ACAI::Client class functions, specifically:
@@ -2011,7 +2018,6 @@ void ACAI::Client::removeClientFromAllUserLists ()
 //
 // This is why this is a class as opposed to just a couple of static functions.
 //
-
 namespace ACAI {
 
 class Client_Private {
@@ -2045,13 +2051,13 @@ public:
 }
 
 //------------------------------------------------------------------------------
-// Buffered callback is a C module, not C++.
+// Buffered callbacks is a C module, not C++.
 // These functions intended to be only called by the buffered callback module.
 //
 extern "C" {
-   void application_connection_handler (struct connection_handler_args* args);
-   void application_event_handler (struct event_handler_args* args);
-   void application_printf_handler (char* formated_text);
+void application_connection_handler (struct connection_handler_args* args);
+void application_event_handler (struct event_handler_args* args);
+void application_printf_handler (char* formated_text);
 }
 
 //------------------------------------------------------------------------------
