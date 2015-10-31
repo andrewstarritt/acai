@@ -175,7 +175,7 @@ public:
    unsigned int data_field_size;           // element size  LONG = 4 etc.
    ACAI::ClientFieldType data_field_type;  // as per request - typically same as host_field_type
    unsigned int data_element_count;        // number of elements received (as opposed to
-   // number on (IOC) server, channel_element_count).
+                                           // number on (IOC) server, channel_element_count).
    epicsAlarmCondition status;             // status of value
    epicsAlarmSeverity severity;            // severity of alarm
    epicsTimeStamp	timeStamp;
@@ -1205,7 +1205,7 @@ bool ACAI::Client::processingAsLongString () const
    int l = pvName.length ();
 
    return (this->pd->host_field_type == ACAI::ClientFieldCHAR) &&
-         (this->pd->isLongString || (l >= 1 && this->pvName() [l - 1] == '$'));
+          (this->pd->isLongString || (l >= 1 && this->pvName() [l - 1] == '$'));
 }
 
 //------------------------------------------------------------------------------
@@ -1864,15 +1864,15 @@ void ACAI::Client::poll (const int maximum)
 // value if the channel is not connected.
 //
 #define GET_META_DATA(type, getName, member, when_not_connected)     \
-   \
-   type ACAI::Client::getName () const                                  \
+                                                                     \
+type ACAI::Client::getName () const                                  \
 {                                                                    \
    if (this->isConnected ()) {                                       \
-   return (type) this->pd->member;                                \
+      return (type) this->pd->member;                                \
    } else {                                                          \
-   return (type) when_not_connected;                              \
+      return (type) when_not_connected;                              \
    }                                                                 \
-   }
+}
 
 
 GET_META_DATA (ACAI::ClientAlarmSeverity,  alarmSeverity,      severity,              ClientDisconnected)

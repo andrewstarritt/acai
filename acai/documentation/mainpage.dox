@@ -13,7 +13,7 @@ basic Channel Access API.
 This has been developed on and for Linux, but should take minimal effort
 to modify the code for other environments.
 
-The main ACAI::Client class development was based on the struct sCA_Client type
+The main ACAI::Client class was developed fron the struct sCA_Client type
 and associated functions defined in pv_client.h/pv_client.c out of the kryten
 application.
 
@@ -55,6 +55,9 @@ manual).
 NOTE: This version of ACAI does not support multiple contexts is any fashsion
 what-so-ever. The initialise, poll and finalise functions descrined herein are
 static functions as opposed to be some hind of context object methods.
+The various callbacks and polymorphic function calls avaible are all executed
+in the thread that calls the poll function.
+ 
 
 Next create a client object, and open the channel
 <pre>
