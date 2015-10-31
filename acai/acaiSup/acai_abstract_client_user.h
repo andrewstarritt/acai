@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.h $
- * $Revision: #9 $
- * $DateTime: 2015/07/21 22:48:50 $
+ * $Revision: #10 $
+ * $DateTime: 2015/10/31 16:08:49 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a base class that
@@ -120,6 +120,11 @@ protected:
    virtual void dataUpdate (ACAI::Client* sender, const bool firstUpdate);
 
 private:
+   // Make non-copyable.
+   //
+   Abstract_Client_User(const Abstract_Client_User&) {}
+   Abstract_Client_User& operator=(const Abstract_Client_User&) { return *this; }
+
    // Similar to deregisterClient, but DOES NOT call client deregisterUser.
    // Called by a ACAI::Client object from its destructor.
    //

@@ -23,8 +23,8 @@ in Brazil.
 <h2>License</h2>
 ACAI is distributed under the GNU General Public License version 3.
 
-The ACAI library is distributed in the hope that it will be useful, but is
-distributed "AS IS" and WITHOUT ANY WARRANTY;  without even the implied
+The ACAI library is distributed "AS IS" in the hope that it will be useful, but
+is distributed WITHOUT ANY WARRANTY;  without even the implied
 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 See the GNU General Public License for more details.
 
@@ -45,19 +45,14 @@ thread or any other thread. Within that thread call:
   ACAI::Client::initialise();
 </pre>
 
-This function's main purpose is to call <i>ca_context_create</i>.
-ACAI does not expose the under-lying EPICS context, nor does it provide a means
-for other threads to join/attach to that context.
-As the context is created with <i>ca_disable_preemptive_callback</i> additional,
-threads are not allowed to join the CA context anyway (as per the 3.14 CAref
-manual).
+This function's main purpose is to call <i>ca_context_create</i>, but also performs
+other functions necessary to use the ACAI.
+ACAI does not expose the under-lying EPICS context, but does it provide a means
+for other threads to attach to the ACAI context.
 
 NOTE: This version of ACAI does not support multiple contexts is any fashsion
-what-so-ever. The initialise, poll and finalise functions descrined herein are
-static functions as opposed to be some hind of context object methods.
-The various callbacks and polymorphic function calls avaible are all executed
-in the thread that calls the poll function.
- 
+what-so-ever. The initialise, attach, poll and finalise functions described herein
+are static functions as opposed to be some kind of context object related methods.
 
 Next create a client object, and open the channel
 <pre>
@@ -68,9 +63,10 @@ Next create a client object, and open the channel
   pv->openChannel();   // remember to delete pv
 </pre>
 
-The openChannel function creates a channel and when the connection event (provided
-the connection it is a successful) is processed, it then  requests a channel read
-(with all meta data) and also subscribes for channel data updates.
+The openChannel function creates a channel and when the connection event occurs
+(provided the connection it is a successful) is processed, it then  requests a
+channel read (with all meta data) and also subscribes for time-based channel data
+updates.
 
 Although ACAI uses EPICS callbacks internally, the callbacks are buffered and must
 be processed by calling <i>ACAI::Client::poll</i> from the nominated thread.
@@ -79,6 +75,7 @@ the associated client object, and then triggers the ACAI updates and callbacks.
 These all occur within the user's own thread.
 This avoids the need for any mutex locking when dealing with ACAI objects and/or data.
 If that data is passed on to any third party threads, then you will need to manage that.
+See notes on multiple threads below.
 
 All ACAI applications must have some sort of event loop.
 The event loop should must contain a small delay, very much application dependent,
@@ -95,7 +92,7 @@ but typically 20mS to 50mS, e.g.:
 
 If the application provides some means to break out of event loop then the following
 should be called to tidyup. This may be particularly important if leaving the event
-loop does not occur immediatlry before the application terminates.
+loop does not occur immediately before the application terminates.
 <pre>
    pv.closeChannel();
    ACAI::Client::finalise();
@@ -139,7 +136,7 @@ or ACAI::Client::dataUpdate functions;
   <b>class</b> MyClient : <b>public</b> ACAI::Client {
 
      // override base class function
-     <b>void</b> connectionUpdate (<b>const</b> bool isConnected) {
+     <b>void</b> dataUpdate (<b>const</b> bool firstUpdate) {
         double x = this->getFloating ();
         // do something with latest client data
      }
@@ -154,6 +151,11 @@ or ACAI::Client::dataUpdate functions;
 
 d) use an ACAI::Abstract_Client_User class - refer to class documentation.
 
+Note: The various callback and polymorphic notifcation function calls are all executed
+in the thread that calls the poll function irrespective of which thread(s)
+created the ACAI::Client object and/or called the openChannel function.
+
+
 
 <h3>Example</h3>
 An example program that brings all the above together has been included in
@@ -165,6 +167,28 @@ Note:
 This program is intended as example (and test) ACAI program rather than as
 replacements for the afore mentioned camonitor program.
 
+<h2>Multiple Threads</h2>
+Using the ACAI::Client::attach function, it is possible for other threads to
+attach the the ACAI context and then go on to create client objects and perform
+operations on the object (openChannel, getInteger etc.). However there <b>is
+no internal mutex protection</b> of the state/data of a client object, so it is
+the user's responsibility to ensure thread safe operations, particularly with
+respect to ACAI::Client_Set objects and hence Abstract_Client_User register/deregister
+functions.
+
+Also, as stated, the internal updating of the client object and the callbacks/polymorphic
+functions are executed by the thread that calls poll (), so any other thread
+reading data from a client object may get inconsistant data; and even where the value
+is self consistant (probably okay for short, integer, enum) the associated timestamp and
+severity/status data could be from the previous/next update.
+
+So in general, the creation and setup of client objects may be hand-balled off to
+another thread, but the general opertation (polling and data extraction) is best
+all done on one thread.
+If multiple worker threads are needed to process large data sets, then user needs to
+extract a copy the data/meta data and pass this to the worker thread for processing.
+Just notifying a worker thread that new data is available for a particular object
+is <b>not</b> recommended.
 
 <h2>Building/Linking</h2>
 An ACAI program, like the above example, may be built using the EPICS make system.

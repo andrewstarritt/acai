@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_set.h $
- * $Revision: #6 $
- * $DateTime: 2015/07/21 22:48:50 $
+ * $Revision: #7 $
+ * $DateTime: 2015/10/31 16:08:49 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a basic client container.
@@ -128,6 +128,11 @@ public:
    void deregisterAllClients (ACAI::Abstract_Client_User* user);
 
 private:
+   // Make non-copyable.
+   //
+   Client_Set(const Client_Set&) {}
+   Client_Set& operator=(const Client_Set&) { return *this; }
+
    typedef std::set<ACAI::Client*> ClientSets;
    ClientSets clientList;
    bool deepDestruction;

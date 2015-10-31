@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.h $
- * $Revision: #16 $
- * $DateTime: 2015/10/29 22:03:11 $
+ * $Revision: #17 $
+ * $DateTime: 2015/10/31 16:08:49 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. 
@@ -106,13 +106,26 @@ public:
 
    // static functions ---------------------------------------------------------
    //
-   // Thes fuctiions handle context creation/deletion and calls to CA flush io.
+   // These fuctions handle context creation/deletion and calls to CA flush io.
    //
    /// The initialise function must be the first ACAI fuction called.
    /// It should be called in the thread that is to be used for channel access.
+   /// Note: not only does this function create the context, but also performs other
+   /// initialisation required by ACAI. So whereas CA will create a context on the
+   /// fly if one has not already been created, it is most important that this function
+   /// is called first.
    /// Note: this class does not address multiple contexts.
-   //
-   static void initialise ();
+   ///
+   static bool initialise ();
+
+   /// Attaches current thread to current context.
+   /// If there is no current context, then fails (returns false).
+   /// If thread is already attached to a client context, then fails (returns false).
+   /// Note: As the underlying CA library will create a context for another thread
+   /// if one does not exists when , for example ca_create_channel called, it is
+   /// important that this function is called first in order to attach to the ACAI context.
+   ///
+   static bool attach ();
 
    /// The finalise should be called if/when the ACAI libray fuctionality is no longer required.
    /// This includes when the application terminates and the application wishes to "play nice".
@@ -645,6 +658,11 @@ protected:
    bool isAlarmStatusPv () const;
 
 private:
+   // Make non-copyable.
+   //
+   Client(const Client&) {}
+   Client& operator=(const Client&) { return *this; }
+
    int magic_number;    // used to verify void* to Client* conversions.
 
    // Allows the private data to be truely private, which in turn means

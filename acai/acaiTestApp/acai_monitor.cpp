@@ -1,10 +1,11 @@
 // $File: //depot/sw/epics/acai/acaiTestApp/acai_monitor.cpp $
-// $Revision: #5 $
-// $DateTime: 2015/09/27 12:59:44 $
+// $Revision: #6 $
+// $DateTime: 2015/10/31 16:08:49 $
 // Last checked in by: $Author: andrew $
 //
 
 #include <iostream>
+#include <signal.h>
 #include <acai_client_types.h>
 #include <acai_client.h>
 #include <acai_client_set.h>
@@ -60,6 +61,44 @@ static void reportConnectionFailures (ACAI::Client* client, void* context)
    }
 }
 
+static volatile bool sigIntReceived = false;
+static volatile bool sigTermReceived = false;
+
+//------------------------------------------------------------------------------
+//
+static void signalCatcher (int sig)
+{
+   switch (sig) {
+      case SIGINT:
+         std::cerr << "\nSIGINT received - initiating orderly shutdown." << std::endl;
+         sigIntReceived = true;
+         break;
+
+      case SIGTERM:
+         std::cerr << "\nSIGTERM received - initiating orderly shutdown." << std::endl;
+         sigTermReceived = true;
+         break;
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+static void signalSetup ()
+{
+   signal (SIGTERM, signalCatcher);
+   signal (SIGINT, signalCatcher);
+}
+
+//------------------------------------------------------------------------------
+// Checks if time to shut down the monitor program.
+// This a test if SIGINT/SIGTERM have been received.
+//
+static bool shutDownIsRequired ()
+{
+   return sigIntReceived || sigTermReceived;
+}
+
+
 //------------------------------------------------------------------------------
 //
 int main (int argc, char* argv [])
@@ -71,7 +110,14 @@ int main (int argc, char* argv [])
       return 2;
    }
 
-   ACAI::Client::initialise ();
+   bool ok = ACAI::Client::initialise ();
+   if (!ok) {
+      std::cerr << "ACAI::Client::initialise failed." <<  std::endl;
+      return 2;
+   }
+
+   signalSetup ();
+
    clientSet = new ACAI::Client_Set (true);
 
    for (int j = 1; j < argc; j++) {
@@ -88,23 +134,28 @@ int main (int argc, char* argv [])
    // Run simple event loop for 2 seconds.
    //
    ACAI::Client::poll ();
-   for (int t = 0; t < 100; t++) {
-      epicsThreadSleep (0.02);  // 20mSec
-      ACAI::Client::poll ();   // call back function invked from here
+   for (int t = 0; (t < 100) && (!shutDownIsRequired ()); t++) {
+      epicsThreadSleep (0.02);   // 20mSec
+      ACAI::Client::poll ();     // call back function invked from here
    }
 
-   clientSet->iterateChannels (reportConnectionFailures, NULL);
+   // Check for connection failures.
+   //
+   if (!shutDownIsRequired ())
+      clientSet->iterateChannels (reportConnectionFailures, NULL);
 
-   while (true) {
-      epicsThreadSleep (0.02);
-      ACAI::Client::poll ();   // call back function invked from here
+   // Resume event loop.
+   //
+   while (!shutDownIsRequired ()) {
+      epicsThreadSleep (0.02);   // 20mSec
+      ACAI::Client::poll ();     // call back function invked from here
    }
 
    clientSet->closeAllChannels ();
    ACAI::Client::poll ();
 
    ACAI::Client::finalise ();
-   delete clientSet;
+   delete clientSet;             // performs a deepClear
 
    return 0;
 }
