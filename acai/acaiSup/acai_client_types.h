@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.h $
- * $Revision: #17 $
- * $DateTime: 2015/10/31 16:08:49 $
+ * $Revision: #19 $
+ * $DateTime: 2015/11/24 22:22:00 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -40,7 +40,7 @@ namespace ACAI {
 
 /// Defines common ACAI macros, types and pseudo EPICS CA types.
 ///
-#define ACAI_VERSION_STRING     "ACAI 1.1.4"
+#define ACAI_VERSION_STRING     "ACAI 1.2.1"
 
 // Place holder to deal with shared stuff.
 // Not really important for Linux.
@@ -111,7 +111,6 @@ typedef std::vector<ClientFloating>   ClientFloatingArray;
 /// Provides the array type used to read/write channel data as string values.
 typedef std::vector<ClientString>     ClientStringArray;
 
-
 //------------------------------------------------------------------------------
 // Pseudo CA types.
 // Allows clients that build against this library to need only include
@@ -171,7 +170,8 @@ struct ClientTimeStamp {
 
 
 // MUST be consistent with db_access.h
-/// Field type. Essentially a copy of db_access.h with addtion of a default type used for requests only.
+/// Field type. Essentially a copy of db_access.h with addtion of a default
+/// type used for requests only.
 ///
 enum ClientFieldType {
    ClientFieldSTRING    = 0,
@@ -208,19 +208,26 @@ ACAI::ClientString clientFieldTypeImage (const ACAI::ClientFieldType clientField
 //------------------------------------------------------------------------------
 // ClientString utility functions.
 //
-/// Like snprintf except targets a ACAI::ClientString.
+/// Like snprintf except targets an ACAI::ClientString.
 ///
 /// The size_t size paramter is used for an internal buffer (note: this is on the stack)
 /// and will constrain the final string size.
 ///
 int csnprintf (ACAI::ClientString& target, size_t size, const char* format, ...);
 
-/// This creates and returns a ACAI::ClientString
+/// This creates and returns an ACAI::ClientString
 ///
 /// The size_t size paramter is used for an internal buffer (note: this is on the stack)
 /// and will constrain the final string size.
 ///
 ACAI::ClientString csnprintf (size_t size, const char* format, ...);
+
+/// Assign at most maxSize characters to ACAI::ClientString. This is useful
+/// for 'full' fixed size string (e.g. an enumeration values) which does not
+/// include a terminating null character. Cribbed from epicsQt
+/// Kind of like strncpy, however result.c_str() is null terminated.
+///
+ACAI::ClientString limitedAssign (const char* source, const size_t maxSize);
 
 }
 

@@ -1,12 +1,12 @@
 /* $File: //depot/sw/epics/acai/acaiSup/buffered_callbacks.c $
- * $Revision: #2 $
- * $DateTime: 2015/06/22 21:01:58 $
+ * $Revision: #3 $
+ * $DateTime: 2015/11/13 22:25:05 $
  * Last checked in by: $Author: andrew $
  *
  * EPICS buffered callback module for use with Ada, Lazarus and other
  * runtime environments which don't like alien threads.
  *
- * Copyright (C) 2005-2014  Andrew C. Starritt
+ * Copyright (C) 2005-2015  Andrew C. Starritt
  *
  * This module is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ typedef struct Callback_Items {
  */
 static epicsMutexId linked_list_mutex = NULL;
 static ELLLIST linked_list = ELLLIST_INIT;
-static unsigned long allocate_fail_count = 0;
+static unsigned int allocate_fail_count = 0;
 
 
 /*------------------------------------------------------------------------------
@@ -295,7 +295,11 @@ void initialise_buffered_callbacks ()
 int number_of_buffered_callbacks ()
 {
    int n;
+
+   epicsMutexLock (linked_list_mutex);
    n = ellCount (&linked_list);
+   epicsMutexUnlock (linked_list_mutex);
+
    return n;
 }                               /* number_of_buffered_callbacks */
 
@@ -305,11 +309,11 @@ int number_of_buffered_callbacks ()
  */
 int process_buffered_callbacks (const int max)
 {
-   Callback_Items *pci;
+   Callback_Items *pci = NULL;
    int n;
 
    if (allocate_fail_count > 0) {
-      fprintf (stderr, "*** %s: Allocation failures (%ld) \n",
+      fprintf (stderr, "*** %s: Allocation failures (%d) \n",
                __FUNCTION__, allocate_fail_count);
       allocate_fail_count = 0;
    }

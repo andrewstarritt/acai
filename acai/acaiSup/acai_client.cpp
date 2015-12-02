@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.cpp $
- * $Revision: #13 $
- * $DateTime: 2015/10/31 16:08:49 $
+ * $Revision: #15 $
+ * $DateTime: 2015/11/24 22:22:00 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. The class was based on the pv_client
@@ -722,7 +722,7 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
          case ACAI::ClientFieldSTRING:
             // Do not copy more than MAX_STRING_SIZE characters.
             //
-            result = ACAI::ClientString (this->pd->dataValues.stringRef [index], MAX_STRING_SIZE);
+            result = ACAI::limitedAssign (this->pd->dataValues.stringRef [index], MAX_STRING_SIZE);
             break;
 
          case ACAI::ClientFieldCHAR:
@@ -1016,7 +1016,7 @@ ACAI::ClientString ACAI::Client::getEnumeration (int state) const
          // character at the end of the value.  Do not run into next enum value
          // Do not copy more than MAX_ENUM_STRING_SIZE characters.
          //
-         result = ACAI::ClientString (source, MAX_ENUM_STRING_SIZE);
+         result = ACAI::limitedAssign (source, MAX_ENUM_STRING_SIZE);
       }
    }
 
@@ -1049,19 +1049,35 @@ size_t ACAI::Client::rawDataSize () const
 
 //------------------------------------------------------------------------------
 //
-void ACAI::Client::rawDataPointer (void* dest, const size_t size,
-                                   unsigned int &count) const
+size_t ACAI::Client::getRawData (void* dest, const size_t size,
+                                 const size_t offset) const
 {
-   count = MIN (size, this->pd->logical_data_size);
-   memcpy (dest, this->pd->dataValues.genericRef, count);
+   size_t count = 0;
+   if (this->dataIsAvailable ()) {
+      if (offset < this->pd->logical_data_size) {
+         const size_t available_size = this->pd->logical_data_size - offset;
+         count = MIN (size, available_size);
+         memcpy (dest, (this->pd->dataValues.charRef + offset), count);
+      }
+   }
+   return count;
 }
 
 //------------------------------------------------------------------------------
 //
-const void* ACAI::Client::rawDataPointer (unsigned int& count) const
+const void* ACAI::Client::rawDataPointer (size_t& count,
+                                          const size_t offset) const
 {
-   count = this->pd->logical_data_size;
-   return this->pd->dataValues.genericRef;
+   const void* result = NULL;
+   count = 0;
+   if (this->dataIsAvailable ()) {
+      if (offset < this->pd->logical_data_size) {
+         const size_t available_size = this->pd->logical_data_size - offset;
+         count = available_size;
+         result = (const void*) (this->pd->dataValues.charRef + offset);
+      }
+   }
+   return result;
 }
 
 //------------------------------------------------------------------------------

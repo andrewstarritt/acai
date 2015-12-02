@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.h $
- * $Revision: #17 $
- * $DateTime: 2015/10/31 16:08:49 $
+ * $Revision: #18 $
+ * $DateTime: 2015/11/13 22:13:02 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. 
@@ -564,25 +564,30 @@ public:
    ///
    size_t rawDataSize () const;
 
-   /// Extracts count bytes from the channel access data into dest. If less than
-   /// count bytes available, then only available bytes are extracted. The actual
-   /// number of bytes extracted is returned via the count parameter.
+   /// Extracts (memcpy) up to size bytes from the channel access raw data into dest.
+   /// If less than size size bytes available, then only available bytes are extracted.
+   /// The return value is the actual number of bytes extracted - minimum zero.
+   /// The offset may be specified to skip that number of bytes from start of data.
    ///
-   void rawDataPointer (void* dest, const size_t size, unsigned int& count) const;
+   size_t getRawData (void* dest, const size_t size,
+                      const size_t offset = 0) const;
 
    /// Returns a pointer to the actual data. The actual number of bytes available
    /// is returned in count.
-   //
+   /// The offset may be specified to skip that number of bytes from start of data.
+   /// Return value is NULL if data is not available or offset exceeds size of payload.
+   ///
    /// NOTE: The data pointer returned is only guarenteed valid until the next call
    /// to Client::poll ().
    /// Do NOT store pointer - only valid during dataUpdate function call.
    /// Do NOT write to the data - use as read only access.
    ///
-   const void* rawDataPointer (unsigned int& count) const;
+   const void* rawDataPointer (size_t& count,
+                               const size_t offset = 0) const;
 
    /// This function modify sets the channel's include units attrbute.
    /// The default attribute value when the client object is constructed is false.
-   /// This attrbute moifies the getString and getStringArray functionality.
+   /// This attribute modifies the getString and getStringArray functionality.
    //
    void setIncludeUnits (const bool includeUnitsIn);
 

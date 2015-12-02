@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.cpp $
- * $Revision: #7 $
- * $DateTime: 2015/06/21 17:41:41 $
+ * $Revision: #8 $
+ * $DateTime: 2015/11/24 22:22:00 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -27,6 +27,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <stdarg.h>
 #include <acai_client_types.h>
 
@@ -59,6 +60,28 @@ ACAI::ClientString ACAI::csnprintf (size_t size, const char* format, ...)
    va_end (args);
 
    return buffer;
+}
+
+//------------------------------------------------------------------------------
+//
+ACAI::ClientString ACAI::limitedAssign (const char* source, const size_t maxSize)
+{
+   ACAI::ClientString result;
+
+   // If string size is OK, use it as is
+   //
+   if (strnlen (source, maxSize) < maxSize) {
+      // String has embedded '\0' - so we are okay to use regular constructor.
+      //
+      result = ACAI::ClientString (source);
+   } else {
+      // If string size is not OK, use the  "from buffer" constructor to use
+      // the initial characters up to the allowed maximum.
+      //
+      result = ACAI::ClientString (source, maxSize);
+   }
+
+   return result;
 }
 
 //------------------------------------------------------------------------------

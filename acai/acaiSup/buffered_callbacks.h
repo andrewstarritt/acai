@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/buffered_callbacks.h $
- * $Revision: #2 $
- * $DateTime: 2015/06/22 21:01:58 $
+ * $Revision: #3 $
+ * $DateTime: 2015/11/13 22:25:05 $
  * Last checked in by: $Author: andrew $
  *
  * EPICS buffered callback module for use with Ada, Lazarus and other runtime
@@ -35,7 +35,7 @@
  *   void buffered_event_handler (struct event_handler_args args);
  *   int  buffered_printf_handler (const char *pformat, va_list args);
  *
- * These handers functions are not intended to be called directly by the user
+ * These handler functions are not intended to be called directly by the user
  * program, but instead passed as the callback parameter to the relevent
  * functions within the ca library.  Example:
  *
