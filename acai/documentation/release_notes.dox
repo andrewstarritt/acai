@@ -3,6 +3,16 @@
 
 /** \notes
 
+<h2>1.2.2</h2>
+
+Added put call back notification. The use of put callback on off by
+default.
+
+For enumeration types, the upper display and control limit functions now
+return number of states less one (as opposed to zero).
+
+Function description typo fixes.
+
 <h2>1.2.1</h2>
 
 Change of API

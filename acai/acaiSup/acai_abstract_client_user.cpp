@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.cpp $
- * $Revision: #5 $
- * $DateTime: 2015/06/21 17:41:41 $
+ * $Revision: #6 $
+ * $DateTime: 2016/02/06 21:29:30 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -118,6 +118,13 @@ void ACAI::Abstract_Client_User::connectionUpdate (ACAI::Client* /* sender */,
 //
 void ACAI::Abstract_Client_User::dataUpdate (ACAI::Client* /* sender */,
                                              const bool /* firstUpdate */)
+{
+}
+
+//------------------------------------------------------------------------------
+//
+void ACAI::Abstract_Client_User::putCallbackNotifcation (ACAI::Client* /* sender */,
+                                                    const bool /* isSuccessful */)
 {
 }
 

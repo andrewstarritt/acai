@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.cpp $
- * $Revision: #15 $
- * $DateTime: 2015/11/24 22:22:00 $
+ * $Revision: #19 $
+ * $DateTime: 2016/02/07 06:40:59 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. The class was based on the pv_client
@@ -64,7 +64,7 @@ static const time_t epics_epoch = 631152000;
 // Note: We always get a ref to the client using the args' chanId chid.
 //
 static int Get = 0;
-static int Event = 0;
+static int Sub = 0;
 static int Put = 0;
 
 // Magic numbers embedded within each ACAI::Client and ACAI::Client::PrivateData object.
@@ -145,6 +145,9 @@ public:
    bool request_element_count_defined;
    unsigned int request_element_count;
    ACAI::ClientFieldType data_request_type;
+
+   bool use_put_callback;       // mode of operation control flag
+   bool pending_put_callback;   // indicated waiting for a put callback.
 
    // Cached channel values
    //
@@ -253,6 +256,8 @@ ACAI::Client::PrivateData::PrivateData (ACAI::Client* ownerIn)
    this->priority = 10;
    this->request_element_count_defined = false;
    this->request_element_count = 0;
+   this->use_put_callback = false;
+   this->pending_put_callback = false;
 
    // Set request typer to default, i.e. request as per native filed type.
    //
@@ -297,7 +302,7 @@ const union db_access_val* ACAI::Client::PrivateData::updateBuffer (struct event
 {
    const union db_access_val* pDbr;
    const void* copyArgsDbr;
-   void* values;
+   void* valuesPtr;
    size_t length;
 
    copyArgsDbr = this->argsDbr;      // Save what we currently are referencing, if anything; and
@@ -305,14 +310,14 @@ const union db_access_val* ACAI::Client::PrivateData::updateBuffer (struct event
 
    // Reference to new data values and length, both sans meta data.
    //
-   values = dbr_value_ptr (args->dbr, args->type);
+   valuesPtr = dbr_value_ptr (args->dbr, args->type);
    length = dbr_value_size [args->type] * args->count;
 
    if (length <= sizeof (this->localBuffer)) {
       // Data small enough to fit into out local buffer - just copy.
       // The buffered callback module will free this memory.
       //
-      memcpy ((void*) this->dataValues.genericRef, values, length);
+      memcpy ((void*) this->dataValues.genericRef, valuesPtr, length);
       this->dataValues.genericRef = &this->localBuffer;
       pDbr = (union db_access_val *) args->dbr;
 
@@ -323,7 +328,7 @@ const union db_access_val* ACAI::Client::PrivateData::updateBuffer (struct event
       //
       this->argsDbr = args->dbr;         // copy item ref.
       args->dbr = NULL;                  // clear args item ref
-      this->dataValues.genericRef = values;
+      this->dataValues.genericRef = valuesPtr;
       pDbr = (union db_access_val *) this->argsDbr;
    }
 
@@ -351,6 +356,8 @@ ACAI::Client::Client (const ClientString& pvName)
    //
    this->connectionUpdateEventHandler = NULL;
    this->dataUpdateEventHandler = NULL;
+   this->putCallbackEventHandler = NULL;
+
    this->registeredUsers.clear ();
 
    // Clear user tags - after this, we ignore these.
@@ -507,6 +514,35 @@ ACAI::EventMasks ACAI::Client::eventMask () const
 
 //------------------------------------------------------------------------------
 //
+void ACAI::Client::setUsePutCallback (const bool usePutCallbackIn)
+{
+   this->pd->use_put_callback = usePutCallbackIn;
+}
+
+bool ACAI::Client::usePutCallback () const
+{
+   return this->pd->use_put_callback;
+}
+
+//------------------------------------------------------------------------------
+//
+bool ACAI::Client::isPendingPutCallback () const
+{
+   return this->pd->pending_put_callback;
+}
+
+//------------------------------------------------------------------------------
+//
+void ACAI::Client::clearPendingPutCallback ()
+{
+   if (this->pd->pending_put_callback) {
+      this->pd->pending_put_callback = false;
+      this->callPutCallbackNotifcation (false);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
 bool ACAI::Client::openChannel ()
 {
    bool result = false;
@@ -531,7 +567,7 @@ bool ACAI::Client::openChannel ()
          result = false;
       }
    } else {
-      result = true;   // just ignore empty name - not a failure.
+      result = true;   // just ignore empty name - not deemed a failure.
    }
    return result;
 }
@@ -557,7 +593,9 @@ void ACAI::Client::closeChannel ()
 
       this->pd->channel_id = NULL;
    }
+
    this->pd->connectionStatus = PrivateData::csNull;
+   this->pd->pending_put_callback = false;
 
    // Free any allocated values buffer.
    //
@@ -579,7 +617,7 @@ bool ACAI::Client::reReadChannel () {
    bool result = false;
 
    if (this->isConnected ()) {
-      result = this->readChannel (ACAI::SingleRead);
+      result = this->readSubscribeChannel (ACAI::SingleRead);
    }
    return result;
 }
@@ -810,17 +848,51 @@ ACAI::ClientStringArray ACAI::Client::getStringArray () const
 
 //------------------------------------------------------------------------------
 //
+bool ACAI::Client::putData (const int dbf_type, const unsigned long  count, const void* dataPtr)
+{
+   const chtype type = chtype (dbf_type);
+   int status;
+
+   // Are we connected/do we have a channel id ?
+   //
+   if (!this->isConnected () || !this->pd->channel_id) {
+      return false;
+   }
+
+   // Are we using put callback on this channel ?
+   //
+   if (this->pd->use_put_callback) {
+      // Yes - are we already waiting for a callback ?
+      //
+      if (this->pd->pending_put_callback) {
+         reportError ("putData (%s) write inhibited - pending put callback", this->pd->pv_name);
+         return false;
+      }
+
+      status = ca_array_put_callback (type, count, this->pd->channel_id,
+                                      dataPtr, buffered_event_handler, &Put);
+
+      // If write was successful, set pending flag.
+      //
+      this->pd->pending_put_callback = (status == ECA_NORMAL);
+
+   } else {
+      // No call back - just a regular put.
+      //
+      status = ca_array_put (type, count, this->pd->channel_id, dataPtr);
+   }
+
+   // Convert to a boolean result.
+   //
+   return  (status == ECA_NORMAL);
+}
+
+//------------------------------------------------------------------------------
+//
 bool ACAI::Client::putFloating (const ACAI::ClientFloating value)
 {
    const dbr_double_t dbr_value = (dbr_double_t) value;
-   bool result = false;
-   int status;
-
-   if (this->isConnected () && this->pd->channel_id) {
-      status = ca_array_put (DBF_DOUBLE, 1, this->pd->channel_id, &dbr_value);
-      result = (status == ECA_NORMAL);
-   }
-   return result;
+   return this->putData (DBF_DOUBLE, 1, &dbr_value);
 }
 
 //------------------------------------------------------------------------------
@@ -828,35 +900,18 @@ bool ACAI::Client::putFloating (const ACAI::ClientFloating value)
 bool ACAI::Client::putInteger (const ACAI::ClientInteger value)
 {
    const dbr_long_t dbr_value = (dbr_long_t) value;
-   bool result = false;
-   int status;
-
-   if (this->isConnected () && this->pd->channel_id) {
-      status = ca_array_put (DBF_LONG, 1, this->pd->channel_id, &dbr_value);
-      result = (status == ECA_NORMAL);
-   }
-   return result;
+   return this->putData (DBF_LONG, 1, &dbr_value);
 }
 
 //------------------------------------------------------------------------------
 //
 bool ACAI::Client::putString (const ACAI::ClientString& value)
 {
-   bool result = false;
-   int status;
-
-   // TODO - long String check
-
-   if (this->isConnected () && this->pd->channel_id) {
-      // Convert and truncate ClientString to basic c string.
-      //
-      dbr_string_t dbr_value;
-      snprintf (dbr_value, sizeof (dbr_value), "%s", value.c_str ());
-
-      status = ca_array_put (DBF_STRING, 1, this->pd->channel_id, dbr_value);
-      result = (status == ECA_NORMAL);
-   }
-   return result;
+   // Convert and truncate ClientString to basic c string.
+   //
+   dbr_string_t dbr_value;
+   snprintf (dbr_value, sizeof (dbr_value), "%s", value.c_str ());
+   return this->putData (DBF_STRING, 1, dbr_value);
 }
 
 
@@ -864,14 +919,8 @@ bool ACAI::Client::putString (const ACAI::ClientString& value)
 //
 bool ACAI::Client::putFloatingArray (const ACAI::ClientFloating* valueArray, const unsigned int count)
 {
-   bool result = false;
-   int status;
-
-   if (this->isConnected () && this->pd->channel_id) {
-      status = ca_array_put (DBF_DOUBLE, count, this->pd->channel_id, valueArray);
-      result = (status == ECA_NORMAL);
-   }
-   return result;
+   // We know ACAI::ClientFloating is double - no element by element conversion required.
+   return this->putData (DBF_DOUBLE, count, valueArray);
 }
 
 //------------------------------------------------------------------------------
@@ -889,14 +938,8 @@ bool ACAI::Client::putFloatingArray (const ACAI::ClientFloatingArray& valueArray
 //
 bool ACAI::Client::putIntegerArray (const ACAI::ClientInteger* valueArray, const unsigned int count)
 {
-   bool result = false;
-   int status;
-
-   if (this->isConnected () && this->pd->channel_id) {
-      status = ca_array_put (DBF_LONG, count, this->pd->channel_id, valueArray);
-      result = (status == ECA_NORMAL);
-   }
-   return result;
+   // We know ACAI::ClientInteger is long - no element by element conversion required.
+   return this->putData (DBF_LONG, count, valueArray);
 }
 
 //------------------------------------------------------------------------------
@@ -909,38 +952,28 @@ bool ACAI::Client::putIntegerArray (const ACAI::ClientIntegerArray& valueArray)
    return this->putIntegerArray (podPtr ,count);
 }
 
-
 //------------------------------------------------------------------------------
 //
 bool ACAI::Client::putStringArray (const ACAI::ClientString* valueArray, const unsigned int count)
 {
    bool result = false;
-   int status;
 
-   if (this->isConnected () && this->pd->channel_id) {
-
-      // Convert and truncate ClientStrings array to basic c strings.
-      //
-      dbr_string_t* buffer = NULL;
-
-      buffer = (dbr_string_t *) calloc ((size_t) count, sizeof (dbr_string_t));
-      if (buffer) {
-         for (unsigned int j = 0; j < count; j++) {
-            snprintf (buffer [j], sizeof (dbr_string_t), "%s",
-                      valueArray [j].c_str ());
-         }
-
-         status = ca_array_put (DBF_STRING, count, this->pd->channel_id, buffer);
-         result = (status == ECA_NORMAL);
-         free ((void *) buffer);
-      } else {
-         // report error
+   // Convert and truncate ClientStrings array to basic c strings.
+   //
+   dbr_string_t* buffer = NULL;
+   buffer = (dbr_string_t *) calloc ((size_t) count, sizeof (dbr_string_t));
+   if (buffer) {
+      for (unsigned int j = 0; j < count; j++) {
+         snprintf (buffer [j * sizeof (dbr_string_t)], sizeof (dbr_string_t), "%s",
+                   valueArray [j].c_str ());
       }
+      result = this->putData (DBF_STRING, count, buffer);
+      free ((void *) buffer);
+   } else {
+      // report error
    }
    return result;
 }
-
-
 
 //------------------------------------------------------------------------------
 //
@@ -1227,7 +1260,7 @@ bool ACAI::Client::processingAsLongString () const
 //------------------------------------------------------------------------------
 // Get initial data and subscribe for updates.
 //
-bool ACAI::Client::readChannel (const ACAI::ReadModes readMode)
+bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
 {
    static const unsigned long default_max_array_size = 16384;
 
@@ -1369,7 +1402,7 @@ bool ACAI::Client::readChannel (const ACAI::ReadModes readMode)
       //
       status = ca_create_subscription (update_type, count, this->pd->channel_id,
                                        this->pd->eventMask, buffered_event_handler,
-                                       &Event, &this->pd->event_id);
+                                       &Sub, &this->pd->event_id);
 
       if (status != ECA_NORMAL) {
          reportError ("ca_create_subscription (%s) failed (%s)",
@@ -1541,6 +1574,17 @@ void ACAI::Client::updateHandler (struct event_handler_args* args)
          ASSIGN_STATUS (pDbr->cenmval);
          CLEAR_META_DATA;
          tpd->num_states = pDbr->cenmval.no_str;
+
+         // Set up sensible display/control upper limit.
+         //
+         if (this->isAlarmStatusPv ()) {
+            tpd->upper_disp_limit = ALARM_NSTATUS - 1.0;
+            tpd->upper_ctrl_limit = ALARM_NSTATUS - 1.0;
+         } else {
+            tpd->upper_disp_limit = tpd->num_states - 1.0;
+            tpd->upper_ctrl_limit = tpd->num_states - 1.0;
+         }
+
          memcpy (tpd->enum_strings, pDbr->cenmval.strs,
                  sizeof (tpd->enum_strings));
          break;
@@ -1626,6 +1670,7 @@ void ACAI::Client::connectionHandler (struct connection_handler_args* args)
          if (debug >= 4) {
             reportError ("PV connected %s", this->pd->pv_name);
          }
+
          this->pd->connectionStatus = PrivateData::csConnected;
          // Relies on our definitions being consistant.
          this->pd->host_field_type = (ACAI::ClientFieldType) ca_field_type (this->pd->channel_id);
@@ -1638,7 +1683,7 @@ void ACAI::Client::connectionHandler (struct connection_handler_args* args)
 
          this->pd->data_element_count = 0;                // no data yet
          this->pd->is_first_update = true;                // initial request.
-         this->readChannel (this->pd->readMode);          // read and optionally subscribe.
+         this->readSubscribeChannel (this->pd->readMode); // read and optionally subscribe.
          this->callConnectionUpdate ();
          break;
 
@@ -1647,6 +1692,7 @@ void ACAI::Client::connectionHandler (struct connection_handler_args* args)
             reportError ("PV disconnected %s", this->pd->pv_name);
          }
 
+         this->pd->pending_put_callback = false;          // clear
          this->pd->connectionStatus = PrivateData::csDisconnected;
 
          // We unsubscribe here to avoid a duplicate subscriptions if/when we
@@ -1674,14 +1720,11 @@ void ACAI::Client::eventHandler (struct event_handler_args* args)
 {
    // Valid channel id - need some more event specific checks.
    //
-   if (args->status == ECA_NORMAL) {
+   // Treat Get and Sub(scription) events the same.
+   //
+   if ((args->usr == &Get) || (args->usr == &Sub)) {
 
-      if (debug >= 4) {
-         reportError ("PV event (%s) first %d", this->pd->pv_name,
-                      this->pd->is_first_update);
-      }
-
-      if ((args->usr == &Get) || (args->usr == &Event)) {
+      if (args->status == ECA_NORMAL) {
 
          if (args->dbr) {
             this->updateHandler (args);
@@ -1690,17 +1733,26 @@ void ACAI::Client::eventHandler (struct event_handler_args* args)
                          this->pd->pv_name);
          }
 
-      } else if (args->usr == &Put) {
-         // place holder for put callbacks
+      } else {
+         reportError ("event_handler Get/Sub (%s) error (%s)",
+                       this->pd->pv_name, ca_message (args->status));
+      }
+
+   } else if (args->usr == &Put) {
+      if (this->pd->pending_put_callback) {
+         // Clear pending flag.
+         //
+         this->pd->pending_put_callback = false;
+         this->callPutCallbackNotifcation (args->status == ECA_NORMAL);
 
       } else {
-         reportError ("event_handler (%s) unexpected args->usr",
+         reportError ("event_handler (%s) unexpected put call back",
                       this->pd->pv_name);
       }
 
    } else {
-      reportError ("event_handler (%s) error (%s)",
-                   this->pd->pv_name, ca_message (args->status));
+      reportError ("event_handler (%s) unexpected args->usr",
+                   this->pd->pv_name);
    }
 }
 
@@ -1735,6 +1787,20 @@ ACAI::Client::UpdateHandlers ACAI::Client::updateHandler () const
 
 //------------------------------------------------------------------------------
 //
+void ACAI::Client::setPutCallbackHandler (PutCallbackHandlers putCallbackHandler)
+{
+   this->putCallbackEventHandler = putCallbackHandler;
+}
+
+//------------------------------------------------------------------------------
+//
+ACAI::Client::PutCallbackHandlers ACAI::Client::putCallbackHandler () const
+{
+   return this->putCallbackEventHandler;
+}
+
+//------------------------------------------------------------------------------
+//
 void ACAI::Client::connectionUpdate (const bool)
 {
    // place holder - not quite a pure abstract function
@@ -1746,6 +1812,14 @@ void ACAI::Client::dataUpdate (const bool)
 {
    // place holder - not quite a pure abstract function
 }
+
+//------------------------------------------------------------------------------
+//
+void ACAI::Client::putCallbackNotifcation (const bool)
+{
+   // place holder - not quite a pure abstract function
+}
+
 
 //------------------------------------------------------------------------------
 //
@@ -1807,7 +1881,32 @@ void ACAI::Client::callDataUpdate (const bool isFirstUpdateIn)
    }
 }
 
-// TODO: Must should mutex access to this.
+//------------------------------------------------------------------------------
+//
+void ACAI::Client::callPutCallbackNotifcation (const bool isSuccessfulIn)
+{
+   // First update: This is done FIRST in order to ensure that the object performs
+   // any self necessary updates prior to notifiying other users of the change.
+   //
+   // Call hook function - this is a dispatching call.
+   //
+   this->putCallbackNotifcation (isSuccessfulIn);
+
+   // Second update: Call registered users.
+   //
+   ITERATE (RegisteredUsers, this->registeredUsers, user) {
+      (*user)->putCallbackNotifcation (this, isSuccessfulIn);
+   }
+
+   // Third update: Call event handler.
+   //
+   if (this->putCallbackEventHandler) {
+      this->putCallbackEventHandler (this, isSuccessfulIn);
+   }
+}
+
+
+// TODO: Must/should mutex access to this ??
 static struct ca_client_context*  acai_context = NULL;
 
 //------------------------------------------------------------------------------
@@ -1915,6 +2014,7 @@ type ACAI::Client::getName () const                                  \
 }
 
 
+//             type                        getName             member                 when_not_connected
 GET_META_DATA (ACAI::ClientAlarmSeverity,  alarmSeverity,      severity,              ClientDisconnected)
 GET_META_DATA (ACAI::ClientAlarmCondition, alarmStatus,        status,                   ClientAlarmNone)
 GET_META_DATA (int,                        precision,          precision,                              0)

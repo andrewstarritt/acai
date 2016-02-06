@@ -10,10 +10,10 @@ overused recursive acronyms.
 
 ACAI provides a thin-ish C++ EPICS Channel Access abstraction around the
 basic Channel Access API.
-This has been developed on and for Linux, but should take minimal effort
+It has been developed on and for Linux, but should take minimal effort
 to modify the code for other environments.
 
-The main ACAI::Client class was developed fron the struct sCA_Client type
+The main ACAI::Client class was developed from the struct sCA_Client type
 and associated functions defined in pv_client.h/pv_client.c out of the kryten
 application.
 
@@ -32,7 +32,7 @@ See the GNU General Public License for more details.
 <h2>Using ACAI - Getting started</h2>
 
 First off, you will need to to include the following header files in your code.
-Technically you get the first include via the second include, but I like to be
+Currently you get the first include via the second include, but I like to be
 explicit.
 <pre>
   \#include <acai_client_types.h>
@@ -50,12 +50,12 @@ other functions necessary to use the ACAI module.
 ACAI does not expose the under-lying EPICS context, but does it provide a means
 for other threads to attach to the ACAI context.
 
-NOTE: This version of ACAI does not support multiple contexts is any fashsion
+NOTE: This version of ACAI does not support multiple contexts is any way
 what-so-ever. The initialise, attach, poll and finalise functions are static
 functions that apply to <i>the</i> ACAI context, as opposed to be some kind of
 context object related methods.
 
-Next create a client object, and open the channel
+Next, create a client object, and open the channel
 <pre>
   ACAI::Client pv ("SR11MCM01:CURRENT_MONITOR");
   pv.openChannel();
@@ -65,9 +65,8 @@ Next create a client object, and open the channel
 </pre>
 
 The openChannel function creates a channel and when the connection event occurs
-(provided the connection it is a successful) is processed, it then  requests a
-channel read (with all meta data) and also subscribes for time-based channel data
-updates.
+(provided the connection it is a successful) it then requests a channel read
+(with all meta data) and also subscribes for time-based channel data updates.
 
 Although ACAI uses EPICS callbacks internally, the callbacks are buffered and must
 be processed by calling <i>ACAI::Client::poll</i> from the nominated thread.
@@ -78,9 +77,10 @@ This avoids the need for any mutex locking when dealing with ACAI objects and/or
 If that data is passed on to any third party threads, then you will need to manage that.
 See notes on multiple threads below.
 
-All ACAI applications must have some sort of event loop.
-The event loop should must contain a small delay, very much application dependent,
-but typically 20mS to 50mS, e.g.:
+The ACAI library has been designed to be intrinsically asynchronous, and all ACAI
+applications must have some kind of event loop.
+The event loop should must contain a small delay, which very much application
+dependent, but typically 20mS to 50mS, e.g.:
 <pre>
   <b>while</b> (true) {
      epicsThreadSleep (0.02);  // 20mSec
@@ -106,13 +106,14 @@ These are, using scalar float value as example:
 a) within the event loop, just read the data, if available, out of the client object;
 <pre>
      <b>if</b> (pv.dataIsAvailable()) {
-        double x = pv.getFloating ();
+        double x = pv.getFloating();
         // do something with x
      }
  
 
 </pre>
-Note: pv.dataIsAvailable() returns true afetr channel has connected and the first PV data has been received.
+Note: pv.dataIsAvailable() returns true after channel has connected and the first
+PV data has been received.
 
 b) define and setup a connection and/or data update handler, e.g.
 <pre>
@@ -131,7 +132,7 @@ b) define and setup a connection and/or data update handler, e.g.
 </pre>
 
 c) derive a class based on ACAI::Client and override the ACAI::Client::connectionUpdate
-or ACAI::Client::dataUpdate functions;
+or ACAI::Client::dataUpdate or ACAI::Client::putCallbackNotifcation functions;
 
 <pre>
   <b>class</b> MyClient : <b>public</b> ACAI::Client {
@@ -152,7 +153,7 @@ or ACAI::Client::dataUpdate functions;
 
 d) use an ACAI::Abstract_Client_User class - refer to class documentation.
 
-Note: The various callbacks and polymorphic notifcation function calls are all
+Note: The various callbacks and polymorphic notification function calls are all
 executed in the thread that calls the poll function irrespective of which thread(s)
 created the ACAI::Client object and/or called the openChannel function.
 
@@ -170,18 +171,19 @@ replacements for the afore mentioned camonitor program.
 
 <h2>Multiple Threads</h2>
 Using the ACAI::Client::attach function, it is possible for other threads to
-attach the the ACAI context and then go on to create client objects and perform
-operations on the object (such as openChannel which in turn call ca_create_channel).
+attach to the ACAI context and then go on to create client objects and perform
+operations on the object (such as openChannel which in turn calls ca_create_channel).
 However there <b>is no internal mutex protection</b> of the state/data of a client
 object, so it is the user's responsibility to ensure thread safe operations, particularly
-with respect to ACAI::Client_Set objects and hence Abstract_Client_User register/deregister
-functions.
+with respect to ACAI::Client_Set objects and hence with respect to Abstract_Client_User
+register/deregister functions.
 
 Also, as stated, the internal updating of the client object and the callbacks/polymorphic
 functions are executed by the thread that calls poll (), so any other thread
 reading data from a client object may get inconsistant data; and even where the value
 is atomic/self consistant (i.e. probably okay for short, integer, enum) the associated
-timestamp and severity/status data could be from the previous/next update.
+timestamp and severity/status data could be from the previous/next update depending on
+the order this data is accessed.
 
 So in general, the creation and setup of client objects may be hand-balled off to
 another thread, but the general opertation (polling and data extraction) is best

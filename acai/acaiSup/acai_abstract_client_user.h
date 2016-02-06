@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.h $
- * $Revision: #10 $
- * $DateTime: 2015/10/31 16:08:49 $
+ * $Revision: #11 $
+ * $DateTime: 2016/02/06 21:29:30 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a base class that
@@ -118,6 +118,14 @@ protected:
    // Called by Client::callDataUpdate
    //
    virtual void dataUpdate (ACAI::Client* sender, const bool firstUpdate);
+
+   /// This is a hook function. It should not / can not be called from outside
+   /// of ACAI, but may be overriden by Abstract_Client_User sub classes to allow
+   /// them to handle put callback notifications for all registered ACAI::Clients.
+   ///
+   // Called by Client::callPutCallbackNotifcation
+   //
+   virtual void putCallbackNotifcation (ACAI::Client* sender, const bool isSuccessful);
 
 private:
    // Make non-copyable.

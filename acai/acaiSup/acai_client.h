@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.h $
- * $Revision: #18 $
- * $DateTime: 2015/11/13 22:13:02 $
+ * $Revision: #22 $
+ * $DateTime: 2016/02/07 06:40:59 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. 
@@ -46,9 +46,9 @@ class Abstract_Client_User;    // differed declaration.
 /// An ACAI::Client object has number of attributes, but of primary importance is it's
 /// process variable (PV) name and this is the only attribute that may be set during
 /// construction. All other attributes have their own set and get functions. The default
-/// settings for these other attributes often suitable and as such need not be changed.
+/// settings for these other attributes are often suitable and as such need not be changed.
 ///
-/// It should be noted that many attributes only take effect when Client::openChannel
+/// It should be noted that many of these attributes only take effect when Client::openChannel
 /// function is called (which calls ca_create_channel) or when a successfull connection
 /// occurs (when ca_array_get_callback and ca_create_subscription are called).
 ///
@@ -64,25 +64,26 @@ class Abstract_Client_User;    // differed declaration.
 /// the loop", i.e. to the PV server (IOC) and back again as an event update before the
 /// object's data is updated and available to the get functions.
 ///
-/// ACAI Client users may be notified of connection and/or update events in one
-/// of three ways. These are (and occur) in the order listed below:
+/// ACAI Client users may be notified of connection, update and/or put callback events
+/// in one of three ways. These are (and occur) in the order listed below:
 ///
-/// a) Override the class Client::connectionUpdate and Client::dataUpdate virtual functions
-///    in a derived class;
+/// a) Override the class Client::connectionUpdate, Client::dataUpdate and/or
+///    Client::putCallbackNotifcation virtual functions in a derived class;
 ///
 /// b) Derive a class from ACAI::Abstract_Client_User, override the class
-///    Abstract_Client_User::connectionUpdate and Abstract_Client_User::dataUpdate
-///    functions and register clients of interest; and/or
+///    Abstract_Client_User::connectionUpdate, Abstract_Client_User::dataUpdate
+///    and/or Abstract_Client_User::putCallbackNotifcation virtual functions and
+///    register clients of interest; and/or
 ///
-/// c) Invoke Client::setConnectionHandler and Client::setUpdateHandler
-///    to definea traditional callback handlers function (only one connection
-///    and one event handler per client);
+/// c) Invoke Client::setConnectionHandler, Client::setUpdateHandler and/or
+///    Client::setPutCallbackHandler to define a traditional callback handlers
+///    function (only one connection and one event handler per client);
 ///
 /// It is intended that appications may use the ACAI::Client class instances directly
 /// or derive their own client classes using ACAI::Client as a base class. A number
 /// of functions have been declared virtual specifically to support this.
-/// The virtual functions are Client::~Client, Client::getString, Client::connectionUpdate
-/// and Client::dataUpdate
+/// The virtual functions are Client::~Client, Client::getString, Client::connectionUpdate,
+/// Client::dataUpdate and Client::putCallbackNotifcation,
 ///
 class ACAI_SHARED_CLASS Client {
 public:
@@ -92,16 +93,22 @@ public:
    // considered as different and distinct types.
    //
    /// Defines the traditional connection handler function signature.
-   /// This call back is specified by Client::setConnectionHandler and obtained
-   /// by Client::connectionHandler.
+   /// This call back is specified by ACAI::Client::setConnectionHandler and
+   /// obtained by ACAI::Client::connectionHandler.
    ///
    typedef void (*ConnectionHandlers) (ACAI::Client* client, const bool isConnected);
 
    /// Defines the traditional event/data update handler function signature.
-   /// This call back is set specified Client::setUpdateHandler and obtained by
-   /// Client::updateHandler.
+   /// This call back is set specified ACAI::Client::setUpdateHandler and
+   /// obtained by ACAI::Client::updateHandler.
    ///
    typedef void (*UpdateHandlers)     (ACAI::Client* client, const bool firstUpdate);
+
+   /// Defines the traditional put callback notification handler function signature.
+   /// This call back is set specified ACAI::Client::setPutCallbackHandler and
+   /// obtained by ACAI::Client::putCallbackHandler.
+   ///
+   typedef void (*PutCallbackHandlers)  (ACAI::Client* client, const bool isSuccessful);
 
 
    // static functions ---------------------------------------------------------
@@ -277,6 +284,35 @@ public:
    ///
    ACAI::EventMasks eventMask () const;
 
+   /// Determines whether ca_array_put() or ca_array_put_callback() is used
+   /// when writing data to a channel. The default is false i.e. no callbacks.
+   ///
+   /// Note: This takes effect the next time putFloating, putInteger etc. is called.
+   ///
+   void setUsePutCallback (const bool usePutCallback);
+
+   /// Returns the current client using put callbacks status.
+   ///
+   bool usePutCallback () const;
+
+   /// Indicates if the client is currently waiting for a put call back.
+   /// When usePutCallback and pendingPutCallback both true, further
+   /// puts to the channel are inhibited.
+   ///
+   bool isPendingPutCallback () const;
+
+   /// Allows the pending status to be cleared so that further put callbacks
+   /// may be performed. This should be used with care as a callback from a put
+   /// is associated with the last put, but may infact really be in reponse to
+   /// a previous put.
+   ///
+   /// Note: if there is a pending put callback, then this clerar function triggers
+   /// the put callback notifications (success is false).
+   ///
+   /// Note: there is no automatic clear pending put call back notification timeout.
+   ///
+   void clearPendingPutCallback ();
+
    /// Create channel, and once connected and read data (with all meta data) and
    /// optionally subscribe for updates. Returns true if create channel okay.
    ///
@@ -293,7 +329,8 @@ public:
    /// When a channel is connected, this function causes the data to be re-read once.
    /// If not connected this function does nothing.
    /// This intented for channels opened with read mode set to SingleRead (or NoRead)
-   /// however this will force a reread (including meta data) of a subscribing channel.
+   /// however this will also force a reread (including meta data) of a subscribing
+   /// channel.
    ///
    bool reReadChannel ();
 
@@ -324,7 +361,7 @@ public:
    /// units typically specified in a record's EGU field. When the channel is not
    /// connected, the function returns "".
    ///
-   ClientString units () const;
+   ACAI::ClientString units () const;
 
    /// For a connected channel, this fuction returns the channel's lower operating
    /// range typically specified in a record's LOPR field. When the channel is
@@ -380,7 +417,7 @@ public:
    /// Note: this will be the EPICS gateway's hostname or IP address as opposed to
    /// the IOC's hostname or IP address.
    ///
-   ClientString hostName () const;
+   ACAI::ClientString hostName () const;
 
    /// Returns the nuber of PV array elements as defined by PV server (IOC).
    /// When the channel is not connected, the function returns 0.
@@ -408,7 +445,7 @@ public:
    ///
    ACAI::ClientFieldType dataFieldType () const;
 
-   /// Returns the data element, e.g. DBF_LONG = 4
+   /// Returns the data element size, e.g. DBF_LONG = 4
    /// When the channel is not connected, the function returns 0.
    ///
    unsigned int dataElementSize () const;
@@ -420,7 +457,7 @@ public:
    
    /// Returns the channel channel alarm severity. This maps directly to the regular
    /// channel severity as provided by Channel Access, but for a disconnected channel
-   /// this function returns ACAI::ClientDisconnected which is "more sever" than
+   /// this function returns ACAI::ClientDisconnected which is "more sevear" than
    /// ACAI::ClientSevInvalid.
    ///
    ACAI::ClientAlarmSeverity alarmSeverity () const;
@@ -495,7 +532,6 @@ public:
    ///
    ACAI::ClientStringArray   getStringArray   () const;
 
-   // MAYBE: Add put_callback on/off switch or optional parameter??
    /// Write scaler value to channel.
    /// On the wire (via CA protocol) we use DBF_DOUBLE format, not the PV's native field format.
    ///
@@ -504,13 +540,13 @@ public:
    /// Write scaler value to channel.
    /// On the wire (via CA protocol) we use DBF_LONG format, not the PV's native field format.
    ///
-   bool putInteger  (const ACAI::ClientInteger  value);
+   bool putInteger (const ACAI::ClientInteger value);
 
    /// Write scaler value to channel.
    /// On the wire (via CA protocol) we use DBF_STRING format, not the PV's native field format.
    /// The string is truncated if necessary.
    ///
-   bool putString   (const ACAI::ClientString&  value);   // tuncated if needs be.
+   bool putString (const ACAI::ClientString& value);   // tuncated if needs be.
 
    // puts using std::vector types.
    //
@@ -544,8 +580,9 @@ public:
    /// Others (like sscan.FAZE) are not addressed here.
    ///
    /// Of course, if some one creates a portable CA server and defines a PV of
-   /// the form {xxxx}.STAT then this function will not do what might be expected,
-   /// but if they do, shame on them for being perverse.
+   /// the form {xxxx}.STAT that does not provide standard status then this
+   /// function will not do what might be expected, but if they do, shame on
+   /// them for being perverse.
    ///
    ACAI::ClientString getEnumeration (int state) const;
 
@@ -585,7 +622,7 @@ public:
    const void* rawDataPointer (size_t& count,
                                const size_t offset = 0) const;
 
-   /// This function modify sets the channel's include units attrbute.
+   /// This function modifies/sets the channel's include units attrbute.
    /// The default attribute value when the client object is constructed is false.
    /// This attribute modifies the getString and getStringArray functionality.
    //
@@ -616,7 +653,7 @@ public:
    /// Only one callback handler per client can be set at any one time.
    /// Note: Last in - best dressed!
    ///
-   /// See Client::updateHandler.
+   /// See ACAI::Client::updateHandler.
    ///
    /// Also see Client::dataUpdate and Abstract_Client_User::dataUpdate functions
    /// for alternative notification methods.
@@ -626,6 +663,24 @@ public:
    /// Returns the client's update handler function reference.
    ///
    UpdateHandlers updateHandler () const;
+
+   /// Set traditional callback handler, which is called in response
+   /// to a put callback event .
+   ///
+   /// Only one callback handler per client can be set at any one time.
+   /// Note: Last in - best dressed!
+   ///
+   /// See ACAI::Client::putCallbackHandler.
+   ///
+   /// Also see Client::putCallbackUpdate and Abstract_Client_User::putCallbackUpdate
+   /// functions for alternative notification methods.
+   //
+   void setPutCallbackHandler (PutCallbackHandlers putCallbackHandler);
+
+   /// Returns the client's update handler function reference.
+   ///
+   PutCallbackHandlers putCallbackHandler () const;
+
 
    /// An int tag: not used by the class per se but available for access by client
    /// users and call back handlers to use and abuse as they see fit.
@@ -657,6 +712,13 @@ protected:
    ///
    virtual void dataUpdate (const bool firstUpdate);
 
+   /// This is a hook functions. It should not / can not be called from
+   /// outside of the ACAI::Client, but may be overriden by a sub-classes to
+   /// allow it to handle put callback notifcations.
+   /// Note: This function is called prior to any putCallback callback handlers.
+   ///
+   virtual void putCallbackNotifcation (const bool isSuccessful);
+
    /// Determines if this is a record's status PV.
    /// Essentialy checks if the PV name ends with ".STAT"
    ///
@@ -680,6 +742,7 @@ private:
    //
    ConnectionHandlers connectionUpdateEventHandler;
    UpdateHandlers dataUpdateEventHandler;
+   PutCallbackHandlers putCallbackEventHandler;
 
    // Registered users.
    //
@@ -691,7 +754,8 @@ private:
    // functions and call back event handlers.
    //
    void callConnectionUpdate ();
-   void callDataUpdate (const bool firstUpdateIn);
+   void callDataUpdate (const bool firstUpdate);
+   void callPutCallbackNotifcation (const bool isSuccessful);
 
    /// Manage Client/Abstract_Client_User associations.
    ///
@@ -699,12 +763,16 @@ private:
    void deregisterUser (ACAI::Abstract_Client_User* user);
    void removeClientFromAllUserLists ();
 
-   bool readChannel (const ACAI::ReadModes readMode);
+   bool readSubscribeChannel (const ACAI::ReadModes readMode);
    void unsubscribeChannel ();
 
    void connectionHandler (struct connection_handler_args* args);
    void updateHandler (struct event_handler_args* args);
    void eventHandler (struct event_handler_args* args);
+
+   // Utility put data wrapper function.
+   //
+   bool putData (const int dbf_type, const unsigned long  count, const void* dataPtr);
 
    // Validates the channel id. If valid, returns referance to a ACAI::Client
    // object otherwise returns NULL.

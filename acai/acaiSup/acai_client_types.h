@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.h $
- * $Revision: #19 $
- * $DateTime: 2015/11/24 22:22:00 $
+ * $Revision: #21 $
+ * $DateTime: 2016/01/03 20:11:16 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -40,7 +40,7 @@ namespace ACAI {
 
 /// Defines common ACAI macros, types and pseudo EPICS CA types.
 ///
-#define ACAI_VERSION_STRING     "ACAI 1.2.1"
+#define ACAI_VERSION_STRING     "ACAI 1.2.2"
 
 // Place holder to deal with shared stuff.
 // Not really important for Linux.
