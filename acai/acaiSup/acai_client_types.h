@@ -1,11 +1,11 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.h $
- * $Revision: #21 $
- * $DateTime: 2016/01/03 20:11:16 $
+ * $Revision: #22 $
+ * $DateTime: 2016/02/20 14:26:40 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
  *
- * Copyright (C) 2013,2014,2015  Andrew C. Starritt
+ * Copyright (C) 2013,2014,2015,2016  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ namespace ACAI {
 
 /// Defines common ACAI macros, types and pseudo EPICS CA types.
 ///
-#define ACAI_VERSION_STRING     "ACAI 1.2.2"
+#define ACAI_VERSION_STRING     "ACAI 1.2.3"
 
 // Place holder to deal with shared stuff.
 // Not really important for Linux.

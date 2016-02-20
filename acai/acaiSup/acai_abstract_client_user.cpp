@@ -1,11 +1,11 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.cpp $
- * $Revision: #6 $
- * $DateTime: 2016/02/06 21:29:30 $
+ * $Revision: #7 $
+ * $DateTime: 2016/02/20 14:26:40 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
  *
- * Copyright (c) 2014,2015  Andrew C. Starritt
+ * Copyright (c) 2014,2015,2016  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,6 +87,21 @@ bool ACAI::Abstract_Client_User::openRegisteredChannels ()
 void ACAI::Abstract_Client_User::closeRegisteredChannels ()
 {
     this->registeredClients->closeAllChannels();
+}
+
+//------------------------------------------------------------------------------
+//
+bool ACAI::Abstract_Client_User::areAllRegisteredChannelsReady ()
+{
+   return this->registeredClients->areAllChannelsReady ();
+}
+
+//------------------------------------------------------------------------------
+//
+bool ACAI::Abstract_Client_User::waitAllRegisteredChannelsReady (const double timeOut,
+                                                                 const double pollInterval)
+{
+   return this->registeredClients->waitAllChannelsReady (timeOut, pollInterval);
 }
 
 //------------------------------------------------------------------------------

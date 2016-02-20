@@ -1,11 +1,11 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_set.h $
- * $Revision: #7 $
- * $DateTime: 2015/10/31 16:08:49 $
+ * $Revision: #8 $
+ * $DateTime: 2016/02/20 14:26:40 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a basic client container.
  *
- * Copyright (C) 2014,2015  Andrew C. Starritt
+ * Copyright (C) 2014,2015,2016  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,8 +39,6 @@ class Abstract_Client_User;     // differed declaration
 /// iterateChannels function signature.
 //
 typedef void (*IteratorFunction) (ACAI::Client* client, void* context);
-
-// Client_Depot ??
 
 /// \brief The ACAI::Client_Set class provides a simple client reference (or pointer) container.
 ///
@@ -119,6 +117,12 @@ public:
    ///
    void closeAllChannels ();
 
+   /// Conveniance function to test all channels ready. For ReadModes
+   /// Subscribe (the default) and SingleRead this means dataIsAvailable()
+   /// is true, while for read mode NoRead the test is isConnected() is true.
+   ///
+   bool areAllChannelsReady ();
+
    /// Registers all the clients with the specified client user.
    ///
    void registerAllClients (ACAI::Abstract_Client_User* user);
@@ -126,6 +130,14 @@ public:
    /// Deregisters all the clients from the specified client user.
    ///
    void deregisterAllClients (ACAI::Abstract_Client_User* user);
+
+   /// This function performs a delay poll cycle until either all the channels are
+   /// ready or the total delay time exceeds the specified timeout.
+   /// Returns true if all channes are currently connected.
+   /// The timeOut and pollInterval are specified in seconds.
+   /// The pollInterval is effectibely contained to be >= 0.001s (1 mSec).
+   ///
+   bool waitAllChannelsReady (const double timeOut, const double pollInterval = 0.05);
 
 private:
    // Make non-copyable.
@@ -136,6 +148,8 @@ private:
    typedef std::set<ACAI::Client*> ClientSets;
    ClientSets clientList;
    bool deepDestruction;
+
+   bool clientIsReady (ACAI::Client* client);
 };
 
 }

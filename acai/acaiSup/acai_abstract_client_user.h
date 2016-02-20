@@ -1,12 +1,12 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.h $
- * $Revision: #11 $
- * $DateTime: 2016/02/06 21:29:30 $
+ * $Revision: #12 $
+ * $DateTime: 2016/02/20 14:26:40 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a base class that
  * supports application classes that use this library.
  *
- * Copyright (C) 2014,2015  Andrew C. Starritt
+ * Copyright (C) 2014,2015,2016  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,6 +92,20 @@ public:
    /// Conveniance functions to close all currently registered channels.
    ///
    void closeRegisteredChannels ();
+
+   /// Conveniance function to test all channels ready. For ReadModes
+   /// Subscribe (the default) and SingleRead this means dataIsAvailable()
+   /// is true, while for read mode NoRead the test is isConnected() is true.
+   ///
+   bool areAllRegisteredChannelsReady ();
+
+   /// This function performs a delay poll cycle until either all the channels are
+   /// ready or the total delay time exceeds the specified timeout.
+   /// Returns true if all channes are currently connected.
+   /// The timeOut and pollInterval are specified in seconds.
+   /// The pollInterval is effectibely contained to be >= 0.001s (1 mSec).
+   ///
+   bool waitAllRegisteredChannelsReady (const double timeOut, const double pollInterval = 0.05);
 
    /// Iterates over all registered clients and invokes the specified function.
    /// The iteration order is currently arbitary, and depends upon the embedded

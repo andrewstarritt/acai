@@ -1,11 +1,11 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_set.cpp $
- * $Revision: #6 $
- * $DateTime: 2015/07/21 22:48:50 $
+ * $Revision: #7 $
+ * $DateTime: 2016/02/20 14:26:40 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
  *
- * Copyright (C) 2014,2015  Andrew C. Starritt
+ * Copyright (C) 2014,2015,2016  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,8 @@
  * PO Box 3118, Prahran East, Victoria 3181, Australia.
  *
  */
+
+#include <epicsThread.h>
 
 #include <acai_abstract_client_user.h>
 #include <acai_client_set.h>
@@ -139,6 +141,69 @@ void ACAI::Client_Set::closeAllChannels ()
          client->closeChannel ();
       }
    }
+}
+
+//------------------------------------------------------------------------------
+// Maybe: make a client function.
+//
+bool ACAI::Client_Set::clientIsReady (ACAI::Client* client)
+{
+   bool result = false;
+
+   if (client) {
+      ACAI::ReadModes rm = client->readMode ();
+
+      switch (rm) {
+         case ACAI::NoRead:
+            result = client->isConnected ();
+            break;
+
+         case ACAI::SingleRead:
+         case ACAI::Subscribe:
+            result = client->dataIsAvailable();
+            break;
+
+         default:
+            // What's best error handling policy here?
+            //
+            result = client->isConnected ();
+            break;
+      }
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+bool ACAI::Client_Set::areAllChannelsReady ()
+{
+   bool result = true;
+
+   ITERATE (ACAI::Client_Set::ClientSets, this->clientList, clientRef) {
+      ACAI::Client* client = *clientRef;
+      bool clientReady = this->clientIsReady (client);
+      if (!clientReady) {
+         result= false;    // Only 1 client need not be ready.
+         break;
+      }
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+bool ACAI::Client_Set::waitAllChannelsReady (const double timeOut, const double pollInterval)
+{
+   bool result = this->areAllChannelsReady ();
+   double total = 0.0;
+   while (!result && (total < timeOut)) {
+      epicsThreadSleep (pollInterval);
+      total += (pollInterval >= 0.001 ? pollInterval : 0.001);
+      ACAI::Client::poll ();
+      result = this->areAllChannelsReady ();
+   }
+   return result;
 }
 
 //------------------------------------------------------------------------------
