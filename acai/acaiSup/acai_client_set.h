@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_set.h $
- * $Revision: #8 $
- * $DateTime: 2016/02/20 14:26:40 $
+ * $Revision: #9 $
+ * $DateTime: 2016/04/03 22:37:21 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a basic client container.
@@ -45,9 +45,9 @@ typedef void (*IteratorFunction) (ACAI::Client* client, void* context);
 /// At construction time, a container instance may be optionally configured to
 /// perform a deep clear when the container object is deleted.
 ///
-/// The class provides the capability to perform an un-ordered general purpose
-/// iteration over the clients in the container calling a user function for each set member.
-/// The class also provids a number of pre-configured interations.
+/// The class provides the capability to perform an un-ordered general purpose iteration
+/// over the clients in the container calling a user function for each set member.
+/// The class also provides a number of pre-configured interations.
 ///
 /// NOTE: The class provides no mechanism to ensure that when an ACAI::Client class
 /// object is deleted that it is removed from any or all containers which contain
@@ -67,6 +67,7 @@ public:
    /// Deletes a ACAI::Client* container.
    /// If deepDestruction was set true during construction then all client objects
    /// in the container will also be deleted
+   ///
    virtual ~Client_Set ();
 
    /// Inserts the specified item into the container.
@@ -81,6 +82,10 @@ public:
    /// if deepDestruction set true.
    ///
    void remove (ACAI::Client* item);
+
+   /// Tests whether the container contains the specified client.
+   ///
+   bool contains (ACAI::Client* item) const;
 
    /// Returns the count if, i.e. the number of items in, the container.
    ///
@@ -117,11 +122,11 @@ public:
    ///
    void closeAllChannels ();
 
-   /// Conveniance function to test all channels ready. For ReadModes
+   /// Conveniance function to test if all channels ready. For ReadModes
    /// Subscribe (the default) and SingleRead this means dataIsAvailable()
    /// is true, while for read mode NoRead the test is isConnected() is true.
    ///
-   bool areAllChannelsReady ();
+   bool areAllChannelsReady () const;
 
    /// Registers all the clients with the specified client user.
    ///
@@ -132,10 +137,11 @@ public:
    void deregisterAllClients (ACAI::Abstract_Client_User* user);
 
    /// This function performs a delay poll cycle until either all the channels are
-   /// ready or the total delay time exceeds the specified timeout.
-   /// Returns true if all channes are currently connected.
+   /// ready (as per the areAllChannelsReady function) or the total delay time exceeds
+   /// the specified timeout.
+   /// Returns true if all channels are currently connected.
    /// The timeOut and pollInterval are specified in seconds.
-   /// The pollInterval is effectibely contained to be >= 0.001s (1 mSec).
+   /// The pollInterval is constrained to be >= 0.001s (1 mSec).
    ///
    bool waitAllChannelsReady (const double timeOut, const double pollInterval = 0.05);
 
@@ -149,7 +155,7 @@ private:
    ClientSets clientList;
    bool deepDestruction;
 
-   bool clientIsReady (ACAI::Client* client);
+   bool clientIsReady (ACAI::Client* client) const;
 };
 
 }

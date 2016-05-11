@@ -1,12 +1,12 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.cpp $
- * $Revision: #19 $
- * $DateTime: 2016/02/07 06:40:59 $
+ * $Revision: #22 $
+ * $DateTime: 2016/04/06 20:19:51 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. The class was based on the pv_client
  * module developed for the kryten application.
  *
- * Copyright (c) 2014,2015  Andrew C. Starritt
+ * Copyright (c) 2013,2014,2015,2016  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ static int debug = 0;
 // PRIVATE FUNCTIONS
 //==============================================================================
 //
-static void reportError (const char* format, ...)
+static void reportErrorFunc (const int line, const char* function, const char* format, ...)
 {
    va_list args;
    char buffer [200];
@@ -105,8 +105,13 @@ static void reportError (const char* format, ...)
    vsnprintf (buffer, sizeof (buffer), format, args);
    va_end (args);
 
-   fprintf (stderr, "ACAI::Client: %s\n", buffer);
+   fprintf (stderr, "ACAI::Client:%d %s: %s\n", line, function, buffer);
 }
+
+// Wrapper macros to reportErrorFunc.
+// Folds in line number and function name automatically.
+//
+#define reportError(...) reportErrorFunc (__LINE__, __FUNCTION__, __VA_ARGS__)
 
 
 //==============================================================================
@@ -119,7 +124,7 @@ public:
    explicit PrivateData (ACAI::Client* owner);
    ~PrivateData ();
    void clearBuffer ();     // clears buffer
-   const union db_access_val*  updateBuffer (struct event_handler_args* args);
+   const union db_access_val*  updateBuffer (struct event_handler_args& args);
 
    typedef enum ConnectionStatus {
       csNull = 0,           // channel not in use
@@ -199,7 +204,7 @@ public:
    };
    union Data_Values dataValues;
 
-   // We use this if/when data will fit into this buffer, otherwise we use
+   // We use this if/when the data will fit into this buffer, otherwise we use
    // a reference to the call back data - which is okay as already copied
    // once.
    //
@@ -298,7 +303,7 @@ void ACAI::Client::PrivateData::clearBuffer ()
 
 //------------------------------------------------------------------------------
 //
-const union db_access_val* ACAI::Client::PrivateData::updateBuffer (struct event_handler_args* args)
+const union db_access_val* ACAI::Client::PrivateData::updateBuffer (struct event_handler_args& args)
 {
    const union db_access_val* pDbr;
    const void* copyArgsDbr;
@@ -310,8 +315,8 @@ const union db_access_val* ACAI::Client::PrivateData::updateBuffer (struct event
 
    // Reference to new data values and length, both sans meta data.
    //
-   valuesPtr = dbr_value_ptr (args->dbr, args->type);
-   length = dbr_value_size [args->type] * args->count;
+   valuesPtr = dbr_value_ptr (args.dbr, args.type);
+   length = dbr_value_size [args.type] * args.count;
 
    if (length <= sizeof (this->localBuffer)) {
       // Data small enough to fit into out local buffer - just copy.
@@ -319,15 +324,15 @@ const union db_access_val* ACAI::Client::PrivateData::updateBuffer (struct event
       //
       memcpy ((void*) this->dataValues.genericRef, valuesPtr, length);
       this->dataValues.genericRef = &this->localBuffer;
-      pDbr = (union db_access_val *) args->dbr;
+      pDbr = (union db_access_val *) args.dbr;
 
    } else {
-      // Data tooo big for local buffer, just "highjack" args->dbr. But we must
-      // clear args->dbr so that buffered callback does NOT attempt to free this
+      // Data tooo big for local buffer, just "highjack" args.dbr. But we must
+      // clear args.dbr so that buffered callback does NOT attempt to free this
       // data.
       //
-      this->argsDbr = args->dbr;         // copy item ref.
-      args->dbr = NULL;                  // clear args item ref
+      this->argsDbr = args.dbr;         // copy item ref.
+      args.dbr = NULL;                  // clear args item ref
       this->dataValues.genericRef = valuesPtr;
       pDbr = (union db_access_val *) this->argsDbr;
    }
@@ -738,7 +743,8 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
    //
    if (this->processingAsLongString ()) {
       if (index == 0) {
-         result = ACAI::ClientString (*(this->pd->dataValues.charRef), this->pd->data_element_count);
+         const char* text = (const char *) this->pd->dataValues.charRef;
+         result = ACAI::limitedAssign (text, this->pd->data_element_count);
       } else {
          result = "";
       }
@@ -1457,7 +1463,7 @@ void ACAI::Client::unsubscribeChannel ()
 //   } evargs;
 //
 //
-void ACAI::Client::updateHandler (struct event_handler_args* args)
+void ACAI::Client::updateHandler (struct event_handler_args& args)
 {
    // These two used as 'globals' in the following macro functions.
    //
@@ -1468,7 +1474,7 @@ void ACAI::Client::updateHandler (struct event_handler_args* args)
    // The inital updates have no time - so we use time now.
    //
 #define ASSIGN_STATUS(from)                                                \
-   tpd->data_element_count = args->count;                                  \
+   tpd->data_element_count = args.count;                                   \
    tpd->status = (epicsAlarmCondition) from.status;                        \
    tpd->severity = (epicsAlarmSeverity) from.severity;                     \
    tpd->timeStamp = epicsTime::getCurrent ();
@@ -1479,7 +1485,7 @@ void ACAI::Client::updateHandler (struct event_handler_args* args)
    // System time is number seconds since 01-Jan-1970.
    //
 #define ASSIGN_STATUS_AND_TIME(from)                                       \
-   tpd->data_element_count = args->count;                                  \
+   tpd->data_element_count = args.count;                                   \
    tpd->status = (epicsAlarmCondition) from.status;                        \
    tpd->severity = (epicsAlarmSeverity) from.severity;                     \
    tpd->timeStamp = from.stamp
@@ -1515,31 +1521,33 @@ void ACAI::Client::updateHandler (struct event_handler_args* args)
    size_t length;
 
    if (tpd->connectionStatus != PrivateData::csConnected) {
-      reportError  ("%s (%s): connection status is not csConnected (%d), type=%d",
-                    __FUNCTION__,  tpd->pv_name, (int) tpd->connectionStatus, (int) args->type);
+      reportError  ("%s: connection status is not csConnected (%d), type=%s (%ld)",
+                    tpd->pv_name, (int) tpd->connectionStatus,
+                    ACAI::Client::dbRequestTypeImage (args.type), args.type);
       return;
    }
 
-   if (!dbr_type_is_valid (args->type)) {
-      reportError ("%s (%s): invalid dbr type %d",
-                   __FUNCTION__, tpd->pv_name, (int) args->type);
+   if (!dbr_type_is_valid (args.type)) {
+      reportError ("%s: invalid dbr type %s (%ld)", tpd->pv_name,
+                   ACAI::Client::dbRequestTypeImage (args.type), args.type);
       return;
    }
 
    // Get length of value data, i.e. exclude meta data.
    //
-   length = dbr_value_size [args->type] * args->count;
+   length = dbr_value_size [args.type] * args.count;
 
    if (length <= 0) {
-      reportError ("%s (%s): zero/neg length data for buffer count/type %ld/%ld",
-                   __FUNCTION__, tpd->pv_name, args->count, args->type);
+      reportError ("%s: zero/negative (%ld) length data for dbr type %s (%ld)",
+                   tpd->pv_name, args.count, ACAI::Client::dbRequestTypeImage (args.type),
+                   args.type);
       return;
    }
 
    // Save data attributes
    //
    tpd->logical_data_size = length;
-   tpd->data_field_size = dbr_value_size [args->type];
+   tpd->data_field_size = dbr_value_size [args.type];
 
    // Sorts out buffering and updates this->dataValues.genericRef
    //
@@ -1547,7 +1555,7 @@ void ACAI::Client::updateHandler (struct event_handler_args* args)
 
    // Maybe the following should move to updateBuffer as well.
    //
-   switch (args->type) {
+   switch (args.type) {
 
       /// Control updates set all meta data plus initial values
 
@@ -1646,8 +1654,7 @@ void ACAI::Client::updateHandler (struct event_handler_args* args)
 
       default:
          tpd->data_field_type = ClientFieldNO_ACCESS;
-         reportError ("%s (%s): unexpected buffer type %ld",
-                      __FUNCTION__, tpd->pv_name, args->type);
+         reportError ("(%s): unexpected buffer type %ld", tpd->pv_name, args.type);
          return;
    }
 
@@ -1662,9 +1669,9 @@ void ACAI::Client::updateHandler (struct event_handler_args* args)
 
 //------------------------------------------------------------------------------
 //
-void ACAI::Client::connectionHandler (struct connection_handler_args* args)
+void ACAI::Client::connectionHandler (struct connection_handler_args& args)
 {
-   switch (args->op) {
+   switch (args.op) {
 
       case CA_OP_CONN_UP:
          if (debug >= 4) {
@@ -1716,34 +1723,34 @@ void ACAI::Client::connectionHandler (struct connection_handler_args* args)
 
 //------------------------------------------------------------------------------
 //
-void ACAI::Client::eventHandler (struct event_handler_args* args)
+void ACAI::Client::eventHandler (struct event_handler_args& args)
 {
    // Valid channel id - need some more event specific checks.
    //
    // Treat Get and Sub(scription) events the same.
    //
-   if ((args->usr == &Get) || (args->usr == &Sub)) {
+   if ((args.usr == &Get) || (args.usr == &Sub)) {
 
-      if (args->status == ECA_NORMAL) {
+      if (args.status == ECA_NORMAL) {
 
-         if (args->dbr) {
+         if (args.dbr) {
             this->updateHandler (args);
          } else {
-            reportError ("event_handler (%s) args->dbr is null",
+            reportError ("event_handler (%s) args.dbr is null",
                          this->pd->pv_name);
          }
 
       } else {
          reportError ("event_handler Get/Sub (%s) error (%s)",
-                       this->pd->pv_name, ca_message (args->status));
+                       this->pd->pv_name, ca_message (args.status));
       }
 
-   } else if (args->usr == &Put) {
+   } else if (args.usr == &Put) {
       if (this->pd->pending_put_callback) {
          // Clear pending flag.
          //
          this->pd->pending_put_callback = false;
-         this->callPutCallbackNotifcation (args->status == ECA_NORMAL);
+         this->callPutCallbackNotifcation (args.status == ECA_NORMAL);
 
       } else {
          reportError ("event_handler (%s) unexpected put call back",
@@ -1751,7 +1758,7 @@ void ACAI::Client::eventHandler (struct event_handler_args* args)
       }
 
    } else {
-      reportError ("event_handler (%s) unexpected args->usr",
+      reportError ("event_handler (%s) unexpected args.usr",
                    this->pd->pv_name);
    }
 }
@@ -2047,7 +2054,20 @@ unsigned int ACAI::Client::dataElementSize () const
 }
 
 //------------------------------------------------------------------------------
-//
+// static
+const char* ACAI::Client::dbRequestTypeImage (const long type)
+{
+   const char* result = "";
+   if (dbr_type_is_valid (type)) {
+      result = dbr_text [type];
+   } else {
+      result = dbf_text_invalid;
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// static
 ACAI::Client* ACAI::Client::validateChannelId (const void* channel_idx)
 {
    const chid channel_id = (const chid) channel_idx;
@@ -2064,7 +2084,7 @@ ACAI::Client* ACAI::Client::validateChannelId (const void* channel_idx)
 
    user_data = ca_puser (channel_id);
    if (user_data == NULL) {
-      reportError ("ACAI::Client::validateChannelId: Unassigned channel_id user data");
+      reportError ("validateChannelId: Unassigned channel_id user data");
       return NULL;
    }
 
@@ -2080,7 +2100,7 @@ ACAI::Client* ACAI::Client::validateChannelId (const void* channel_idx)
    }
 
    if (result->pd == NULL) {
-      reportError ("ACAI::Client::validateChannelId: client has no associated private data");
+      reportError ("validateChannelId: client has no associated private data");
       return NULL;
    }
 
@@ -2156,7 +2176,8 @@ void ACAI::Client::removeClientFromAllUserLists ()
 //
 //    validateChannelId ()
 //
-// This is why this is a class as opposed to just a couple of static functions.
+// This is why this functionality is implemented as a class as opposed to just a
+// couple of static functions.
 //
 namespace ACAI {
 
@@ -2165,11 +2186,11 @@ public:
 
    //---------------------------------------------------------------------------
    //
-   static void connectionHandler (struct connection_handler_args* args)
+   static void connectionHandler (struct connection_handler_args& args)
    {
       ACAI::Client *pClient;
 
-      pClient = ACAI::Client::validateChannelId (args->chid);
+      pClient = ACAI::Client::validateChannelId (args.chid);
       if (pClient) {
          pClient->connectionHandler (args);
       }
@@ -2177,11 +2198,11 @@ public:
 
    //---------------------------------------------------------------------------
    //
-   static void eventHandler (struct event_handler_args* args)
+   static void eventHandler (struct event_handler_args& args)
    {
       ACAI::Client *pClient;
 
-      pClient = ACAI::Client::validateChannelId (args->chid);
+      pClient = ACAI::Client::validateChannelId (args.chid);
       if (pClient) {
          pClient->eventHandler (args);
       }
@@ -2193,6 +2214,7 @@ public:
 //------------------------------------------------------------------------------
 // Buffered callbacks is a C module, not C++.
 // These functions intended to be only called by the buffered callback module.
+// Note they pass back pointer parameters.
 //
 extern "C" {
 void application_connection_handler (struct connection_handler_args* args);
@@ -2205,7 +2227,9 @@ void application_printf_handler (char* formated_text);
 //
 void application_connection_handler (struct connection_handler_args* args)
 {
-   ACAI::Client_Private::connectionHandler (args);
+   // Apply sainity check and deferance.
+   //
+   if (args) ACAI::Client_Private::connectionHandler (*args);
 }
 
 //------------------------------------------------------------------------------
@@ -2213,7 +2237,7 @@ void application_connection_handler (struct connection_handler_args* args)
 //
 void application_event_handler (struct event_handler_args* args)
 {
-   ACAI::Client_Private::eventHandler (args);
+   if (args) ACAI::Client_Private::eventHandler (*args);
 }
 
 //------------------------------------------------------------------------------

@@ -3,6 +3,17 @@
 
 /** \notes
 
+<h2>1.2.3</h2>
+Added Client_Set
+ bool areAllChannelsReady ();
+ bool waitAllChannelsReady (const double timeOut, const double pollInterval = 0.05);
+
+And  Abstract_Client_User
+   bool areAllRegisteredChannelsReady ();
+   bool waitAllRegisteredChannelsReady (const double timeOut, const double pollInterval = 0.05);
+
+
+
 <h2>1.2.2</h2>
 
 Added put call back notification. The use of put callback on off by

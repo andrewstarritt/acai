@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.h $
- * $Revision: #12 $
- * $DateTime: 2016/02/20 14:26:40 $
+ * $Revision: #13 $
+ * $DateTime: 2016/04/03 22:37:21 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a base class that
@@ -82,6 +82,10 @@ public:
    ///
    void deregisterClient (ACAI::Client* client);
 
+   /// Tests whether the specified client is registered.
+   ///
+   bool clientIsRegistered (ACAI::Client* client) const;
+
    /// This function opens all currently registered channels.
    /// The openRegisteredChannels returns true if all channels open successully;
    /// stricty this is true if none fail, so if no channels are registed this
@@ -97,13 +101,13 @@ public:
    /// Subscribe (the default) and SingleRead this means dataIsAvailable()
    /// is true, while for read mode NoRead the test is isConnected() is true.
    ///
-   bool areAllRegisteredChannelsReady ();
+   bool areAllRegisteredChannelsReady () const;
 
    /// This function performs a delay poll cycle until either all the channels are
-   /// ready or the total delay time exceeds the specified timeout.
-   /// Returns true if all channes are currently connected.
+   /// ready or the total delay time exceedsthe specified timeout.
+   /// Returns true if all channels are currently connected.
    /// The timeOut and pollInterval are specified in seconds.
-   /// The pollInterval is effectibely contained to be >= 0.001s (1 mSec).
+   /// The pollInterval is constrained to be >= 0.001s (1 mSec).
    ///
    bool waitAllRegisteredChannelsReady (const double timeOut, const double pollInterval = 0.05);
 
@@ -121,7 +125,7 @@ protected:
    /// of ACAI, but may be overriden by ACAI::Abstract_Client_User sub classes to
    /// allow them to handle connections updates for all registered ACAI::Clients.
    ///
-   // Called by Client::callConnectionUpdate
+   // Called by ACAI::Client::callConnectionUpdate
    //
    virtual void connectionUpdate (ACAI::Client* sender, const bool isConnected);
 
@@ -129,7 +133,7 @@ protected:
    /// of ACAI, but may be overriden by Abstract_Client_User sub classes to allow
    /// them to handle event updates for all registered ACAI::Clients.
    ///
-   // Called by Client::callDataUpdate
+   // Called by ACAI::Client::callDataUpdate
    //
    virtual void dataUpdate (ACAI::Client* sender, const bool firstUpdate);
 
@@ -137,7 +141,7 @@ protected:
    /// of ACAI, but may be overriden by Abstract_Client_User sub classes to allow
    /// them to handle put callback notifications for all registered ACAI::Clients.
    ///
-   // Called by Client::callPutCallbackNotifcation
+   // Called by ACAI::Client::callPutCallbackNotifcation
    //
    virtual void putCallbackNotifcation (ACAI::Client* sender, const bool isSuccessful);
 

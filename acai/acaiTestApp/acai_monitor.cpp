@@ -1,6 +1,6 @@
 // $File: //depot/sw/epics/acai/acaiTestApp/acai_monitor.cpp $
-// $Revision: #6 $
-// $DateTime: 2015/10/31 16:08:49 $
+// $Revision: #8 $
+// $DateTime: 2016/04/06 20:19:51 $
 // Last checked in by: $Author: andrew $
 //
 
@@ -21,24 +21,27 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
       // Don't need do a double output.
       //
       if (firstupdate) {
-         int n = client->enumerationStatesCount();
+         int n = client->enumerationStatesCount ();
          for (int j = 0; j < n; j++) {
             std::cout << "[" << j << "/" << n << "] " << client->getEnumeration (j) <<  std::endl;
          }
       }
+
       if (!firstupdate || (client->readMode() != ACAI::Subscribe)) {
          std::cout << client->pvName () << " ";
 
-         unsigned int n = client->dataElementCount ();
-         if (client->processingAsLongString ()) n = 1;
-
-         if (n > 1) {
-            std::cout << "[" << n << "]";
+         if (client->processingAsLongString ()) {
+            std::cout <<  " " << client->getString () << std::endl;
+         } else {
+            const unsigned int n = client->dataElementCount ();
+            if (n > 1) {
+               std::cout << "[" << n << "]";
+            }
+            for (unsigned int j = 0; j < n; j++) {
+               std::cout <<  " " << client->getString (j);
+            }
+            std::cout << std::endl;
          }
-         for (unsigned int j = 0; j < n; j++) {
-            std::cout << " " << client->getString (j);
-         }
-         std::cout << std::endl;
       }
    } else {
       std::cerr << "acai_monitor: null client" <<  std::endl;
@@ -133,11 +136,9 @@ int main (int argc, char* argv [])
 
    // Run simple event loop for 2 seconds.
    //
-   ACAI::Client::poll ();
-   for (int t = 0; (t < 100) && (!shutDownIsRequired ()); t++) {
-      epicsThreadSleep (0.02);   // 20mSec
-      ACAI::Client::poll ();     // call back function invked from here
-   }
+   ok = clientSet->waitAllChannelsReady (2.0, 0.02);
+   std::cerr << "waitAllChannelsReady: "
+             << (ok ? "true " : "false" ) << std::endl;
 
    // Check for connection failures.
    //
@@ -148,7 +149,7 @@ int main (int argc, char* argv [])
    //
    while (!shutDownIsRequired ()) {
       epicsThreadSleep (0.02);   // 20mSec
-      ACAI::Client::poll ();     // call back function invked from here
+      ACAI::Client::poll ();     // call back function invoked from here
    }
 
    clientSet->closeAllChannels ();

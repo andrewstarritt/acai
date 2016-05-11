@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.h $
- * $Revision: #22 $
- * $DateTime: 2016/02/20 14:26:40 $
+ * $Revision: #23 $
+ * $DateTime: 2016/04/03 22:37:21 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -40,7 +40,7 @@ namespace ACAI {
 
 /// Defines common ACAI macros, types and pseudo EPICS CA types.
 ///
-#define ACAI_VERSION_STRING     "ACAI 1.2.3"
+#define ACAI_VERSION_STRING     "ACAI 1.2.4"
 
 // Place holder to deal with shared stuff.
 // Not really important for Linux.
@@ -225,7 +225,7 @@ ACAI::ClientString csnprintf (size_t size, const char* format, ...);
 /// Assign at most maxSize characters to ACAI::ClientString. This is useful
 /// for 'full' fixed size string (e.g. an enumeration values) which does not
 /// include a terminating null character. Cribbed from epicsQt
-/// Kind of like strncpy, however result.c_str() is null terminated.
+/// Kind of like strncpy, however result.c_str() always is null terminated.
 ///
 ACAI::ClientString limitedAssign (const char* source, const size_t maxSize);
 

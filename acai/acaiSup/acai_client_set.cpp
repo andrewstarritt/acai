@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_set.cpp $
- * $Revision: #7 $
- * $DateTime: 2016/02/20 14:26:40 $
+ * $Revision: #8 $
+ * $DateTime: 2016/04/03 22:37:21 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -68,6 +68,17 @@ void ACAI::Client_Set::remove (ACAI::Client* item)
    if (item) {
       this->clientList.erase (item);
    }
+}
+
+//------------------------------------------------------------------------------
+//
+bool ACAI::Client_Set::contains (ACAI::Client* item) const
+{
+   bool result = false;
+   if (item) {
+      result = (this->clientList.find (item) != this->clientList.end ());
+   }
+   return result;
 }
 
 //------------------------------------------------------------------------------
@@ -146,7 +157,7 @@ void ACAI::Client_Set::closeAllChannels ()
 //------------------------------------------------------------------------------
 // Maybe: make a client function.
 //
-bool ACAI::Client_Set::clientIsReady (ACAI::Client* client)
+bool ACAI::Client_Set::clientIsReady (ACAI::Client* client) const
 {
    bool result = false;
 
@@ -176,7 +187,7 @@ bool ACAI::Client_Set::clientIsReady (ACAI::Client* client)
 
 //------------------------------------------------------------------------------
 //
-bool ACAI::Client_Set::areAllChannelsReady ()
+bool ACAI::Client_Set::areAllChannelsReady () const
 {
    bool result = true;
 

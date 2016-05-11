@@ -5,13 +5,13 @@
 
 <h2>Introduction</h2>
 
-ACAI (ar-sigh-ee) is the ACAI Channel Access Interface - yes, it's one of those
-overused recursive acronyms.
+ACAI (ar-sigh-ee) is the Asynchronous Channel Access Interface, or the ACAI
+Channel Access Interface if you prefer one of those recursive acronyms.
 
 ACAI provides a thin-ish C++ EPICS Channel Access abstraction around the
 basic Channel Access API.
-It has been developed on and for Linux, but should take minimal effort
-to modify the code for other environments.
+It has been developed on and for CentOS Linux, but should take minimal effort
+to modify the code for other distributions and/or operating systems.
 
 The main ACAI::Client class was developed from the struct sCA_Client type
 and associated functions defined in pv_client.h/pv_client.c out of the kryten
@@ -52,20 +52,20 @@ for other threads to attach to the ACAI context.
 
 NOTE: This version of ACAI does not support multiple contexts is any way
 what-so-ever. The initialise, attach, poll and finalise functions are static
-functions that apply to <i>the</i> ACAI context, as opposed to be some kind of
-context object related methods.
+functions that apply to <i>the one and only</i> ACAI context, as opposed to be
+some kind of context object related methods.
 
-Next, create a client object, and open the channel
+Next, create a client object using your favorite process variable, and open the channel
 <pre>
   ACAI::Client pv ("SR11MCM01:CURRENT_MONITOR");
   pv.openChannel();
 </pre> or <pre>
   ACAI::Client* pv = new ACAI::Client ("SR11MCM01:CURRENT_MONITOR");
-  pv->openChannel();   // remember to delete pv
+  pv->openChannel();   // remember to delete the pv object
 </pre>
 
 The openChannel function creates a channel and when the connection event occurs
-(provided the connection it is a successful) it then requests a channel read
+(provided the connection is a successful) it then requests a channel read
 (with all meta data) and also subscribes for time-based channel data updates.
 
 Although ACAI uses EPICS callbacks internally, the callbacks are buffered and must
@@ -73,8 +73,14 @@ be processed by calling <i>ACAI::Client::poll</i> from the nominated thread.
 When a buffered call back is processed, it updates the status/data/meta data of
 the associated client object, and then triggers the ACAI updates and callbacks.
 These all occur within the user's own thread.
+
 This avoids the need for any mutex locking when dealing with ACAI objects and/or data.
-If that data is passed on to any third party threads, then you will need to manage that.
+It also means that if ACAI used another language other than C/C++, then the callbacks
+are executed in the a thread created by that language environment. Some environements,
+e.g. Ada 95 and Lazarus get very annoyed if Ada/Lazarus code is executed within the
+context of an "outside" thread.
+
+If data is passed on to any third party threads, then you will need to manage that.
 See notes on multiple threads below.
 
 The ACAI library has been designed to be intrinsically asynchronous, and all ACAI

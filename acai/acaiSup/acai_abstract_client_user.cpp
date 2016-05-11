@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.cpp $
- * $Revision: #7 $
- * $DateTime: 2016/02/20 14:26:40 $
+ * $Revision: #8 $
+ * $DateTime: 2016/04/03 22:37:21 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -77,6 +77,13 @@ void ACAI::Abstract_Client_User::deregisterClient (ACAI::Client* client)
 
 //------------------------------------------------------------------------------
 //
+bool ACAI::Abstract_Client_User::clientIsRegistered (ACAI::Client* client) const
+{
+   return this->registeredClients->contains (client);
+}
+
+//------------------------------------------------------------------------------
+//
 bool ACAI::Abstract_Client_User::openRegisteredChannels ()
 {
    return this->registeredClients->openAllChannels();
@@ -91,7 +98,7 @@ void ACAI::Abstract_Client_User::closeRegisteredChannels ()
 
 //------------------------------------------------------------------------------
 //
-bool ACAI::Abstract_Client_User::areAllRegisteredChannelsReady ()
+bool ACAI::Abstract_Client_User::areAllRegisteredChannelsReady () const
 {
    return this->registeredClients->areAllChannelsReady ();
 }
@@ -139,7 +146,7 @@ void ACAI::Abstract_Client_User::dataUpdate (ACAI::Client* /* sender */,
 //------------------------------------------------------------------------------
 //
 void ACAI::Abstract_Client_User::putCallbackNotifcation (ACAI::Client* /* sender */,
-                                                    const bool /* isSuccessful */)
+                                                         const bool /* isSuccessful */)
 {
 }
 

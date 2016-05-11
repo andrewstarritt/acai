@@ -1,12 +1,12 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.h $
- * $Revision: #22 $
- * $DateTime: 2016/02/07 06:40:59 $
+ * $Revision: #25 $
+ * $DateTime: 2016/04/06 21:58:58 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. 
  * The class derived from pv_client developed for the kryten application.
  *
- * Copyright (C) 2014,2015  Andrew C. Starritt
+ * Copyright (C) 2013,2014,2015,2016  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,7 +89,7 @@ class ACAI_SHARED_CLASS Client {
 public:
    // class types --------------------------------------------------------------
    //
-   // While C/C++ treats this types as essentially the same, they should be
+   // While C/C++ treats these three types as essentially the same, they should be
    // considered as different and distinct types.
    //
    /// Defines the traditional connection handler function signature.
@@ -179,13 +179,13 @@ public:
    ///
    const char* cPvName () const;
 
-   /// This function sets the data request type to one of the stannndard EPICS field types.
+   /// This function sets the data request type to one of the standard EPICS field types.
    ///
    /// By default, the date data request type is ClientFieldDefault and as such the data
    /// subscription request is based on the host (IOC) native field type, e.g. if
    /// the native field type if DBF_DOUBLE (ClientFieldDOUBLE) then the request is
    /// DBF_DOUBLE (ClientFieldDOUBLE). However, a client user may choose to override
-   /// this by setting the the data request type.
+   /// this by setting the data request type.
    ///
    /// Note: once the channel is open, updating the request field type has no effect
    /// on the the current subscription updates. The request field type is essentially
@@ -193,12 +193,13 @@ public:
    ///
    void setDataRequestType (const ACAI::ClientFieldType fieldType);
 
-   /// Returns the current data request type.
+   /// Returns the current data request field type.
+   /// Note: this is not to be confused with EPICS data request buffer types (such as DBR_GR_LONG).
    ///
-   ACAI::ClientFieldType  dataRequestType () const;
+   ACAI::ClientFieldType dataRequestType () const;
 
    /// This function limits the number of elements requested from the server.
-   /// If this limit is not specified then all PV elements are requested.
+   /// If this limit is not specified then potentially all PV elements are requested.
    ///
    /// Note: In either case (limit or no limit), the actual number of PV elements
    /// requested is subject to any constraint imposed by the EPICS_CA_MAX_ARRAY_BYTES
@@ -223,7 +224,7 @@ public:
    /// The default is greater than 0 so that lesser values may be
    /// specified for large (e.g. image) array PVs.
    ///
-   /// Note: The channel priority only taked effect the next time the channel is opened.
+   /// Note: The channel priority only takes effect the next time the channel is opened.
    ///
    void setPriority (const unsigned int priority);
 
@@ -242,7 +243,7 @@ public:
    bool isLongString () const;
 
    /// Determines if long string processing required. This may be either
-   /// explicit (by setting longString to true - field type must be DBF_CHAR)
+   /// explicit by setting longString to true (however field type must also be DBF_CHAR)
    /// or implicit (PV name ends with $).
    //
    /// Note: As of 3.14.11, IOCs now provides support for strings longer than 40
@@ -306,15 +307,16 @@ public:
    /// is associated with the last put, but may infact really be in reponse to
    /// a previous put.
    ///
-   /// Note: if there is a pending put callback, then this clerar function triggers
-   /// the put callback notifications (success is false).
+   /// Note: if there is a pending put callback, then this clear function triggers
+   /// a put callback notifications (success is false).
    ///
    /// Note: there is no automatic clear pending put call back notification timeout.
    ///
    void clearPendingPutCallback ();
 
    /// Create channel, and once connected and read data (with all meta data) and
-   /// optionally subscribe for updates. Returns true if create channel okay.
+   /// optionally, depending on the Read Mode, subscribe for updates. Returns true if
+   /// underlying call to ca_create_channel is successful.
    ///
    bool openChannel ();
 
@@ -328,7 +330,7 @@ public:
 
    /// When a channel is connected, this function causes the data to be re-read once.
    /// If not connected this function does nothing.
-   /// This intented for channels opened with read mode set to SingleRead (or NoRead)
+   /// This intended for channels opened with read mode set to SingleRead (or NoRead),
    /// however this will also force a reread (including meta data) of a subscribing
    /// channel.
    ///
@@ -340,7 +342,7 @@ public:
    ///
    bool isConnected () const;
 
-   /// Returns whether channel data is currently avilable, accessable via the get
+   /// Returns whether channel data is currently available, accessable via the get
    /// data functions. Data available implies the channel is connected, but connected
    /// does not imply data available.
    //
@@ -414,8 +416,8 @@ public:
    /// For a connected channel, this fuction returns the channel's hostname or IP address.
    /// When the channel is not connected, the function returns "".
    ///
-   /// Note: this will be the EPICS gateway's hostname or IP address as opposed to
-   /// the IOC's hostname or IP address.
+   /// Note: if the PV is accessed via an EPICS gateway, then this function will return the
+   /// EPICS gateway's hostname or IP address as opposed to the IOC's hostname or IP address.
    ///
    ACAI::ClientString hostName () const;
 
@@ -424,7 +426,7 @@ public:
    ///
    unsigned int hostElementCount () const;
 
-   /// Returns the nuber of PV array elements available in the clinet objects,
+   /// Returns the nuber of PV array elements available in the client objects,
    /// i.e.  as returned by most recent update.
    /// When the channel is not connected, the function returns 0.
    ///
@@ -457,18 +459,18 @@ public:
    
    /// Returns the channel channel alarm severity. This maps directly to the regular
    /// channel severity as provided by Channel Access, but for a disconnected channel
-   /// this function returns ACAI::ClientDisconnected which is "more sevear" than
+   /// this function returns ACAI::ClientDisconnected which is "more severe" than
    /// ACAI::ClientSevInvalid.
    ///
    ACAI::ClientAlarmSeverity alarmSeverity () const;
 
    /// This function returns a textual/displayable form of the channel's severity.
    ///
-   ACAI::ClientString alarmStatusImage () const;  // alarmStatusString defined as macro
+   ACAI::ClientString alarmStatusImage () const;    // alarmStatusString defined as macro
 
    /// This function returns a textual/displayable form of the channel's alarm status.
    ///
-   ACAI::ClientString alarmSeverityImage () const;    // alarmSeverityString defined as macro
+   ACAI::ClientString alarmSeverityImage () const;  // alarmSeverityString defined as macro
 
    /// This function returns the channel's read access permission.
    ///
@@ -500,23 +502,26 @@ public:
    // can be used to specify which element of the array is required.
    // Array elements are indexed from zero - this is C++ after all.
    //
-   /// Returns the index-th element of the channle data store in the client as a floating value.
+   /// Returns the index-th element of the channel data store in the client as a floating value.
    ///
    ACAI::ClientFloating getFloating (unsigned int index = 0) const;
 
-   /// Returns the index-th element of the channle data store in the client as an integer value.
+   /// Returns the index-th element of the channel data store in the client as an integer value.
    ///
    ACAI::ClientInteger  getInteger  (unsigned int index = 0) const;
 
-   /// Returns the index-th element of the channle data store in the client as a string value.
+   /// Returns the index-th element of the channel data stored within in the client as a
+   /// string value. If deemed a long string, see ACAI::Client::processingAsLongString, then
+   /// requesting the zeroth/default element returns the whole char array as a string.
+   /// Requesting any other element returns an empty string.
    ///
-   /// Performs basic string formatting for numeric and enumeration types.
-   /// Includes units if specified by setIncludeUnits (true).
-   /// More elaborate string formatting for numeric types is beyond the scope
-   /// of this class and is best handled at the application level.
+   /// For non string types, this function performs basic string formatting for numeric and
+   /// enumeration types. For numeric types, this includes the enginerring units if specified
+   /// by setIncludeUnits (true). More elaborate string formatting for numeric types is beyond
+   /// the scope of this class and is best handled at the application level.
    ///
-   /// NOTE: This function is virtual and may be overridden by a sub-class in
-   /// order to allow a more sophisticated formatting if required.
+   /// NOTE: This function is virtual and may be overridden by a sub-class in order to allow
+   /// a more sophisticated formatting if required.
    ///
    virtual ACAI::ClientString getString (unsigned int index = 0) const;
 
@@ -559,7 +564,7 @@ public:
    /// Write a string vector array value to the channel.
    bool putStringArray   (const ACAI::ClientStringArray&   valueArray);
 
-   // puts using classic arrays.
+   // puts using classic POD arrays.
    //
    /// Write a traditional floating array value to the channel.
    bool putFloatingArray (const ACAI::ClientFloating* valueArray, const unsigned int count);
@@ -580,7 +585,7 @@ public:
    /// Others (like sscan.FAZE) are not addressed here.
    ///
    /// Of course, if some one creates a portable CA server and defines a PV of
-   /// the form {xxxx}.STAT that does not provide standard status then this
+   /// the form xxxx.STAT and that PV does not provide standard status then this
    /// function will not do what might be expected, but if they do, shame on
    /// them for being perverse.
    ///
@@ -766,13 +771,18 @@ private:
    bool readSubscribeChannel (const ACAI::ReadModes readMode);
    void unsubscribeChannel ();
 
-   void connectionHandler (struct connection_handler_args* args);
-   void updateHandler (struct event_handler_args* args);
-   void eventHandler (struct event_handler_args* args);
+   void connectionHandler (struct connection_handler_args& args);
+   void updateHandler (struct event_handler_args& args);
+   void eventHandler (struct event_handler_args& args);
 
    // Utility put data wrapper function.
    //
    bool putData (const int dbf_type, const unsigned long  count, const void* dataPtr);
+
+   // Converts type out of event_handler_args to text - fort error message.
+   // This type not exposed to the api, so this function is private.
+   //
+   static const char* dbRequestTypeImage (const long type);
 
    // Validates the channel id. If valid, returns referance to a ACAI::Client
    // object otherwise returns NULL.
