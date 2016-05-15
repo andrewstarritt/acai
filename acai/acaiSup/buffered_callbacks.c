@@ -1,12 +1,12 @@
 /* $File: //depot/sw/epics/acai/acaiSup/buffered_callbacks.c $
- * $Revision: #3 $
- * $DateTime: 2015/11/13 22:25:05 $
+ * $Revision: #4 $
+ * $DateTime: 2016/05/15 15:43:43 $
  * Last checked in by: $Author: andrew $
  *
  * EPICS buffered callback module for use with Ada, Lazarus and other
  * runtime environments which don't like alien threads.
  *
- * Copyright (C) 2005-2015  Andrew C. Starritt
+ * Copyright (C) 2005-2015,2016  Andrew C. Starritt
  *
  * This module is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,9 @@
  * Contact details:
  * starritt@netspace.net.au
  * PO Box 3118, Prahran East, Victoria 3181, Australia.
- *
- * ---------------------------------------------------------------------------
+ */
+
+/* ---------------------------------------------------------------------------
  * Description:
  * The module buffers the channel access callbacks.
  * The registered callback handlers store a copy of the call back data.

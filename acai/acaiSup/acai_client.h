@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.h $
- * $Revision: #25 $
- * $DateTime: 2016/04/06 21:58:58 $
+ * $Revision: #26 $
+ * $DateTime: 2016/05/15 15:43:43 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. 
@@ -121,7 +121,7 @@ public:
    /// initialisation required by ACAI. So whereas CA will create a context on the
    /// fly if one has not already been created, it is most important that this function
    /// is called first.
-   /// Note: this class does not address multiple contexts.
+   /// Note: this class does not support multiple contexts.
    ///
    static bool initialise ();
 
@@ -416,8 +416,9 @@ public:
    /// For a connected channel, this fuction returns the channel's hostname or IP address.
    /// When the channel is not connected, the function returns "".
    ///
-   /// Note: if the PV is accessed via an EPICS gateway, then this function will return the
-   /// EPICS gateway's hostname or IP address as opposed to the IOC's hostname or IP address.
+   /// Note: if the PV is accessed via an EPICS gateway, then this function will
+   /// return the EPICS gateway's hostname or IP address as opposed to the IOC's
+   /// hostname or IP address.
    ///
    ACAI::ClientString hostName () const;
 
@@ -426,8 +427,8 @@ public:
    ///
    unsigned int hostElementCount () const;
 
-   /// Returns the nuber of PV array elements available in the client objects,
-   /// i.e.  as returned by most recent update.
+   /// Returns the number of PV array elements available in the client objects,
+   /// i.e. as returned by most recent update.
    /// When the channel is not connected, the function returns 0.
    ///
    /// This can be less than hostElementCount because it has been limited by a
@@ -482,7 +483,7 @@ public:
 
    /// Get PV last update time (or connect/disconnect time). For updates, this is
    /// the time embedded within the CA data, however for connection/disconnections
-   /// this is the time as determined from the clint's host.
+   /// this is the time as determined from the client's host.
    ///
    time_t utcTime (int * nanoSecOut = NULL) const;
 
@@ -516,7 +517,7 @@ public:
    /// Requesting any other element returns an empty string.
    ///
    /// For non string types, this function performs basic string formatting for numeric and
-   /// enumeration types. For numeric types, this includes the enginerring units if specified
+   /// enumeration types. For numeric types, this includes the engineering units if specified
    /// by setIncludeUnits (true). More elaborate string formatting for numeric types is beyond
    /// the scope of this class and is best handled at the application level.
    ///
@@ -627,13 +628,13 @@ public:
    const void* rawDataPointer (size_t& count,
                                const size_t offset = 0) const;
 
-   /// This function modifies/sets the channel's include units attrbute.
+   /// This function modifies/sets the channel's include units attribute.
    /// The default attribute value when the client object is constructed is false.
    /// This attribute modifies the getString and getStringArray functionality.
    //
    void setIncludeUnits (const bool includeUnitsIn);
 
-   /// Returns the client's include units attrbute.
+   /// Returns the client's include units attribute.
    ///
    bool includeUnits () const;
 
@@ -730,7 +731,7 @@ protected:
    bool isAlarmStatusPv () const;
 
 private:
-   // Make non-copyable.
+   // Make objects of this class non-copyable.
    //
    Client(const Client&) {}
    Client& operator=(const Client&) { return *this; }
@@ -779,7 +780,7 @@ private:
    //
    bool putData (const int dbf_type, const unsigned long  count, const void* dataPtr);
 
-   // Converts type out of event_handler_args to text - fort error message.
+   // Converts type out of event_handler_args to text - for error message.
    // This type not exposed to the api, so this function is private.
    //
    static const char* dbRequestTypeImage (const long type);

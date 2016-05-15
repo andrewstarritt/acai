@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_set.h $
- * $Revision: #9 $
- * $DateTime: 2016/04/03 22:37:21 $
+ * $Revision: #10 $
+ * $DateTime: 2016/05/15 15:43:43 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a basic client container.
@@ -87,7 +87,7 @@ public:
    ///
    bool contains (ACAI::Client* item) const;
 
-   /// Returns the count if, i.e. the number of items in, the container.
+   /// Returns the count of, i.e. the number of items in, the container.
    ///
    int count () const;
 
@@ -136,9 +136,9 @@ public:
    ///
    void deregisterAllClients (ACAI::Abstract_Client_User* user);
 
-   /// This function performs a delay poll cycle until either all the channels are
-   /// ready (as per the areAllChannelsReady function) or the total delay time exceeds
-   /// the specified timeout.
+   /// This function performs a delay poll cycle until either all the channels
+   /// are ready (as per the areAllChannelsReady function) or the total delay
+   /// time exceeds the specified timeout.
    /// Returns true if all channels are currently connected.
    /// The timeOut and pollInterval are specified in seconds.
    /// The pollInterval is constrained to be >= 0.001s (1 mSec).
@@ -146,7 +146,7 @@ public:
    bool waitAllChannelsReady (const double timeOut, const double pollInterval = 0.05);
 
 private:
-   // Make non-copyable.
+   // Make objects of this class non-copyable.
    //
    Client_Set(const Client_Set&) {}
    Client_Set& operator=(const Client_Set&) { return *this; }

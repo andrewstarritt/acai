@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.h $
- * $Revision: #13 $
- * $DateTime: 2016/04/03 22:37:21 $
+ * $Revision: #15 $
+ * $DateTime: 2016/05/15 15:43:43 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a base class that
@@ -43,14 +43,16 @@ class Client;       // differed declaration.
 /// An instance of a class derived from the ACAI::Abstract_Client_User class may
 /// register zero, one or more ACAI::Client or derived class objects.
 /// This means that when one of those registered objects connects/diconnects or
-/// receives an event update, it will invoke the connectionUpdate or dataUpdate
-/// virtual function of this object.
+/// receives an event update, it will invoke the connectionUpdate, dataUpdate or
+/// putCallbackNotifcation virtual function of this object.
 ///
 /// It is intended that appications derive their own classes using this class as a
 /// base class. A number of functions have been declared virtual specifically to
-/// support this.
-/// The virtual functions are Abstract_Client_User::~Abstract_Client_User,
-/// Abstract_Client_User::connectionUpdate and Abstract_Client_User::dataUpdate.
+/// support this. The virtual functions are:
+///    Abstract_Client_User::~Abstract_Client_User,
+///    Abstract_Client_User::connectionUpdate,
+///    Abstract_Client_User::dataUpdate, and
+///    Abstract_Client_User::putCallbackNotifcation
 ///
 /// The ACAI::Abstract_Client_User to ACAI::Client association can be a many-to-many,
 /// although this would typically be one-to-many. While a one-to-none mapping is not
@@ -146,7 +148,7 @@ protected:
    virtual void putCallbackNotifcation (ACAI::Client* sender, const bool isSuccessful);
 
 private:
-   // Make non-copyable.
+   // Make objects of this class non-copyable.
    //
    Abstract_Client_User(const Abstract_Client_User&) {}
    Abstract_Client_User& operator=(const Abstract_Client_User&) { return *this; }

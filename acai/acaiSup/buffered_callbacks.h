@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/buffered_callbacks.h $
- * $Revision: #3 $
- * $DateTime: 2015/11/13 22:25:05 $
+ * $Revision: #4 $
+ * $DateTime: 2016/05/15 15:43:43 $
  * Last checked in by: $Author: andrew $
  *
  * EPICS buffered callback module for use with Ada, Lazarus and other runtime
@@ -8,7 +8,7 @@
  * party libraries.  It also provides a buffering mechanism that can be
  * useful even in native C/C++ applications.
  *
- * Copyright (C) 2005-2014  Andrew C. Starritt
+ * Copyright (C) 2005-2014,2016  Andrew C. Starritt
  *
  * This module is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,9 +26,9 @@
  * Contact details:
  * starritt@netspace.net.au
  * PO Box 3118, Prahran East, Victoria 3181, Australia.
- *
- * ---------------------------------------------------------------------------
- *
+ */
+
+/* ---------------------------------------------------------------------------
  * This module provides three functions:
  *
  *   void buffered_connection_handler (struct connection_handler_args args);
@@ -44,7 +44,7 @@
  *
  * The buffered_xxx_handler functions store a copy of the callback data on a
  * queue. When process_buffered_callbacks is invoked it removes the data from
- * the queue and calls application_xxx_handler, where xxx is one of connection
+ * the queue and calls application_xxx_handler, where xxx is one of connection,
  * event or printf. The queue is mutex protected.
  *
  * NOTE: There is ONE queue. If the application is running multiple contexts,
@@ -112,7 +112,7 @@ extern "C" {
 
 /* These functions are exported by this unit.
  *
- * NOTE: We never call the handers directly, but do pass the address of these
+ * NOTE: We never call the handlers directly, but do pass the address of these
  * functions as parameters to the relevent functions within the ca library.
  */
 void buffered_connection_handler (struct connection_handler_args args);
@@ -137,7 +137,7 @@ int number_of_buffered_callbacks ();
 int process_buffered_callbacks (const int max);
 
 /* This function should be called after Channel Accces no longer required and
- * the EPICS context has been destroyed. It discards and free the memory
+ * the EPICS context has been destroyed. It discards and frees the memory
  * associated with all outstanding buffered callbacks.
  */
 void clear_all_buffered_callbacks ();

@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.h $
- * $Revision: #23 $
- * $DateTime: 2016/04/03 22:37:21 $
+ * $Revision: #24 $
+ * $DateTime: 2016/05/15 15:43:43 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -40,7 +40,20 @@ namespace ACAI {
 
 /// Defines common ACAI macros, types and pseudo EPICS CA types.
 ///
-#define ACAI_VERSION_STRING     "ACAI 1.2.4"
+#define ACAI_MAJOR              1
+#define ACAI_MINOR              2
+#define ACAI_PATCH              5
+
+// version is (major << 16) + (minor << 8) + patch.
+//
+#define ACAI_VERSION            0x010205
+#define ACAI_VERSION_STRING     "ACAI 1.2.5"
+
+// can be used like #if (ACAI_VERSION >= ACAI_VERSION_CHECK(1, 2, 4))
+//
+#define ACAI_VERSION_CHECK(major, minor, patch) ((major<<16)|(minor<<8)|(patch))
+//
+// Versioning paradigm is a homage to the QT versioning.
 
 // Place holder to deal with shared stuff.
 // Not really important for Linux.

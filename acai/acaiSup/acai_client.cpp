@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.cpp $
- * $Revision: #22 $
- * $DateTime: 2016/04/06 20:19:51 $
+ * $Revision: #23 $
+ * $DateTime: 2016/05/15 15:43:43 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. The class was based on the pv_client
@@ -68,8 +68,8 @@ static int Sub = 0;
 static int Put = 0;
 
 // Magic numbers embedded within each ACAI::Client and ACAI::Client::PrivateData object.
-// Used as a sainity check when we convert an anonymouse (sic ;-) pointer
-// to a ACAI::Client or ACAI::Client::PrivateData class object.
+// Used as a sainity check when we convert an anonymous pointer to a ACAI::Client
+// or ACAI::Client::PrivateData class object.
 //
 #define MAGIC_NUMBER_C  0x3579ACA1
 #define MAGIC_NUMBER_P  0x1234ACA1
@@ -991,7 +991,6 @@ bool ACAI::Client::putStringArray (const ACAI::ClientStringArray& valueArray)
    return this->putStringArray (podPtr ,count);
 }
 
-
 //------------------------------------------------------------------------------
 //
 int ACAI::Client::enumerationStatesCount () const
@@ -1016,7 +1015,6 @@ int ACAI::Client::enumerationStatesCount () const
 
    return result;
 }
-
 
 //------------------------------------------------------------------------------
 //
@@ -1077,7 +1075,6 @@ ACAI::ClientStringArray ACAI::Client::getEnumerationStates () const
    }
    return result;
 }
-
 
 //------------------------------------------------------------------------------
 //
@@ -2092,7 +2089,7 @@ ACAI::Client* ACAI::Client::validateChannelId (const void* channel_idx)
    if (result->magic_number != MAGIC_NUMBER_C) {
       // Although a sensible check, no need to report this - it is not
       // unexpected to get an update for a channel that has just recently
-      // been closed.
+      // been deleted (magic_number fields are cleared when client deleted).
       //
       // reportError ("User data does not reference a ACAI::Client object (magic number check)");
       //
@@ -2107,7 +2104,7 @@ ACAI::Client* ACAI::Client::validateChannelId (const void* channel_idx)
    if (result->pd->magic_number != MAGIC_NUMBER_P)  {
       // Although a sensible check, no need to report this - it is not
       // unexpected to get an update for a channel that has just recently
-      // been closed.
+      // been deleted.
       //
       return NULL;
    }
@@ -2237,6 +2234,8 @@ void application_connection_handler (struct connection_handler_args* args)
 //
 void application_event_handler (struct event_handler_args* args)
 {
+   // Apply sainity check and deferance.
+   //
    if (args) ACAI::Client_Private::eventHandler (*args);
 }
 
