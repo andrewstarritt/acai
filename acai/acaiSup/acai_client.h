@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.h $
- * $Revision: #26 $
- * $DateTime: 2016/05/15 15:43:43 $
+ * $Revision: #29 $
+ * $DateTime: 2016/07/08 00:36:34 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. 
@@ -159,21 +159,24 @@ public:
    ///
    explicit Client (const ClientString& pvName = "");
 
-   /// Class destructor.
+   /// Class destructor. The destructor calls unsubscribeChannel and closeChannel.
+   /// It also removes itself form any Abstract_Client_User object that it is
+   /// registered with, clears the the 'magic' number, and finally deletes any
+   /// associated internal objects.
    ///
    virtual ~Client ();
 
    /// Sets or resets the channel PV name.
    /// Unless doImmediateReopen is set true, setting PV name while the channel is
    /// connected has no immediate effect. The channel must be closed and re-opended.
-   /// When doImmediateReopen is true the function closes and reopnes the channel
+   /// When doImmediateReopen is true the function closes and reopens the channel
    /// immediately.
    ///
    void setPvName (const ACAI::ClientString& pvName, const bool doImmediateReopen = false);
 
    /// Returns the current channel name as a ClientString.
    ///
-   ClientString pvName () const;
+   ACAI::ClientString pvName () const;
 
    /// Returns the current channel name as a traditional c-style string.
    ///
@@ -194,7 +197,8 @@ public:
    void setDataRequestType (const ACAI::ClientFieldType fieldType);
 
    /// Returns the current data request field type.
-   /// Note: this is not to be confused with EPICS data request buffer types (such as DBR_GR_LONG).
+   /// Note: this is not to be confused with EPICS data request buffer types (such
+   /// as DBR_GR_LONG), which specify the requested meta data.
    ///
    ACAI::ClientFieldType dataRequestType () const;
 
@@ -422,7 +426,7 @@ public:
    ///
    ACAI::ClientString hostName () const;
 
-   /// Returns the nuber of PV array elements as defined by PV server (IOC).
+   /// Returns the number of PV array elements as defined by PV server (IOC).
    /// When the channel is not connected, the function returns 0.
    ///
    unsigned int hostElementCount () const;
@@ -433,7 +437,7 @@ public:
    ///
    /// This can be less than hostElementCount because it has been limited by a
    /// call to setRequestCount and/or because the EPICS_CA_MAX_ARRAY_BYTES
-   /// environment variables is less than is needed to handle all elements.
+   /// environment variable is less than is needed to handle all elements.
    ///  
    unsigned int dataElementCount () const;
 
@@ -485,7 +489,7 @@ public:
    /// the time embedded within the CA data, however for connection/disconnections
    /// this is the time as determined from the client's host.
    ///
-   time_t utcTime (int * nanoSecOut = NULL) const;
+   time_t utcTime (int* nanoSecOut = NULL) const;
 
    /// Get the time stamp of the most recent connection/data update event.
    /// Data update time stamps are based on the time stamp provided by the EPICS
@@ -497,7 +501,7 @@ public:
    /// Format is: "yyyy-mm-dd hh:nn:ss[.ffff]"
    /// Without fractions, this is a suitable format for MySql.
    ///
-   ACAI::ClientString utcTimeImage (int precision = 0) const;
+   ACAI::ClientString utcTimeImage (const int precision = 0) const;
 
    // Get PV value as basic scaler. For array (e.g. waveform) records, index
    // can be used to specify which element of the array is required.
@@ -565,7 +569,7 @@ public:
    /// Write a string vector array value to the channel.
    bool putStringArray   (const ACAI::ClientStringArray&   valueArray);
 
-   // puts using classic POD arrays.
+   // puts using classic POD (plain old data) arrays.
    //
    /// Write a traditional floating array value to the channel.
    bool putFloatingArray (const ACAI::ClientFloating* valueArray, const unsigned int count);
@@ -587,8 +591,8 @@ public:
    ///
    /// Of course, if some one creates a portable CA server and defines a PV of
    /// the form xxxx.STAT and that PV does not provide standard status then this
-   /// function will not do what might be expected, but if they do, shame on
-   /// them for being perverse.
+   /// function will not do what might be otherwise expected, but if they do,
+   /// shame on them for being perverse.
    ///
    ACAI::ClientString getEnumeration (int state) const;
 
@@ -733,8 +737,8 @@ protected:
 private:
    // Make objects of this class non-copyable.
    //
-   Client(const Client&) {}
-   Client& operator=(const Client&) { return *this; }
+   Client (const Client&) {}
+   Client& operator= (const Client&) { return *this; }
 
    int magic_number;    // used to verify void* to Client* conversions.
 

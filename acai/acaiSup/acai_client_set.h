@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_set.h $
- * $Revision: #10 $
- * $DateTime: 2016/05/15 15:43:43 $
+ * $Revision: #11 $
+ * $DateTime: 2016/07/08 00:36:34 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a basic client container.
@@ -84,6 +84,7 @@ public:
    void remove (ACAI::Client* item);
 
    /// Tests whether the container contains the specified client.
+   /// If item is NULL then this function always return false.
    ///
    bool contains (ACAI::Client* item) const;
 
@@ -108,7 +109,7 @@ public:
    ///
    /// Note: The iterateChannels function creates and iterates over a copy of the
    /// client container, therefore the iterator function may safely insert and/or
-   /// remove elements from the set.
+   /// remove elements from the client set.
    ///
    void iterateChannels (ACAI::IteratorFunction func, void* context = NULL);
 

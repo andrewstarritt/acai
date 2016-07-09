@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.h $
- * $Revision: #15 $
- * $DateTime: 2016/05/15 15:43:43 $
+ * $Revision: #16 $
+ * $DateTime: 2016/07/08 00:36:34 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a base class that
@@ -64,7 +64,7 @@ class Client;       // differed declaration.
 ///
 class ACAI_SHARED_CLASS Abstract_Client_User  {
 public:
-   /// Constructor - initiliases the object.
+   /// Constructor - initialises the object.
    ///
    explicit Abstract_Client_User ();
 

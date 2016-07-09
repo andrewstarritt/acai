@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.cpp $
- * $Revision: #23 $
- * $DateTime: 2016/05/15 15:43:43 $
+ * $Revision: #24 $
+ * $DateTime: 2016/06/18 02:26:06 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. The class was based on the pv_client
@@ -1197,7 +1197,7 @@ ACAI::ClientTimeStamp ACAI::Client::timeStamp () const
 
 //------------------------------------------------------------------------------
 //
-ACAI::ClientString ACAI::Client::utcTimeImage (int precision) const
+ACAI::ClientString ACAI::Client::utcTimeImage (const int precision) const
 {
    static const int scale [10] = {
       1000000000, 100000000, 10000000, 1000000,

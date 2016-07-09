@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.h $
- * $Revision: #24 $
- * $DateTime: 2016/05/15 15:43:43 $
+ * $Revision: #25 $
+ * $DateTime: 2016/06/18 02:26:06 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -42,16 +42,16 @@ namespace ACAI {
 ///
 #define ACAI_MAJOR              1
 #define ACAI_MINOR              2
-#define ACAI_PATCH              5
+#define ACAI_PATCH              6
 
 // version is (major << 16) + (minor << 8) + patch.
 //
-#define ACAI_VERSION            0x010205
-#define ACAI_VERSION_STRING     "ACAI 1.2.5"
+#define ACAI_VERSION            0x010206
+#define ACAI_VERSION_STRING     "ACAI 1.2.6"
 
 // can be used like #if (ACAI_VERSION >= ACAI_VERSION_CHECK(1, 2, 4))
 //
-#define ACAI_VERSION_CHECK(major, minor, patch) ((major<<16)|(minor<<8)|(patch))
+#define ACAI_VERSION_CHECK(major, minor, patch) (((major)<<16)|((minor)<<8)|(patch))
 //
 // Versioning paradigm is a homage to the QT versioning.
 
@@ -207,7 +207,7 @@ enum ClientFieldType {
 enum EventMasks {
    EventNone = 0,           ///< No trigger. Included for completeness
    EventValue =    (1<<0),  ///< Trigger an event when a significant change in the channel's value (usually defined by MDEL)
-   EventArchive =  (1<<1),  ///< Trigger an event when an archive significant change in the channel's valuu occurs (usually defined by ADEL)
+   EventArchive =  (1<<1),  ///< Trigger an event when an archive significant change in the channel's value occurs (usually defined by ADEL)
    EventAlarm =    (1<<2),  ///< Trigger an event when the alarm state changes
    EventProperty = (1<<3)   ///< Trigger an event when a property change (control limit, graphical limit, status string, enum string ...) occurs.
 };
