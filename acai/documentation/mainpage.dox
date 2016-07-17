@@ -10,8 +10,9 @@ Channel Access Interface if you prefer one of those recursive acronyms.
 
 ACAI provides a thin-ish C++ EPICS Channel Access abstraction around the
 basic Channel Access API.
-It has been developed on and for CentOS Linux, but should take minimal effort
-to modify the code for other distributions and/or operating systems.
+It has been developed and tested on and for CentOS Linux. It has also been compiled,
+but not tested on Windows 7 (mingw 32 bit). In version 1.2.7, memset replaced the
+use og bzero in order to acheive this.
 
 The main ACAI::Client class was developed from the struct sCA_Client type
 and associated functions defined in pv_client.h/pv_client.c out of the kryten
@@ -28,12 +29,10 @@ distributed  "AS IS" and WITHOUT ANY WARRANTY;  without even the implied
 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 See the GNU General Public License for more details.
 
-
 <h2>Using ACAI - Getting started</h2>
 
 First off, you will need to to include the following header files in your code.
-Currently you get the first include via the second include, but I like to be
-explicit.
+
 <pre>
   \#include <acai_client_types.h>
   \#include <acai_client.h>
@@ -42,7 +41,7 @@ explicit.
 Next, choose the thread that will interface to ACAI. This can be the main program
 thread or any other thread. Within that thread call:
 <pre>
-  ACAI::Client::initialise();
+  ACAI::Client::initialise ();
 </pre>
 
 This function's main purpose is to call <i>ca_context_create</i>, but also performs
@@ -58,10 +57,10 @@ some kind of context object related methods.
 Next, create a client object using your favorite process variable, and open the channel
 <pre>
   ACAI::Client pv ("SR11MCM01:CURRENT_MONITOR");
-  pv.openChannel();
+  pv.openChannel ();
 </pre> or <pre>
   ACAI::Client* pv = new ACAI::Client ("SR11MCM01:CURRENT_MONITOR");
-  pv->openChannel();   // remember to delete the pv object
+  pv->openChannel ();   // remember to delete the pv object
 </pre>
 
 The openChannel function creates a channel and when the connection event occurs
@@ -101,8 +100,8 @@ If the application provides some means to break out of event loop then the follo
 should be called to tidyup. This may be particularly important if leaving the event
 loop does not occur immediately before the application terminates.
 <pre>
-   pv.closeChannel();
-   ACAI::Client::finalise();
+   pv.closeChannel ();
+   ACAI::Client::finalise ();
 </pre>
 
 The above is fine, but we need to gain access the PV's data for this program to do
@@ -111,8 +110,8 @@ These are, using scalar float value as example:
 
 a) within the event loop, just read the data, if available, out of the client object;
 <pre>
-     <b>if</b> (pv.dataIsAvailable()) {
-        double x = pv.getFloating();
+     <b>if</b> (pv.dataIsAvailable ()) {
+        double x = pv.getFloating ();
         // do something with x
      }
  
@@ -162,7 +161,6 @@ d) use an ACAI::Abstract_Client_User class - refer to class documentation.
 Note: The various callbacks and polymorphic notification function calls are all
 executed in the thread that calls the poll function irrespective of which thread(s)
 created the ACAI::Client object and/or called the openChannel function.
-
 
 
 <h3>Example</h3>

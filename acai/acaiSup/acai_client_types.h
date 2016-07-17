@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.h $
- * $Revision: #25 $
- * $DateTime: 2016/06/18 02:26:06 $
+ * $Revision: #26 $
+ * $DateTime: 2016/07/17 15:58:22 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -42,12 +42,12 @@ namespace ACAI {
 ///
 #define ACAI_MAJOR              1
 #define ACAI_MINOR              2
-#define ACAI_PATCH              6
+#define ACAI_PATCH              7
 
 // version is (major << 16) + (minor << 8) + patch.
 //
-#define ACAI_VERSION            0x010206
-#define ACAI_VERSION_STRING     "ACAI 1.2.6"
+#define ACAI_VERSION            0x010207
+#define ACAI_VERSION_STRING     "ACAI 1.2.7"
 
 // can be used like #if (ACAI_VERSION >= ACAI_VERSION_CHECK(1, 2, 4))
 //

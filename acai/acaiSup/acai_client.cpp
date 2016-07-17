@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.cpp $
- * $Revision: #24 $
- * $DateTime: 2016/06/18 02:26:06 $
+ * $Revision: #25 $
+ * $DateTime: 2016/07/17 15:58:22 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. The class was based on the pv_client
@@ -242,7 +242,7 @@ ACAI::Client::PrivateData::PrivateData (ACAI::Client* ownerIn)
    // Zeroise all members.
    //
    size = size_t (&this->lastMember) - size_t (&this->firstMember);
-   bzero (&this->firstMember, size);
+   memset (&this->firstMember, 0, size);
 
    this->owner = ownerIn;
 
@@ -1204,19 +1204,18 @@ ACAI::ClientString ACAI::Client::utcTimeImage (const int precision) const
       100000, 10000, 1000, 100, 10, 1
    };
 
-   time_t utc;
+   ACAI::ClientString result;
    int nano_sec;
    struct tm bt;
    char text [40];
-   ClientString result;
-   char format[8];
-   char fraction[16];
-   int p;
-   int f;
+
+   // Make maybe uninitialised warning go away.
+   //
+   bt.tm_year = bt.tm_mon = bt.tm_mday = bt.tm_hour = bt.tm_min = bt.tm_sec = 0;
 
    // Form broken-down UTC time bt
    //
-   utc = this->utcTime (&nano_sec);
+   const time_t utc = this->utcTime (&nano_sec);
    gmtime_r (&utc, &bt);
 
    // In broken-down time, tm_year is the number of years since 1900,
@@ -1229,9 +1228,12 @@ ACAI::ClientString ACAI::Client::utcTimeImage (const int precision) const
    result = text;
 
    if (precision > 0) {
-      p = MIN (precision, 9);
+      char format[8];
+      char fraction[16];
+
+      const int p = MIN (precision, 9);
       sprintf (format, ".%%0%dd", p);
-      f = nano_sec / scale[p];
+      const int f = nano_sec / scale[p];
       sprintf (fraction, format, f);
       result.append (fraction);
    }
@@ -1975,11 +1977,9 @@ bool ACAI::Client::attach ()
 // static
 void ACAI::Client::finalise ()
 {
-   int status;
-
-   // Reset the CA Library report handler.
+   // Reset the CA Library report handler - no error check.
    //
-   status = ca_replace_printf_handler (NULL);
+   ca_replace_printf_handler (NULL);
    ca_context_destroy ();
    acai_context = NULL;
 
@@ -1990,15 +1990,12 @@ void ACAI::Client::finalise ()
 // static
 void ACAI::Client::poll (const int maximum)
 {
-   int status;
-   int p;
-
-   status = ca_flush_io ();
+   const int status = ca_flush_io ();
    if (status != ECA_NORMAL) {
       reportError ("ca_flush_io failed - %s", ca_message (status));
    }
 
-   p = process_buffered_callbacks (maximum);
+   process_buffered_callbacks (maximum);
 }
 
 

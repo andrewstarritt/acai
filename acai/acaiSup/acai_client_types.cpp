@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.cpp $
- * $Revision: #8 $
- * $DateTime: 2015/11/24 22:22:00 $
+ * $Revision: #9 $
+ * $DateTime: 2016/07/17 15:58:22 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -53,13 +53,12 @@ ACAI::ClientString ACAI::csnprintf (size_t size, const char* format, ...)
 {
    va_list args;
    char buffer [size + 1];
-   int len;
 
    va_start (args, format);
-   len = vsnprintf (buffer, sizeof (buffer), format, args);
+   vsnprintf (buffer, sizeof (buffer), format, args);
    va_end (args);
 
-   return buffer;
+   return ACAI::ClientString (buffer);
 }
 
 //------------------------------------------------------------------------------
