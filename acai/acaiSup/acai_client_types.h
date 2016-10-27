@@ -42,14 +42,14 @@ namespace ACAI {
 ///
 #define ACAI_MAJOR              1
 #define ACAI_MINOR              2
-#define ACAI_PATCH              7
+#define ACAI_PATCH              8
 
 // version is (major << 16) + (minor << 8) + patch.
 //
-#define ACAI_VERSION            0x010207
-#define ACAI_VERSION_STRING     "ACAI 1.2.7"
+#define ACAI_VERSION            0x010208
+#define ACAI_VERSION_STRING     "ACAI 1.2.8"
 
-// can be used like #if (ACAI_VERSION >= ACAI_VERSION_CHECK(1, 2, 4))
+// can be used like #if (ACAI_VERSION >= ACAI_VERSION_CHECK(1, 2, 8))
 //
 #define ACAI_VERSION_CHECK(major, minor, patch) (((major)<<16)|((minor)<<8)|(patch))
 //
@@ -241,6 +241,14 @@ ACAI::ClientString csnprintf (size_t size, const char* format, ...);
 /// Kind of like strncpy, however result.c_str() always is null terminated.
 ///
 ACAI::ClientString limitedAssign (const char* source, const size_t maxSize);
+
+/// Returns runtime integer version, as opposed to compile time header version.
+///
+int version ();
+
+/// Returns runtime string version, as opposed to compile time header version.
+///
+ACAI::ClientString versionString ();
 
 }
 

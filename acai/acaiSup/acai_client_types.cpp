@@ -106,5 +106,19 @@ ACAI::ClientString ACAI::clientFieldTypeImage (const ACAI::ClientFieldType cft)
    return  result;
 }
 
+
+//------------------------------------------------------------------------------
+//
+int ACAI::version () {
+   return ACAI_VERSION;
+}
+
+//------------------------------------------------------------------------------
+//
+ACAI::ClientString ACAI::versionString ()
+{
+   return ACAI_VERSION_STRING;
+}
+
 // end
 
