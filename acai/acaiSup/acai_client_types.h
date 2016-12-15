@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.h $
- * $Revision: #26 $
- * $DateTime: 2016/07/17 15:58:22 $
+ * $Revision: #28 $
+ * $DateTime: 2016/12/11 21:22:31 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -40,20 +40,33 @@ namespace ACAI {
 
 /// Defines common ACAI macros, types and pseudo EPICS CA types.
 ///
+
+/// Version info
+///
 #define ACAI_MAJOR              1
 #define ACAI_MINOR              2
-#define ACAI_PATCH              8
+#define ACAI_PATCH              9
 
-// version is (major << 16) + (minor << 8) + patch.
+// Allows items to be convert to a string
 //
-#define ACAI_VERSION            0x010208
-#define ACAI_VERSION_STRING     "ACAI 1.2.8"
+#define ACAI_STRINGIFY_INNER(s) #s
+#define ACAI_STRINGIFY(s)       ACAI_STRINGIFY_INNER(s)
 
-// can be used like #if (ACAI_VERSION >= ACAI_VERSION_CHECK(1, 2, 8))
+// Integer and string versions
+// int version is (major << 16) + (minor << 8) + patch.
+//
+#define ACAI_VERSION_STRING     "ACAI " ACAI_STRINGIFY(ACAI_MAJOR) \
+                                "."     ACAI_STRINGIFY(ACAI_MINOR) \
+                                "."     ACAI_STRINGIFY(ACAI_PATCH)
+
+#define ACAI_VERSION            (((ACAI_MAJOR)<<16)|((ACAI_MINOR)<<8)|(ACAI_PATCH))
+
+
+// Can be used like #if (ACAI_VERSION >= ACAI_VERSION_CHECK(1, 2, 8))
 //
 #define ACAI_VERSION_CHECK(major, minor, patch) (((major)<<16)|((minor)<<8)|(patch))
 //
-// Versioning paradigm is a homage to the QT versioning.
+// Versioning paradigm is a homage to the QT/QE versioning.
 
 // Place holder to deal with shared stuff.
 // Not really important for Linux.
@@ -65,13 +78,7 @@ namespace ACAI {
 #endif
 
 
-/// MUST be consistent with PVNAME_STRINGSZ out of dbDefs.h
-/// Includes the nil terminator
-///
-#define ACAI_MAX_PVNAME_LENGTH    61
-
-
-/// Controls how channel operates when channel opened.
+/// Controls how channel operates when the channel is opened.
 ///
 enum ReadModes {
    NoRead,             ///< just connects
@@ -124,14 +131,21 @@ typedef std::vector<ClientFloating>   ClientFloatingArray;
 /// Provides the array type used to read/write channel data as string values.
 typedef std::vector<ClientString>     ClientStringArray;
 
+
 //------------------------------------------------------------------------------
-// Pseudo CA types.
+// Pseudo CA macros/types.
 // Allows clients that build against this library to need only include
 // library header files without the need to include EPICS header files.
 //
 // These types effectively replicate the EPICS types. Must be kept is step.
 // But these types are really really stable so this is not a hassle.
 //
+
+/// MUST be consistent with PVNAME_STRINGSZ out of dbDefs.h
+/// Includes the nil terminator
+///
+#define ACAI_MAX_PVNAME_LENGTH    61
+
 // MUST be consistent with alarm.h
 /// Extends stardard EPICS severity to include a disconnected state.
 //

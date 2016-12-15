@@ -1,6 +1,6 @@
 # $File: //depot/sw/epics/acai/acaiSup/Makefile $
-# $Revision: #5 $
-# $DateTime: 2015/06/20 17:09:53 $
+# $Revision: #6 $
+# $DateTime: 2016/12/11 21:22:31 $
 # Last checked in by: $Author: andrew $
 #
 TOP=..
@@ -14,6 +14,7 @@ include $(TOP)/configure/CONFIG
 # build a support library
 
 LIBRARY_IOC += acai
+SHRLIB_VERSION = 1.2
 
 # specify that we are building the library
 #

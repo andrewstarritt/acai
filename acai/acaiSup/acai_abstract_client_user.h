@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.h $
- * $Revision: #16 $
- * $DateTime: 2016/07/08 00:36:34 $
+ * $Revision: #17 $
+ * $DateTime: 2016/12/11 21:22:31 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a base class that
@@ -98,6 +98,10 @@ public:
    /// Conveniance functions to close all currently registered channels.
    ///
    void closeRegisteredChannels ();
+
+   /// Conveniance functions to delete all currently registered channels.
+   ///
+   void deleteRegisteredChannels ();
 
    /// Conveniance function to test all channels ready. For ReadModes
    /// Subscribe (the default) and SingleRead this means dataIsAvailable()

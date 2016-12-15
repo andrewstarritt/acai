@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.h $
- * $Revision: #29 $
- * $DateTime: 2016/07/08 00:36:34 $
+ * $Revision: #30 $
+ * $DateTime: 2016/12/11 21:22:31 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. 
@@ -692,17 +692,17 @@ public:
    PutCallbackHandlers putCallbackHandler () const;
 
 
-   /// An int tag: not used by the class per se but available for access by client
+   /// An int tag: not used by the class per se but available to client
    /// users and call back handlers to use and abuse as they see fit.
    ///
    int userTag;
 
-   /// A reference tag: not used by the class per se but available for access by
+   /// A reference tag: not used by the class per se but available to
    /// client users and call back handlers to use and abuse as they see fit.
    ///
    void* userRefTag;
 
-   /// A string tag: not used by the class per se but available for access by
+   /// A string tag: not used by the class per se but available to
    /// client users and call back handlers to use and abuse as they see fit.
    ///
    ACAI::ClientString userStringTag;

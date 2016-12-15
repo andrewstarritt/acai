@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.cpp $
- * $Revision: #9 $
- * $DateTime: 2016/05/11 23:42:11 $
+ * $Revision: #10 $
+ * $DateTime: 2016/12/11 21:22:31 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -86,14 +86,21 @@ bool ACAI::Abstract_Client_User::clientIsRegistered (ACAI::Client* client) const
 //
 bool ACAI::Abstract_Client_User::openRegisteredChannels ()
 {
-   return this->registeredClients->openAllChannels();
+   return this->registeredClients->openAllChannels ();
 }
 
 //------------------------------------------------------------------------------
 //
 void ACAI::Abstract_Client_User::closeRegisteredChannels ()
 {
-    this->registeredClients->closeAllChannels();
+    this->registeredClients->closeAllChannels ();
+}
+
+//------------------------------------------------------------------------------
+//
+void ACAI::Abstract_Client_User::deleteRegisteredChannels ()
+{
+   this->registeredClients->deepClear ();
 }
 
 //------------------------------------------------------------------------------
