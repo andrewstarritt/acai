@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.cpp $
- * $Revision: #9 $
- * $DateTime: 2016/07/17 15:58:22 $
+ * $Revision: #10 $
+ * $DateTime: 2016/10/27 22:03:40 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
