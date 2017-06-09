@@ -1,6 +1,6 @@
 // $File: //depot/sw/epics/acai/acaiTestApp/acai_monitor.cpp $
-// $Revision: #8 $
-// $DateTime: 2016/04/06 20:19:51 $
+// $Revision: #9 $
+// $DateTime: 2017/04/18 14:57:42 $
 // Last checked in by: $Author: andrew $
 //
 
@@ -50,7 +50,7 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
 
 //------------------------------------------------------------------------------
 //
-static void reportConnectionFailures (ACAI::Client* client, void* context)
+static void reportConnectionFailures (ACAI::Client* client, void* /* context */ )
 {
    if (client) {
       if (!client->isConnected ()) {
@@ -142,8 +142,9 @@ int main (int argc, char* argv [])
 
    // Check for connection failures.
    //
-   if (!shutDownIsRequired ())
+   if (!shutDownIsRequired ()) {
       clientSet->iterateChannels (reportConnectionFailures, NULL);
+   }
 
    // Resume event loop.
    //

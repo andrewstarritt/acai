@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.cpp $
- * $Revision: #10 $
- * $DateTime: 2016/12/11 21:22:31 $
+ * $Revision: #11 $
+ * $DateTime: 2017/04/18 14:57:42 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -65,6 +65,14 @@ void ACAI::Abstract_Client_User::registerClient (ACAI::Client* client)
 
 //------------------------------------------------------------------------------
 //
+void ACAI::Abstract_Client_User::registerAllClients (ACAI::Client_Set* clientSet)
+{
+   if (!clientSet) return;  // sanity check
+   clientSet->registerAllClients (this);
+}
+
+//------------------------------------------------------------------------------
+//
 void ACAI::Abstract_Client_User::deregisterClient (ACAI::Client* client)
 {
    if (!client) return;  // sanity check
@@ -73,6 +81,14 @@ void ACAI::Abstract_Client_User::deregisterClient (ACAI::Client* client)
    //
    client->deregisterUser (this);
    this->registeredClients->remove (client);
+}
+
+//------------------------------------------------------------------------------
+//
+void ACAI::Abstract_Client_User::deregisterAllClients (ACAI::Client_Set* clientSet)
+{
+   if (!clientSet) return;  // sanity check
+   clientSet->deregisterAllClients (this);
 }
 
 //------------------------------------------------------------------------------

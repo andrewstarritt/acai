@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_set.cpp $
- * $Revision: #8 $
- * $DateTime: 2016/04/03 22:37:21 $
+ * $Revision: #9 $
+ * $DateTime: 2017/04/18 14:57:42 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -54,6 +54,13 @@ ACAI::Client_Set::~Client_Set ()
 
 //------------------------------------------------------------------------------
 //
+bool ACAI::Client_Set::isDeepDestruction () const
+{
+   return this->deepDestruction;
+}
+
+//------------------------------------------------------------------------------
+//
 void ACAI::Client_Set::insert (ACAI::Client* item)
 {
    if (item) {
@@ -67,6 +74,43 @@ void ACAI::Client_Set::remove (ACAI::Client* item)
 {
    if (item) {
       this->clientList.erase (item);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+void ACAI::Client_Set::insertAllClients (ACAI::Client_Set* other)
+{
+   if (!other) return;
+
+   // Incase some calls:  some_set.insertAllClients (some_set);
+   // No so critical as the remove all case
+   //
+   ACAI::Client_Set::ClientSets copy = other->clientList;
+
+   ITERATE (ACAI::Client_Set::ClientSets, copy, clientRef) {
+      ACAI::Client* client = *clientRef;
+      if (client) {
+         this->insert (client);
+      }
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+void ACAI::Client_Set::removeAllClients (ACAI::Client_Set* other)
+{
+   if (!other) return;
+
+   // Incase some calls:  some_set.removeAllClients (some_set);
+   //
+   ACAI::Client_Set::ClientSets copy = other->clientList;
+
+   ITERATE (ACAI::Client_Set::ClientSets, copy, clientRef) {
+      ACAI::Client* client = *clientRef;
+      if (client) {
+         this->remove (client);
+      }
    }
 }
 

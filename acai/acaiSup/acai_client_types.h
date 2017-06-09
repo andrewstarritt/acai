@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.h $
- * $Revision: #28 $
- * $DateTime: 2016/12/11 21:22:31 $
+ * $Revision: #29 $
+ * $DateTime: 2017/04/18 14:57:42 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library.
@@ -38,35 +38,50 @@
 ///
 namespace ACAI {
 
-/// Defines common ACAI macros, types and pseudo EPICS CA types.
-///
+// Defines common ACAI macros, types and pseudo EPICS CA types.
+//
 
-/// Version info
-///
+// Defines the major version number, this increments when there is a major paradigm shift.
+//
 #define ACAI_MAJOR              1
-#define ACAI_MINOR              2
-#define ACAI_PATCH              9
 
-// Allows items to be convert to a string
+// Defines the minor version number, this increments when there is a non compatibile API change.
+//
+#define ACAI_MINOR              2
+
+// Defines the patch version number. this increments for bug fixes and/or backward compatible API enhancements.
+//
+#define ACAI_PATCH              10
+
+// Integer and string versions
+//
+// The integer version is (major << 16) + (minor << 8) + patch, and this macro
+// is used to constuct an integer version number.
+//
+#define ACAI_INT_VERSION(major, minor, patch) (((major)<<16)|((minor)<<8)|(patch))
+
+// ACAI_VERSION is the actual version of this version of ACAI.
+// It can be used like this to perform version specific checking
+// #if (ACAI_VERSION >= ACAI_INT_VERSION(1, 2, 8))
+//
+#define ACAI_VERSION            ACAI_INT_VERSION (ACAI_MAJOR, ACAI_MINOR, ACAI_PATCH)
+
+// Deprecated - use ACAI_INT_VERSION instead (remove in 1.3.0)
+//
+#define ACAI_VERSION_CHECK(major, minor, patch)  ACAI_INT_VERSION(major, minor, patch)
+
+
+// Allows artefacts to be convert to a string
 //
 #define ACAI_STRINGIFY_INNER(s) #s
 #define ACAI_STRINGIFY(s)       ACAI_STRINGIFY_INNER(s)
 
-// Integer and string versions
-// int version is (major << 16) + (minor << 8) + patch.
+// Define the string version of ACAI, e.g. "ACAI 1.2.10"
 //
 #define ACAI_VERSION_STRING     "ACAI " ACAI_STRINGIFY(ACAI_MAJOR) \
                                 "."     ACAI_STRINGIFY(ACAI_MINOR) \
                                 "."     ACAI_STRINGIFY(ACAI_PATCH)
 
-#define ACAI_VERSION            (((ACAI_MAJOR)<<16)|((ACAI_MINOR)<<8)|(ACAI_PATCH))
-
-
-// Can be used like #if (ACAI_VERSION >= ACAI_VERSION_CHECK(1, 2, 8))
-//
-#define ACAI_VERSION_CHECK(major, minor, patch) (((major)<<16)|((minor)<<8)|(patch))
-//
-// Versioning paradigm is a homage to the QT/QE versioning.
 
 // Place holder to deal with shared stuff.
 // Not really important for Linux.
@@ -141,13 +156,13 @@ typedef std::vector<ClientString>     ClientStringArray;
 // But these types are really really stable so this is not a hassle.
 //
 
-/// MUST be consistent with PVNAME_STRINGSZ out of dbDefs.h
-/// Includes the nil terminator
+// MUST be consistent with PVNAME_STRINGSZ out of dbDefs.h
+// Includes the nil terminator
 ///
 #define ACAI_MAX_PVNAME_LENGTH    61
 
 // MUST be consistent with alarm.h
-/// Extends stardard EPICS severity to include a disconnected state.
+/// \brief Extends stardard EPICS severity to include a disconnected state.
 //
 enum ClientAlarmSeverity {
    ClientSevNone  = 0,
@@ -159,7 +174,7 @@ enum ClientAlarmSeverity {
 };
 
 
-/// Severity status - essentially a copy of the epicsAlarmCondition.
+/// \brief Severity status - essentially a copy of the epicsAlarmCondition.
 ///
 enum ClientAlarmCondition {
    ClientAlarmNone = 0,
@@ -188,7 +203,7 @@ enum ClientAlarmCondition {
 };
 
 
-/// Time stamp structure - essentially a copy of epicsTimeStamp.
+/// \brief Time stamp structure - essentially a copy of epicsTimeStamp.
 ///
 struct ClientTimeStamp {
    ACAI::ClientUInt32 secPastEpoch;     ///< seconds since 0000 Jan 1, 1990  UTC.

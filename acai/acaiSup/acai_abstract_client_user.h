@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.h $
- * $Revision: #17 $
- * $DateTime: 2016/12/11 21:22:31 $
+ * $Revision: #18 $
+ * $DateTime: 2017/04/18 14:57:42 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a base class that
@@ -77,12 +77,22 @@ public:
    ///
    void registerClient (ACAI::Client* client);
 
+   /// Register this user for conection/update events associated with the specified
+   /// set of clients.
+   ///
+   void registerAllClients (ACAI::Client_Set* clientSet);
+
    /// Deregister this user with the nominated client.
    ///
    /// NOTE: Any client is automatically degreistered if/when the client object
    /// is deleted.
    ///
    void deregisterClient (ACAI::Client* client);
+
+   /// Deregister this user for conection/update events associated with the specified
+   /// set of clients.
+   ///
+   void deregisterAllClients (ACAI::Client_Set* clientSet);
 
    /// Tests whether the specified client is registered.
    ///

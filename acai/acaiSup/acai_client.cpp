@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.cpp $
- * $Revision: #25 $
- * $DateTime: 2016/07/17 15:58:22 $
+ * $Revision: #27 $
+ * $DateTime: 2017/04/18 22:56:57 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. The class was based on the pv_client
@@ -936,7 +936,7 @@ bool ACAI::Client::putFloatingArray (const ACAI::ClientFloatingArray& valueArray
    const unsigned int count = (unsigned int) valueArray.size ();
    const ACAI::ClientFloating* podPtr = &valueArray [0];  // convert to "Plain Old Data" type.
 
-   return this->putFloatingArray (podPtr ,count);
+   return this->putFloatingArray (podPtr, count);
 }
 
 
@@ -955,7 +955,7 @@ bool ACAI::Client::putIntegerArray (const ACAI::ClientIntegerArray& valueArray)
    const unsigned int count = (unsigned int) valueArray.size ();
    const ACAI::ClientInteger* podPtr = &valueArray [0];
 
-   return this->putIntegerArray (podPtr ,count);
+   return this->putIntegerArray (podPtr, count);
 }
 
 //------------------------------------------------------------------------------
@@ -988,7 +988,7 @@ bool ACAI::Client::putStringArray (const ACAI::ClientStringArray& valueArray)
    const unsigned int count = (unsigned int) valueArray.size ();
    const ACAI::ClientString* podPtr = &valueArray [0];
 
-   return this->putStringArray (podPtr ,count);
+   return this->putStringArray (podPtr, count);
 }
 
 //------------------------------------------------------------------------------
@@ -1990,6 +1990,11 @@ void ACAI::Client::finalise ()
 // static
 void ACAI::Client::poll (const int maximum)
 {
+   // The acai_context variable signifies if initialise has been called.
+   // If it has not been called then do nothing.
+   //
+   if (!acai_context) return;
+
    const int status = ca_flush_io ();
    if (status != ECA_NORMAL) {
       reportError ("ca_flush_io failed - %s", ca_message (status));

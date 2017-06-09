@@ -1,9 +1,9 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client.h $
- * $Revision: #30 $
- * $DateTime: 2016/12/11 21:22:31 $
+ * $Revision: #32 $
+ * $DateTime: 2017/04/18 22:56:57 $
  * $Author: andrew $
  *
- * This file is part of the ACAI library. 
+ * This file is part of the ACAI library.
  * The class derived from pv_client developed for the kryten application.
  *
  * Copyright (C) 2013,2014,2015,2016  Andrew C. Starritt
@@ -157,7 +157,7 @@ public:
    /// later on using Client::setPvName. All other attributes have their own set
    /// and get functions.
    ///
-   explicit Client (const ClientString& pvName = "");
+   explicit Client (const ACAI::ClientString& pvName = "");
 
    /// Class destructor. The destructor calls unsubscribeChannel and closeChannel.
    /// It also removes itself form any Abstract_Client_User object that it is
@@ -374,7 +374,7 @@ public:
    /// not connected, the function returns 0.0
    ///
    double lowerDisplayLimit () const;
-   
+
    /// For a connected channel, this fuction returns the channel's upper operating
    /// range typically specified in a record's HOPR field. When the channel is
    /// not connected, the function returns 0.0
@@ -438,7 +438,7 @@ public:
    /// This can be less than hostElementCount because it has been limited by a
    /// call to setRequestCount and/or because the EPICS_CA_MAX_ARRAY_BYTES
    /// environment variable is less than is needed to handle all elements.
-   ///  
+   ///
    unsigned int dataElementCount () const;
 
    /// Returns the PV's native field type as defined by PV server (IOC).
@@ -461,7 +461,7 @@ public:
    /// When the channel is not connected, the function returns ClientAlarmNone
    ///
    ACAI::ClientAlarmCondition alarmStatus () const;
-   
+
    /// Returns the channel channel alarm severity. This maps directly to the regular
    /// channel severity as provided by Channel Access, but for a disconnected channel
    /// this function returns ACAI::ClientDisconnected which is "more severe" than
@@ -584,7 +584,7 @@ public:
    /// This function gets the enum state string, not the state string for the
    /// n-th element of a waveform of enums.
    ///
-   /// Use Client::getInteger/Client::getIntegerArray to get enum values.
+   /// Use Client::getInteger or Client::getIntegerArray to get enum values.
    ///
    /// NOTE: Does a special for {recordname}.STAT which has more than 16 states.
    /// Others (like sscan.FAZE) are not addressed here.

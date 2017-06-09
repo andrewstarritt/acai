@@ -1,6 +1,6 @@
 /* $File: //depot/sw/epics/acai/acaiSup/acai_client_set.h $
- * $Revision: #11 $
- * $DateTime: 2016/07/08 00:36:34 $
+ * $Revision: #12 $
+ * $DateTime: 2017/04/18 14:57:42 $
  * $Author: andrew $
  *
  * This file is part of the ACAI library. It provides a basic client container.
@@ -70,11 +70,17 @@ public:
    ///
    virtual ~Client_Set ();
 
+   /// Indicates if the deepDestruction state of the client set.
+   ///
+   bool isDeepDestruction () const;
+
    /// Inserts the specified item into the container.
    /// Whilst a container may only contain one instance of a particular client,
    /// there is no restriction on same client being inserted into multiple
    /// containers.
-   /// 
+   /// NOTE: Be extra careful if you add a client to two (or more) client sets
+   /// with the deepDestruction attributes set true.
+   ///
    void insert (ACAI::Client* item);
 
    /// Removes the specified client from the container if it has been previously
@@ -82,6 +88,21 @@ public:
    /// if deepDestruction set true.
    ///
    void remove (ACAI::Client* item);
+
+   /// Inserts all the client items from another client set into this client set.
+   /// Whilst a container may only contain one instance of a particular client,
+   /// there is no restriction on same client being inserted into multiple
+   /// containers.
+   /// NOTE: Be extra careful if you add a client to two (or more) client sets
+   /// with the deepDestruction attributes set true.
+   ///
+   void insertAllClients (ACAI::Client_Set* other);
+
+   /// Remove any the clients specified in the other client set from this client set
+   /// if any have been inserted into this set. This function never deletes the
+   /// referenced client objects, even if deepDestruction set true.
+   ///
+   void removeAllClients (ACAI::Client_Set* other);
 
    /// Tests whether the container contains the specified client.
    /// If item is NULL then this function always return false.
@@ -101,7 +122,7 @@ public:
    /// This function always deletes the clients, even if deepDestruction set false.
    ///
    void deepClear ();
-   
+
    /// \brief Iterates over all clients in the container and invokes the specified function.
    ///
    /// The iteration order is currently arbitary, and depends upon the underlying
@@ -118,7 +139,7 @@ public:
    /// set always returns true.
    ///
    bool openAllChannels ();
-   
+
    /// Conveniance functions to close all channels.
    ///
    void closeAllChannels ();
@@ -132,7 +153,7 @@ public:
    /// Registers all the clients with the specified client user.
    ///
    void registerAllClients (ACAI::Abstract_Client_User* user);
-   
+
    /// Deregisters all the clients from the specified client user.
    ///
    void deregisterAllClients (ACAI::Abstract_Client_User* user);
@@ -152,6 +173,9 @@ private:
    Client_Set(const Client_Set&) {}
    Client_Set& operator=(const Client_Set&) { return *this; }
 
+   // The underlying container is a set. This is un ordered, but may contain only
+   // one instance of a particul;ar client.
+   //
    typedef std::set<ACAI::Client*> ClientSets;
    ClientSets clientList;
    bool deepDestruction;
