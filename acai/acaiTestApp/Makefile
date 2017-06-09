@@ -1,6 +1,6 @@
 # $File: //depot/sw/epics/acai/acaiTestApp/Makefile $
-# $Revision: #2 $
-# $DateTime: 2015/01/19 19:58:00 $
+# $Revision: #4 $
+# $DateTime: 2017/04/18 22:56:57 $
 # Last checked in by: $Author: andrew $
 #
 TOP=..
@@ -11,7 +11,7 @@ include $(TOP)/configure/CONFIG
 #=============================
 
 #=============================
-# Build the test application
+# Build the test applications
 
 PROD_HOST += acai_monitor
 acai_monitor_SRCS += acai_monitor.cpp
@@ -21,6 +21,28 @@ acai_monitor_SRCS += acai_monitor.cpp
 acai_monitor_LIBS += ca
 acai_monitor_LIBS += Com
 acai_monitor_LIBS += acai
+
+
+PROD_HOST += test_client_set
+test_client_set_SRCS += test_client_set.cpp
+
+# Client only, we don't need all the EPICS_BASE_IOC_LIBS.
+#
+test_client_set_LIBS += ca
+test_client_set_LIBS += Com
+test_client_set_LIBS += acai
+
+
+PROD_HOST += test_abstract_user
+test_abstract_user_SRCS += test_abstract_user.cpp
+
+# Client only, we don't need all the EPICS_BASE_IOC_LIBS.
+#
+test_abstract_user_LIBS += ca
+test_abstract_user_LIBS += Com
+test_abstract_user_LIBS += acai
+
+
 
 #===========================
 

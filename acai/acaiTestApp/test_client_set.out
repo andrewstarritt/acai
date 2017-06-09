@@ -1,0 +1,62 @@
+test client set starting (ACAI 1.2.10)
+
+constucted test client T1
+constucted test client T2
+constucted test client T3
+constucted test client T4
+constucted test client T5
+constucted test client T6
+
+s1 iteration - expect T1,T2,T3
+dump client (s1) T1
+dump client (s1) T2
+dump client (s1) T3
+count:    3
+contains: 1, 2, 3, 0, 0, 0
+
+s1 iteration - expect T1,T3
+dump client (s1) T1
+dump client (s1) T3
+count:    2
+contains: 1, 0, 3, 0, 0, 0
+
+s2 iteration - expect T3,T4,T5,T6
+dump client (s2) T3
+dump client (s2) T4
+dump client (s2) T5
+dump client (s2) T6
+count:    4
+contains: 0, 0, 3, 4, 5, 6
+
+s1 iteration - expect T1,T3
+dump client (s1) T1
+dump client (s1) T3
+count:    2
+contains: 1, 0, 3, 0, 0, 0
+
+s2 iteration - expect T1,T3,T4,T5,T6
+dump client (s2) T1
+dump client (s2) T3
+dump client (s2) T4
+dump client (s2) T5
+dump client (s2) T6
+count:    5
+contains: 1, 0, 3, 4, 5, 6
+
+clear set1
+s1 iteration - expect none
+count:    0
+contains: 0, 0, 0, 0, 0, 0
+
+deleting set 1
+set 1 deleted
+
+deleting set 2
+destructed test client T1 
+destructed test client T3 
+destructed test client T4 
+destructed test client T5 
+destructed test client T6 
+set 2 delete
+
+test client set complete
