@@ -1,12 +1,12 @@
 /* $File: //depot/sw/epics/acai/acaiSup/buffered_callbacks.c $
- * $Revision: #4 $
- * $DateTime: 2016/05/15 15:43:43 $
+ * $Revision: #6 $
+ * $DateTime: 2017/04/29 13:14:55 $
  * Last checked in by: $Author: andrew $
  *
  * EPICS buffered callback module for use with Ada, Lazarus and other
  * runtime environments which don't like alien threads.
  *
- * Copyright (C) 2005-2015,2016  Andrew C. Starritt
+ * Copyright (C) 2005-2015,2016,2017  Andrew C. Starritt
  *
  * This module is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,7 +73,7 @@ extern void application_printf_handler (char *formatted_text);
  * -----------------------------------------------------------------------------
  */
 
-/* Buffered stuff kinds 
+/* Buffered stuff kinds
  */
 typedef enum Callback_Kinds {
    NULL_KIND,
@@ -270,7 +270,7 @@ int buffered_printf_handler (const char *pformat, va_list args)
 
       pci->formatted_text = (char *) malloc (size);
 
-      /* Copy expanded string 
+      /* Copy expanded string
        */
       memcpy ((void *) pci->formatted_text, &expanded, size);
 
@@ -295,6 +295,10 @@ void initialise_buffered_callbacks ()
  */
 int number_of_buffered_callbacks ()
 {
+   /* If initialise_buffered_callbacks has not be called, avoid seg fault and return -1.
+    */
+   if (!linked_list_mutex) return -1;
+
    int n;
 
    epicsMutexLock (linked_list_mutex);
@@ -310,6 +314,10 @@ int number_of_buffered_callbacks ()
  */
 int process_buffered_callbacks (const int max)
 {
+   /* If initialise_buffered_callbacks has not be called, avoid seg fault and return -1.
+    */
+   if (!linked_list_mutex) return -1;
+
    Callback_Items *pci = NULL;
    int n;
 
@@ -369,6 +377,10 @@ int process_buffered_callbacks (const int max)
  */
 void clear_all_buffered_callbacks ()
 {
+   /* If initialise_buffered_callbacks has not be called, avoid seg fault and return 0.
+    */
+   if (!linked_list_mutex) return;
+
    Callback_Items *pci;
 
    pci = unload_element ();      /* Get first if it exists */

@@ -1,14 +1,14 @@
 /* $File: //depot/sw/epics/acai/acaiSup/buffered_callbacks.h $
- * $Revision: #4 $
- * $DateTime: 2016/05/15 15:43:43 $
+ * $Revision: #5 $
+ * $DateTime: 2017/04/18 22:56:57 $
  * Last checked in by: $Author: andrew $
  *
  * EPICS buffered callback module for use with Ada, Lazarus and other runtime
- * environments which don't like alien threads, i.e. threads created in 3rd
+ * environments which don't like alien threads, i.e. threads created by 3rd
  * party libraries.  It also provides a buffering mechanism that can be
  * useful even in native C/C++ applications.
  *
- * Copyright (C) 2005-2014,2016  Andrew C. Starritt
+ * Copyright (C) 2005-2014,2016,2017  Andrew C. Starritt
  *
  * This module is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,11 +90,11 @@
  * ---------------------------------------------------------------------------
  *
  * NOTE: To aid binding and callback processing in other languages, the
- * buffered callback APIs differs slightly from the native EPICS callback APIs.
+ * buffered callback APIs differ slightly from the native EPICS callback APIs.
  *
  * For the event and connection callback handlers, a pointer to the
- * connection_handler_args or event_handler_args structure is passed the
- * application handler function, not a copy of the structure.
+ * connection_handler_args or event_handler_args structure is passed to
+ * the application handler function, not a copy of the structure.
  *
  * For the printf handler, this unit uses vsprintf to convert the format and
  * va_list args parameters into a plain string.
@@ -124,7 +124,8 @@ int  buffered_printf_handler (const char *pformat, va_list args);
  */
 void initialise_buffered_callbacks ();
 
-/* Returns number of currently outstanding buffered callbacks
+/* Returns number of currently outstanding buffered callbacks.
+ * Returns -1 if initialise_buffered_callbacks has not been called.
  */
 int number_of_buffered_callbacks ();
 
@@ -133,12 +134,14 @@ int number_of_buffered_callbacks ();
  * number of callbacks processed (<= max).
  * At least one item is processed, if available, regardless the value
  * of max.
+ * Returns -1 if initialise_buffered_callbacks has not been called.
  */
 int process_buffered_callbacks (const int max);
 
 /* This function should be called after Channel Accces no longer required and
  * the EPICS context has been destroyed. It discards and frees the memory
  * associated with all outstanding buffered callbacks.
+ * Does nothing if initialise_buffered_callbacks has not been called.
  */
 void clear_all_buffered_callbacks ();
 
