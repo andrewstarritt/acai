@@ -51,7 +51,7 @@ troublesome or unexpected dependancies.
 
 <h2>Using ACAI - Getting started</h2>
 
-Firs, you will need to to include the following header files in your code.
+First, you will need to to include the following header files in your code.
 
 <pre>
   \#include <acai_client_types.h>
