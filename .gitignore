@@ -1,0 +1,14 @@
+O.Common/
+O.linux-x86_64/
+O.linux-x86/
+bin/
+lib/
+doc/
+html/
+latex/
+include/
+*.o
+*.exe
+*.creator.user
+*.linux-x86_64
+*.linux-x86
