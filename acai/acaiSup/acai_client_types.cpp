@@ -1,11 +1,8 @@
-/* $File: //depot/sw/epics/acai/acaiSup/acai_client_types.cpp $
- * $Revision: #10 $
- * $DateTime: 2016/10/27 22:03:40 $
- * $Author: andrew $
+/* acai_client_types.cpp
  *
  * This file is part of the ACAI library.
  *
- * Copyright (C) 2013,2014,2015  Andrew C. Starritt
+ * Copyright (C) 2013,2014,2015,2017  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

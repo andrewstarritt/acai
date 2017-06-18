@@ -1,12 +1,9 @@
-/* $File: //depot/sw/epics/acai/acaiSup/acai_private_common.h $
- * $Revision: #1 $
- * $DateTime: 2015/06/20 17:10:39 $
- * $Author: andrew $
+/* acai_private_common.h
  *
  * This file is part of the ACAI library. It provides utilities considered
  * private tto the library.
  *
- * Copyright (C) 2015  Andrew C. Starritt
+ * Copyright (C) 2015,2017  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

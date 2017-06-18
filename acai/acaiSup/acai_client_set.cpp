@@ -1,11 +1,8 @@
-/* $File: //depot/sw/epics/acai/acaiSup/acai_client_set.cpp $
- * $Revision: #9 $
- * $DateTime: 2017/04/18 14:57:42 $
- * $Author: andrew $
+/* acai_client_set.cpp
  *
  * This file is part of the ACAI library.
  *
- * Copyright (C) 2014,2015,2016  Andrew C. Starritt
+ * Copyright (C) 2014,2015,2016,2017  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

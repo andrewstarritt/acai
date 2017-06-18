@@ -1,8 +1,3 @@
-# $File: //depot/sw/epics/acai/Makefile $
-# $Revision: #6 $
-# $DateTime: 2017/04/16 15:36:43 $
-# Last checked in by: $Author: andrew $
-#
 # Makefile at top of application tree
 #
 TOP = .

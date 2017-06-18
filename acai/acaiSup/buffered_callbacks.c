@@ -1,7 +1,4 @@
-/* $File: //depot/sw/epics/acai/acaiSup/buffered_callbacks.c $
- * $Revision: #6 $
- * $DateTime: 2017/04/29 13:14:55 $
- * Last checked in by: $Author: andrew $
+/* buffered_callbacks.c
  *
  * EPICS buffered callback module for use with Ada, Lazarus and other
  * runtime environments which don't like alien threads.

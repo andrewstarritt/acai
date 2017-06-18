@@ -1,12 +1,9 @@
-/* $File: //depot/sw/epics/acai/acaiSup/acai_abstract_client_user.h $
- * $Revision: #18 $
- * $DateTime: 2017/04/18 14:57:42 $
- * $Author: andrew $
+/* acai_abstract_client_user.h
  *
  * This file is part of the ACAI library. It provides a base class that
  * supports application classes that use this library.
  *
- * Copyright (C) 2014,2015,2016  Andrew C. Starritt
+ * Copyright (C) 2014,2015,2016,2017  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

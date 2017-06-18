@@ -1,12 +1,9 @@
-/* $File: //depot/sw/epics/acai/acaiSup/acai_client.cpp $
- * $Revision: #27 $
- * $DateTime: 2017/04/18 22:56:57 $
- * $Author: andrew $
+/* acai_client.cpp
  *
  * This file is part of the ACAI library. The class was based on the pv_client
  * module developed for the kryten application.
  *
- * Copyright (c) 2013,2014,2015,2016  Andrew C. Starritt
+ * Copyright (c) 2013,2014,2015,2016,2017  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
