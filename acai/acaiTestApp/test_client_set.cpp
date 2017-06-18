@@ -1,7 +1,4 @@
-// $File: //depot/sw/epics/acai/acaiTestApp/test_client_set.cpp $
-// $Revision: #1 $
-// $DateTime: 2017/04/18 14:57:49 $
-// Last checked in by: $Author: andrew $
+// test_client_set.cpp
 //
 
 #include <iostream>

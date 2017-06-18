@@ -1,7 +1,4 @@
-// $File: //depot/sw/epics/acai/acaiTestApp/test_abstract_user.cpp $
-// $Revision: #1 $
-// $DateTime: 2017/04/18 22:56:57 $
-// Last checked in by: $Author: andrew $
+// test_abstract_user.cpp
 //
 
 #include <iostream>

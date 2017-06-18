@@ -1,7 +1,4 @@
-// $File: //depot/sw/epics/acai/acaiTestApp/acai_monitor.cpp $
-// $Revision: #9 $
-// $DateTime: 2017/04/18 14:57:42 $
-// Last checked in by: $Author: andrew $
+// acai_monitor.cpp
 //
 
 #include <iostream>

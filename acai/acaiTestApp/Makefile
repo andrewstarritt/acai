@@ -1,7 +1,4 @@
-# $File: //depot/sw/epics/acai/acaiTestApp/Makefile $
-# $Revision: #4 $
-# $DateTime: 2017/04/18 22:56:57 $
-# Last checked in by: $Author: andrew $
+# Makefile
 #
 TOP=..
 
