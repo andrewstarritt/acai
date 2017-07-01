@@ -24,6 +24,8 @@
  *
  */
 
+#include <acai_client.h>
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -31,7 +33,6 @@
 #include <time.h>
 
 #include <alarm.h>
-#include <alarmString.h>
 #include <cadef.h>
 #include <caerr.h>
 #include <cantProceed.h>
@@ -45,7 +46,6 @@
 
 #include <buffered_callbacks.h>
 #include <acai_abstract_client_user.h>
-#include <acai_client.h>
 #include <acai_private_common.h>
 
 // EPICS timestamp epoch: This is Mon Jan  1 00:00:00 1990 UTC.
@@ -1131,30 +1131,14 @@ bool ACAI::Client::includeUnits () const
 //
 ACAI::ClientString ACAI::Client::alarmStatusImage () const
 {
-   int n;
-   n = (int) this->alarmStatus ();
-   if ((n >= 0) && (n < ALARM_NSTATUS)) {
-      return ACAI::ClientString (epicsAlarmConditionStrings[n]);
-   }
-
-   return ACAI::csnprintf (40, "unknown status %d", n);
+   return ACAI::alarmStatusImage (this->alarmStatus ());
 }
-
 
 //------------------------------------------------------------------------------
 //
 ACAI::ClientString ACAI::Client::alarmSeverityImage () const
 {
-   int n;
-   n = (int) this->alarmSeverity ();
-   if ((n >= 0) && (n < ALARM_NSEV)) {
-      return ACAI::ClientString (epicsAlarmSeverityStrings[n]);
-   }
-   if (n == ClientDisconnected) {
-      return ACAI::ClientString ("DISCONNECTED");
-   }
-
-   return ACAI::csnprintf (40, "unknown severity %d", n);
+   return ACAI::alarmSeverityImage (this->alarmSeverity ());
 }
 
 //------------------------------------------------------------------------------

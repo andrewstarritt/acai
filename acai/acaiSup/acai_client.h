@@ -30,6 +30,10 @@
 #include <set>
 #include <acai_client_types.h>
 
+// Differed declaration - used in private part of class.
+struct connection_handler_args;
+struct event_handler_args;
+
 namespace ACAI {
 
 class Abstract_Client_User;    // differed declaration.
@@ -466,11 +470,11 @@ public:
    ///
    ACAI::ClientAlarmSeverity alarmSeverity () const;
 
-   /// This function returns a textual/displayable form of the channel's severity.
+   /// This function returns a textual/displayable form of the channel's alarm status.
    ///
    ACAI::ClientString alarmStatusImage () const;    // alarmStatusString defined as macro
 
-   /// This function returns a textual/displayable form of the channel's alarm status.
+   /// This function returns a textual/displayable form of the channel's alarm severity.
    ///
    ACAI::ClientString alarmSeverityImage () const;  // alarmSeverityString defined as macro
 

@@ -8,6 +8,7 @@ html/
 latex/
 include/
 creator/
+*.local
 *.o
 *.exe
 *.creator.user

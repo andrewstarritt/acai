@@ -23,10 +23,11 @@
  *
  */
 
+#include <acai_client_types.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
-#include <acai_client_types.h>
+#include <alarm.h>
 
 //------------------------------------------------------------------------------
 //
@@ -78,6 +79,37 @@ ACAI::ClientString ACAI::limitedAssign (const char* source, const size_t maxSize
    }
 
    return result;
+}
+
+//------------------------------------------------------------------------------
+//
+ACAI::ClientString ACAI::alarmSeverityImage (const ACAI::ClientAlarmSeverity severity)
+{
+   ClientString result;
+   const int n = (int) severity;
+   if ((n >= 0) && (n < ALARM_NSEV)) {
+      result = ACAI::ClientString (epicsAlarmSeverityStrings[n]);
+   } else if (n == ClientDisconnected) {
+      result = ACAI::ClientString ("DISCONNECTED");
+   } else {
+      result = ACAI::csnprintf (40, "unknown severity %d", n);
+   }
+
+   return  result;
+}
+
+//------------------------------------------------------------------------------
+//
+ACAI::ClientString ACAI::alarmStatusImage (const ACAI::ClientAlarmCondition status)
+{
+   ClientString result;
+   const int n = (int) status;
+   if ((n >= 0) && (n < ALARM_NSTATUS)) {
+      result = ACAI::ClientString (epicsAlarmConditionStrings[n]);
+   } else {
+      result = ACAI::csnprintf (40, "unknown status %d", n);
+   }
+   return  result;
 }
 
 //------------------------------------------------------------------------------

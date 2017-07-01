@@ -48,7 +48,7 @@ namespace ACAI {
 
 // Defines the patch version number. this increments for bug fixes and/or backward compatible API enhancements.
 //
-#define ACAI_PATCH              10
+#define ACAI_PATCH              11
 
 // Integer and string versions
 //
@@ -170,7 +170,6 @@ enum ClientAlarmSeverity {
    CLIENT_ALARM_NSEV
 };
 
-
 /// \brief Severity status - essentially a copy of the epicsAlarmCondition.
 ///
 enum ClientAlarmCondition {
@@ -238,6 +237,15 @@ enum EventMasks {
    EventProperty = (1<<3)   ///< Trigger an event when a property change (control limit, graphical limit, status string, enum string ...) occurs.
 };
 
+//------------------------------------------------------------------------------
+/// This function returns a textual/displayable form of the specified alarm severity.
+///
+ACAI::ClientString alarmSeverityImage (const ACAI::ClientAlarmSeverity severity);
+
+//------------------------------------------------------------------------------
+/// This function returns a textual/displayable form of the specified alarm status.
+///
+ACAI::ClientString alarmStatusImage (const ACAI::ClientAlarmCondition status);
 
 //------------------------------------------------------------------------------
 /// This function provides a textual/displayable image for the field type.
