@@ -26,6 +26,7 @@
 #ifndef ACAI__CLIENT_TYPES_H
 #define ACAI__CLIENT_TYPES_H
 
+#include <time.h>
 #include <string>
 #include <vector>
 
@@ -46,9 +47,10 @@ namespace ACAI {
 //
 #define ACAI_MINOR              2
 
-// Defines the patch version number. this increments for bug fixes and/or backward compatible API enhancements.
+// Defines the patch version number, this increments for bug fixes and/or
+// backward compatible API enhancements.
 //
-#define ACAI_PATCH              11
+#define ACAI_PATCH              12
 
 // Integer and string versions
 //
@@ -80,13 +82,20 @@ namespace ACAI {
                                 "."     ACAI_STRINGIFY(ACAI_PATCH)
 
 
-// Place holder to deal with shared stuff.
-// Not really important for Linux.
+// Deal with shared stuff.
+// Not really important for Linux but Windows needs help.
 //
-#if defined(ACAI_LIBRARY)
-#define ACAI_SHARED_CLASS
+#if defined(_WIN32)
+#   if defined(ACAI_LIBRARY)
+#      define ACAI_SHARED_CLASS __declspec(dllexport)
+#      define ACAI_SHARED_FUNC  __declspec(dllexport)
+#   else
+#      define ACAI_SHARED_CLASS __declspec(dllimport)
+#      define ACAI_SHARED_FUNC  __declspec(dllimport)
+#   endif
 #else
-#define ACAI_SHARED_CLASS
+#   define ACAI_SHARED_CLASS
+#   define ACAI_SHARED_FUNC
 #endif
 
 
@@ -149,8 +158,8 @@ typedef std::vector<ClientString>     ClientStringArray;
 // Allows clients that build against this library to need only include
 // library header files without the need to include EPICS header files.
 //
-// These types effectively replicate the EPICS types. Must be kept is step.
-// But these types are really really stable so this is not a hassle.
+// These types effectively replicate the EPICS Channel Access types. Must be kept is step.
+// But as the EPICS Channel Access types are really really stable so this is not a hassle.
 //
 
 // MUST be consistent with PVNAME_STRINGSZ out of dbDefs.h
@@ -158,8 +167,8 @@ typedef std::vector<ClientString>     ClientStringArray;
 ///
 #define ACAI_MAX_PVNAME_LENGTH    61
 
-// MUST be consistent with alarm.h
-/// \brief Extends stardard EPICS severity to include a disconnected state.
+// MUST be kept consistent with alarm.h
+/// \brief Extends standard EPICS severity to include a disconnected state.
 //
 enum ClientAlarmSeverity {
    ClientSevNone  = 0,
@@ -207,7 +216,7 @@ struct ClientTimeStamp {
 };
 
 
-// MUST be consistent with db_access.h
+// MUST be kept consistent with db_access.h
 /// Field type. Essentially a copy of db_access.h with addtion of a default
 /// type used for requests only.
 ///
@@ -226,7 +235,7 @@ enum ClientFieldType {
 };
 
 /// Controls event subscriptions - ref to caeventmask.h for details.
-/// Default mode is Value | Alarm
+/// The default mode is Value | Alarm
 // Keep consistant with caeventmask.h
 //
 enum EventMasks {
@@ -240,17 +249,31 @@ enum EventMasks {
 //------------------------------------------------------------------------------
 /// This function returns a textual/displayable form of the specified alarm severity.
 ///
-ACAI::ClientString alarmSeverityImage (const ACAI::ClientAlarmSeverity severity);
+ACAI_SHARED_FUNC ACAI::ClientString alarmSeverityImage (const ACAI::ClientAlarmSeverity severity);
 
 //------------------------------------------------------------------------------
 /// This function returns a textual/displayable form of the specified alarm status.
 ///
-ACAI::ClientString alarmStatusImage (const ACAI::ClientAlarmCondition status);
+ACAI_SHARED_FUNC ACAI::ClientString alarmStatusImage (const ACAI::ClientAlarmCondition status);
+
+//------------------------------------------------------------------------------
+/// This function returns the time_t type of the given client time stamp.
+/// This take into account the EPICS epoch offet.
+///
+ACAI_SHARED_FUNC time_t utcTimeOf (const ACAI::ClientTimeStamp& ts, int* nanoSecOut = NULL);
+
+//------------------------------------------------------------------------------
+/// This function returns a textual/displayable form of the tiime stamp.
+/// Format is: "yyyy-mm-dd hh:nn:ss[.ffff]"
+/// Without fractions, this is a suitable format for MySql.
+///
+ACAI_SHARED_FUNC ACAI::ClientString utcTimeImage (const ACAI::ClientTimeStamp& ts,
+                                                  const int precision = 0);
 
 //------------------------------------------------------------------------------
 /// This function provides a textual/displayable image for the field type.
 ///
-ACAI::ClientString clientFieldTypeImage (const ACAI::ClientFieldType clientFieldType);
+ACAI_SHARED_FUNC ACAI::ClientString clientFieldTypeImage (const ACAI::ClientFieldType clientFieldType);
 
 //------------------------------------------------------------------------------
 // ClientString utility functions.
@@ -260,29 +283,29 @@ ACAI::ClientString clientFieldTypeImage (const ACAI::ClientFieldType clientField
 /// The size_t size paramter is used for an internal buffer (note: this is on the stack)
 /// and will constrain the final string size.
 ///
-int csnprintf (ACAI::ClientString& target, size_t size, const char* format, ...);
+ACAI_SHARED_FUNC int csnprintf (ACAI::ClientString& target, size_t size, const char* format, ...);
 
 /// This creates and returns an ACAI::ClientString
 ///
 /// The size_t size paramter is used for an internal buffer (note: this is on the stack)
 /// and will constrain the final string size.
 ///
-ACAI::ClientString csnprintf (size_t size, const char* format, ...);
+ACAI_SHARED_FUNC ACAI::ClientString csnprintf (size_t size, const char* format, ...);
 
 /// Assign at most maxSize characters to ACAI::ClientString. This is useful
-/// for 'full' fixed size string (e.g. an enumeration values) which does not
-/// include a terminating null character. Cribbed from epicsQt
+/// for 'full' fixed size string (e.g. an enumeration value) which does not
+/// include a terminating null character. Cribbed from epicsQt.
 /// Kind of like strncpy, however result.c_str() always is null terminated.
 ///
-ACAI::ClientString limitedAssign (const char* source, const size_t maxSize);
+ACAI_SHARED_FUNC ACAI::ClientString limitedAssign (const char* source, const size_t maxSize);
 
 /// Returns runtime integer version, as opposed to compile time header version.
 ///
-int version ();
+ACAI_SHARED_FUNC int version ();
 
 /// Returns runtime string version, as opposed to compile time header version.
 ///
-ACAI::ClientString versionString ();
+ACAI_SHARED_FUNC ACAI::ClientString versionString ();
 
 }
 

@@ -23,9 +23,20 @@
  * PO Box 3118, Prahran East, Victoria 3181, Australia.
  *
  */
- 
+
 #ifndef ACAI__PRIVATE_COMMON_H_
 #define ACAI__PRIVATE_COMMON_H_
+
+// Useful type neutral numerical macro fuctions.
+//
+#define ABS(a)             ((a) >= 0  ? (a) : -(a))
+#define MIN(a, b)          ((a) <= (b) ? (a) : (b))
+#define MAX(a, b)          ((a) >= (b) ? (a) : (b))
+#define LIMIT(x,low,high)  (MAX(low, MIN(x, high)))
+
+// Calculates number of items in an array
+//
+#define ARRAY_LENGTH(xx) ( sizeof (xx) / sizeof (xx [0]) )
 
 // Iterate over std::set or std::list (infact any std container)
 //

@@ -48,13 +48,6 @@
 #include <acai_abstract_client_user.h>
 #include <acai_private_common.h>
 
-// EPICS timestamp epoch: This is Mon Jan  1 00:00:00 1990 UTC.
-//
-// This itself is expressed as a system time which represents the number
-// of seconds elapsed since 00:00:00 on January 1, 1970, UTC.
-//
-static const time_t epics_epoch = 631152000;
-
 // Quazi enumeration variables - Channel Access passes back a pointer to one
 // of these as user data. It is the address as opposed to the content that is
 // important.
@@ -74,17 +67,6 @@ static int Put = 0;
 // Debug and diagnostic variables.
 //
 static int debug = 0;
-
-// Useful type neutral numerical macro fuctions.
-//
-#define ABS(a)             ((a) >= 0  ? (a) : -(a))
-#define MIN(a, b)          ((a) <= (b) ? (a) : (b))
-#define MAX(a, b)          ((a) >= (b) ? (a) : (b))
-#define LIMIT(x,low,high)  (MAX(low, MIN(x, high)))
-
-// Calculates number of items in an array
-//
-#define ARRAY_LENGTH(xx) ( sizeof (xx) / sizeof (xx [0]) )
 
 #define MINIMUM_BUFFER_SIZE   (sizeof (dbr_string_t))
 
@@ -851,7 +833,7 @@ ACAI::ClientStringArray ACAI::Client::getStringArray () const
 
 //------------------------------------------------------------------------------
 //
-bool ACAI::Client::putData (const int dbf_type, const unsigned long  count, const void* dataPtr)
+bool ACAI::Client::putData (const int dbf_type, const unsigned long count, const void* dataPtr)
 {
    const chtype type = chtype (dbf_type);
    int status;
@@ -887,7 +869,7 @@ bool ACAI::Client::putData (const int dbf_type, const unsigned long  count, cons
 
    // Convert to a boolean result.
    //
-   return  (status == ECA_NORMAL);
+   return (status == ECA_NORMAL);
 }
 
 //------------------------------------------------------------------------------
@@ -967,13 +949,15 @@ bool ACAI::Client::putStringArray (const ACAI::ClientString* valueArray, const u
    buffer = (dbr_string_t *) calloc ((size_t) count, sizeof (dbr_string_t));
    if (buffer) {
       for (unsigned int j = 0; j < count; j++) {
+         // Convert and truncate ClientString to basic c string.
+         //
          snprintf (buffer [j * sizeof (dbr_string_t)], sizeof (dbr_string_t), "%s",
                    valueArray [j].c_str ());
       }
       result = this->putData (DBF_STRING, count, buffer);
       free ((void *) buffer);
    } else {
-      // report error
+      reportError ("calloc failed (%d string elements)", count);
    }
    return result;
 }
@@ -1019,18 +1003,13 @@ ACAI::ClientString ACAI::Client::getEnumeration (int state) const
 {
    ACAI::ClientString result;
 
-   // Set default.
-   //
-   result = ACAI::csnprintf (12, "#%d", state);
-
    if (this->dataFieldType () == ClientFieldENUM) {
 
-      int n = this->enumerationStatesCount ();
+      const int n = this->enumerationStatesCount ();
 
       // Is specified state in range ?
       //
       if ((state >= 0) && (state < n)) {
-         const char* source;
 
          // Is this an alarm status PV ? i.e. {recordname}.STAT
          //
@@ -1038,20 +1017,25 @@ ACAI::ClientString ACAI::Client::getEnumeration (int state) const
             // Yes - use alarm status strings - there are more than the 16
             // provided by the CA library.
             //
-            source = epicsAlarmConditionStrings [state];
+            result = ACAI::alarmStatusImage (ACAI::ClientAlarmCondition (state));
 
          } else {
             // No - use channel access values.
             //
-            source = this->pd->enum_strings [state];
+            const char* source = this->pd->enum_strings [state];
+
+            // If the enum values are at max size, there is no null end-of-string
+            // character at the end of the value.  Do not run into next enum value
+            // Do not copy more than MAX_ENUM_STRING_SIZE characters.
+            //
+            result = ACAI::limitedAssign (source, MAX_ENUM_STRING_SIZE);
          }
 
-         // If the enum values are at max size, there is no null end-of-string
-         // character at the end of the value.  Do not run into next enum value
-         // Do not copy more than MAX_ENUM_STRING_SIZE characters.
-         //
-         result = ACAI::limitedAssign (source, MAX_ENUM_STRING_SIZE);
+      } else {
+         result = ACAI::csnprintf (12, "#%d", state);    // Set default.
       }
+   } else {
+      result = ACAI::csnprintf (12, "#%d", state);   // Set default.
    }
 
    return result;
@@ -1159,10 +1143,7 @@ bool ACAI::Client::writeAccess () const
 //
 time_t ACAI::Client::utcTime (int* nanoSecOut) const
 {
-   if (nanoSecOut) {
-      *nanoSecOut = this->pd->timeStamp.nsec;
-   }
-   return this->pd->timeStamp.secPastEpoch + epics_epoch;
+   return ACAI::utcTimeOf (this->timeStamp(), nanoSecOut);
 }
 
 //------------------------------------------------------------------------------
@@ -1170,7 +1151,6 @@ time_t ACAI::Client::utcTime (int* nanoSecOut) const
 ACAI::ClientTimeStamp ACAI::Client::timeStamp () const
 {
    ACAI::ClientTimeStamp result;
-
    result.secPastEpoch = this->pd->timeStamp.secPastEpoch;
    result.nsec         = this->pd->timeStamp.nsec;
    return result;
@@ -1180,46 +1160,7 @@ ACAI::ClientTimeStamp ACAI::Client::timeStamp () const
 //
 ACAI::ClientString ACAI::Client::utcTimeImage (const int precision) const
 {
-   static const int scale [10] = {
-      1000000000, 100000000, 10000000, 1000000,
-      100000, 10000, 1000, 100, 10, 1
-   };
-
-   ACAI::ClientString result;
-   int nano_sec;
-   struct tm bt;
-   char text [40];
-
-   // Make maybe uninitialised warning go away.
-   //
-   bt.tm_year = bt.tm_mon = bt.tm_mday = bt.tm_hour = bt.tm_min = bt.tm_sec = 0;
-
-   // Form broken-down UTC time bt
-   //
-   const time_t utc = this->utcTime (&nano_sec);
-   gmtime_r (&utc, &bt);
-
-   // In broken-down time, tm_year is the number of years since 1900,
-   // and January is month 0.
-   //
-   snprintf (text, 40, "%04d-%02d-%02d %02d:%02d:%02d",
-             1900 + bt.tm_year, 1 + bt.tm_mon, bt.tm_mday,
-             bt.tm_hour, bt.tm_min, bt.tm_sec);
-
-   result = text;
-
-   if (precision > 0) {
-      char format[8];
-      char fraction[16];
-
-      const int p = MIN (precision, 9);
-      sprintf (format, ".%%0%dd", p);
-      const int f = nano_sec / scale[p];
-      sprintf (fraction, format, f);
-      result.append (fraction);
-   }
-
-   return result;
+   return ACAI::utcTimeImage (this->timeStamp(), precision);
 }
 
 //------------------------------------------------------------------------------

@@ -27,10 +27,12 @@
 #ifndef ACAI__CLIENT_H_
 #define ACAI__CLIENT_H_
 
+#include <time.h>
 #include <set>
 #include <acai_client_types.h>
 
-// Differed declaration - used in private part of class.
+// Differed declaration - used in private part of this class.
+//
 struct connection_handler_args;
 struct event_handler_args;
 
@@ -44,10 +46,11 @@ class Abstract_Client_User;    // differed declaration.
 /// support functionality, however an application can be created that only uses
 /// ACAI::Client objects.
 ///
-/// An ACAI::Client object has number of attributes, but of primary importance is it's
+/// An ACAI::Client object has number of attributes, but of primary importance is its
 /// process variable (PV) name and this is the only attribute that may be set during
 /// construction. All other attributes have their own set and get functions. The default
-/// settings for these other attributes are often suitable and as such need not be changed.
+/// settings for these other attributes have been chosen to be suitable for typical use
+/// case and as such will most likely need not be changed.
 ///
 /// It should be noted that many of these attributes only take effect when Client::openChannel
 /// function is called (which calls ca_create_channel) or when a successfull connection

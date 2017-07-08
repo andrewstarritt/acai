@@ -26,13 +26,14 @@
 #include <alarm.h>
 #include <alarmString.h>
 #include <acai_client_types.h>
+#include <acai_private_common.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
 
 //------------------------------------------------------------------------------
 //
-int ACAI::csnprintf (ACAI::ClientString& target, size_t size, const char* format, ...)
+ACAI_SHARED_FUNC int ACAI::csnprintf (ACAI::ClientString& target, size_t size, const char* format, ...)
 {
    va_list args;
    char buffer [size + 1];
@@ -48,7 +49,7 @@ int ACAI::csnprintf (ACAI::ClientString& target, size_t size, const char* format
 
 //------------------------------------------------------------------------------
 //
-ACAI::ClientString ACAI::csnprintf (size_t size, const char* format, ...)
+ACAI_SHARED_FUNC ACAI::ClientString ACAI::csnprintf (size_t size, const char* format, ...)
 {
    va_list args;
    char buffer [size + 1];
@@ -62,7 +63,7 @@ ACAI::ClientString ACAI::csnprintf (size_t size, const char* format, ...)
 
 //------------------------------------------------------------------------------
 //
-ACAI::ClientString ACAI::limitedAssign (const char* source, const size_t maxSize)
+ACAI_SHARED_FUNC ACAI::ClientString ACAI::limitedAssign (const char* source, const size_t maxSize)
 {
    ACAI::ClientString result;
 
@@ -84,10 +85,10 @@ ACAI::ClientString ACAI::limitedAssign (const char* source, const size_t maxSize
 
 //------------------------------------------------------------------------------
 //
-ACAI::ClientString ACAI::alarmSeverityImage (const ACAI::ClientAlarmSeverity severity)
+ACAI_SHARED_FUNC ACAI::ClientString ACAI::alarmSeverityImage (const ACAI::ClientAlarmSeverity severity)
 {
    ClientString result;
-   const int n = (int) severity;
+   const int n = int (severity);
    if ((n >= 0) && (n < ALARM_NSEV)) {
       result = ACAI::ClientString (epicsAlarmSeverityStrings[n]);
    } else if (n == ClientDisconnected) {
@@ -101,10 +102,10 @@ ACAI::ClientString ACAI::alarmSeverityImage (const ACAI::ClientAlarmSeverity sev
 
 //------------------------------------------------------------------------------
 //
-ACAI::ClientString ACAI::alarmStatusImage (const ACAI::ClientAlarmCondition status)
+ACAI_SHARED_FUNC ACAI::ClientString ACAI::alarmStatusImage (const ACAI::ClientAlarmCondition status)
 {
    ClientString result;
-   const int n = (int) status;
+   const int n = int (status);
    if ((n >= 0) && (n < ALARM_NSTATUS)) {
       result = ACAI::ClientString (epicsAlarmConditionStrings[n]);
    } else {
@@ -115,7 +116,77 @@ ACAI::ClientString ACAI::alarmStatusImage (const ACAI::ClientAlarmCondition stat
 
 //------------------------------------------------------------------------------
 //
-ACAI::ClientString ACAI::clientFieldTypeImage (const ACAI::ClientFieldType cft)
+ACAI_SHARED_FUNC time_t ACAI::utcTimeOf (const ACAI::ClientTimeStamp& ts, int* nanoSecOut)
+{
+   // EPICS timestamp epoch: This is Mon Jan  1 00:00:00 1990 UTC.
+   //
+   // This itself is expressed as a system time which represents the number
+   // of seconds elapsed since 00:00:00 on January 1, 1970, UTC.
+   //
+   static const time_t epics_epoch = 631152000;
+
+   if (nanoSecOut) {
+      *nanoSecOut = ts.nsec;
+   }
+
+   return ts.secPastEpoch + epics_epoch;
+}
+
+//------------------------------------------------------------------------------
+//
+ACAI_SHARED_FUNC ACAI::ClientString ACAI::utcTimeImage (const ACAI::ClientTimeStamp& ts,
+                                                        const int precision)
+{
+   static const int scale [10] = {
+      1000000000, 100000000, 10000000, 1000000,
+      100000, 10000, 1000, 100, 10, 1
+   };
+
+   ClientString result;
+
+   // Convert time
+   //
+   int nanoSec;
+   const time_t utc = ACAI::utcTimeOf (ts, &nanoSec);
+
+   // Make maybe uninitialised warning go away.
+   //
+   struct tm bt;
+   bt.tm_year = bt.tm_mon = bt.tm_mday = bt.tm_hour = bt.tm_min = bt.tm_sec = 0;
+
+   // Form broken-down UTC time bt
+   //
+   gmtime_r (&utc, &bt);
+
+   // In broken-down time, tm_year is the number of years since 1900,
+   // and January is month 0.
+   //
+   char text [40];
+   snprintf (text, 40, "%04d-%02d-%02d %02d:%02d:%02d",
+             1900 + bt.tm_year, 1 + bt.tm_mon, bt.tm_mday,
+             bt.tm_hour, bt.tm_min, bt.tm_sec);
+
+   result = text;
+
+   // Add precision if required.
+   //
+   if (precision > 0) {
+      char format[8];
+      char fraction[16];
+
+      const int p = MIN (precision, 9);
+      sprintf (format, ".%%0%dd", p);
+      const int f =  nanoSec / scale[p];
+      sprintf (fraction, format, f);
+      result.append (fraction);
+   }
+
+   return  result;
+}
+
+//------------------------------------------------------------------------------
+//
+ACAI_SHARED_FUNC ACAI::ClientString ACAI::clientFieldTypeImage (const ACAI::ClientFieldType cft)
 {
    ClientString result;
 
@@ -136,16 +207,16 @@ ACAI::ClientString ACAI::clientFieldTypeImage (const ACAI::ClientFieldType cft)
    return  result;
 }
 
-
 //------------------------------------------------------------------------------
 //
-int ACAI::version () {
+ACAI_SHARED_FUNC int ACAI::version ()
+{
    return ACAI_VERSION;
 }
 
 //------------------------------------------------------------------------------
 //
-ACAI::ClientString ACAI::versionString ()
+ACAI_SHARED_FUNC ACAI::ClientString ACAI::versionString ()
 {
    return ACAI_VERSION_STRING;
 }

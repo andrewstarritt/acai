@@ -116,8 +116,8 @@ public:
    ///
    bool areAllRegisteredChannelsReady () const;
 
-   /// This function performs a delay poll cycle until either all the channels are
-   /// ready or the total delay time exceedsthe specified timeout.
+   /// This function performs a delay poll cycle until either all the channels
+   /// are ready or the total delay time exceedsthe specified timeout.
    /// Returns true if all channels are currently connected.
    /// The timeOut and pollInterval are specified in seconds.
    /// The pollInterval is constrained to be >= 0.001s (1 mSec).
