@@ -30,7 +30,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#include <unistd.h>
 
 #include <alarm.h>
 #include <cadef.h>
@@ -48,15 +48,6 @@
 #include <acai_abstract_client_user.h>
 #include <acai_private_common.h>
 
-// Quazi enumeration variables - Channel Access passes back a pointer to one
-// of these as user data. It is the address as opposed to the content that is
-// important.
-// Note: We always get a ref to the client using the args' chanId chid.
-//
-static int Get = 0;
-static int Sub = 0;
-static int Put = 0;
-
 // Magic numbers embedded within each ACAI::Client and ACAI::Client::PrivateData object.
 // Used as a sainity check when we convert an anonymous pointer to a ACAI::Client
 // or ACAI::Client::PrivateData class object.
@@ -66,7 +57,7 @@ static int Put = 0;
 
 // Debug and diagnostic variables.
 //
-static int debug = 0;
+static int debugLevel = 0;
 
 #define MINIMUM_BUFFER_SIZE   (sizeof (dbr_string_t))
 
@@ -85,6 +76,7 @@ static void reportErrorFunc (const int line, const char* function, const char* f
    va_end (args);
 
    fprintf (stderr, "ACAI::Client:%d %s: %s\n", line, function, buffer);
+   fflush (stderr);
 }
 
 // Wrapper macros to reportErrorFunc.
@@ -113,6 +105,13 @@ public:
    } ConnectionStatus;
 
    int magic_number;        // used to verify void* to PrivateData* conversions.
+
+   // Channel Access passes back a pointer to one of these as user data.
+   // Note: We always get a ref to the client using the args' chanId chid.
+   //
+   void* getFuncArg;
+   void* subFuncArg;
+   void* putFuncArg;
 
    // Channel Access connection info
    //
@@ -228,6 +227,11 @@ ACAI::Client::PrivateData::PrivateData (ACAI::Client* ownerIn)
    // Set magic number - used by validate channel id.
    //
    this->magic_number = MAGIC_NUMBER_P;
+
+   this->getFuncArg = NULL;
+   this->subFuncArg = NULL;
+   this->putFuncArg = NULL;
+
    this->readMode = ACAI::Subscribe;
    this->eventMask = ACAI::EventMasks (ACAI::EventValue | ACAI::EventAlarm);
 
@@ -261,6 +265,9 @@ ACAI::Client::PrivateData::~PrivateData ()
 {
    this->magic_number = 0;
    this->clearBuffer ();
+   this->getFuncArg = NULL;
+   this->subFuncArg = NULL;
+   this->putFuncArg = NULL;
    this->channel_id = NULL;
    this->event_id = NULL;
 }
@@ -535,6 +542,10 @@ bool ACAI::Client::openChannel ()
    // TO DECIDE: close if already open ?? or dis-allow ??
 
    if (strlen (this->pd->pv_name) > 0) {
+
+      this->pd->getFuncArg = this->uniqueFunctionArg ();
+      this->pd->subFuncArg = this->uniqueFunctionArg ();
+      this->pd->putFuncArg = this->uniqueFunctionArg ();
 
       status = ca_create_channel (this->pd->pv_name,
                                   buffered_connection_handler,
@@ -855,7 +866,7 @@ bool ACAI::Client::putData (const int dbf_type, const unsigned long count, const
       }
 
       status = ca_array_put_callback (type, count, this->pd->channel_id,
-                                      dataPtr, buffered_event_handler, &Put);
+                                      dataPtr, buffered_event_handler, this->pd->putFuncArg);
 
       // If write was successful, set pending flag.
       //
@@ -1312,8 +1323,13 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
    // Read data together with all meta data.
    //
    if ((readMode == ACAI::SingleRead) || (readMode == ACAI::Subscribe)) {
+
+      if (debugLevel >= 4) {
+         reportError ("ca_array_get_callback  %s", this->pd->pv_name);
+      }
+
       status = ca_array_get_callback (initial_type, count, this->pd->channel_id,
-                                      buffered_event_handler, &Get);
+                                      buffered_event_handler, this->pd->getFuncArg);
 
       if (status != ECA_NORMAL) {
          reportError ("ca_array_get_callback (%s) failed (%s)", this->pd->pv_name,
@@ -1327,9 +1343,13 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
    if (readMode == ACAI::Subscribe) {
       // ... and now subscribe for time stamped data updates as well.
       //
+      if (debugLevel >= 4) {
+         reportError ("ca_create_subscription %s", this->pd->pv_name);
+      }
+
       status = ca_create_subscription (update_type, count, this->pd->channel_id,
                                        this->pd->eventMask, buffered_event_handler,
-                                       &Sub, &this->pd->event_id);
+                                       this->pd->subFuncArg, &this->pd->event_id);
 
       if (status != ECA_NORMAL) {
          reportError ("ca_create_subscription (%s) failed (%s)",
@@ -1350,6 +1370,11 @@ void ACAI::Client::unsubscribeChannel ()
    // Unsubscribe iff needs be.
    //
    if (this->pd->event_id) {
+
+      if (debugLevel >= 4) {
+         reportError ("ca_clear_subscription  %s", this->pd->pv_name);
+      }
+
       status = ca_clear_subscription (this->pd->event_id);
       if (status != ECA_NORMAL) {
          reportError ("ca_clear_subscription (%s) failed (%s)",
@@ -1595,7 +1620,7 @@ void ACAI::Client::connectionHandler (struct connection_handler_args& args)
    switch (args.op) {
 
       case CA_OP_CONN_UP:
-         if (debug >= 4) {
+         if (debugLevel >= 4) {
             reportError ("PV connected %s", this->pd->pv_name);
          }
 
@@ -1616,7 +1641,7 @@ void ACAI::Client::connectionHandler (struct connection_handler_args& args)
          break;
 
       case CA_OP_CONN_DOWN:
-         if (debug >= 4) {
+         if (debugLevel >= 4) {
             reportError ("PV disconnected %s", this->pd->pv_name);
          }
 
@@ -1650,7 +1675,7 @@ void ACAI::Client::eventHandler (struct event_handler_args& args)
    //
    // Treat Get and Sub(scription) events the same.
    //
-   if ((args.usr == &Get) || (args.usr == &Sub)) {
+   if ((args.usr == this->pd->getFuncArg) || (args.usr == this->pd->subFuncArg)) {
 
       if (args.status == ECA_NORMAL) {
 
@@ -1666,7 +1691,7 @@ void ACAI::Client::eventHandler (struct event_handler_args& args)
                        this->pd->pv_name, ca_message (args.status));
       }
 
-   } else if (args.usr == &Put) {
+   } else if (args.usr == this->pd->putFuncArg) {
       if (this->pd->pending_put_callback) {
          // Clear pending flag.
          //
@@ -1679,8 +1704,13 @@ void ACAI::Client::eventHandler (struct event_handler_args& args)
       }
 
    } else {
-      reportError ("event_handler (%s) unexpected args.usr",
-                   this->pd->pv_name);
+      // Not unexpected as channel_id may be reused, so may still pass the
+      // validateChannelId check.
+      //
+      if (debugLevel >= 2) {
+         reportError ("event_handler (%s) unexpected args.usr %lu",
+                      this->pd->pv_name, size_t (args.usr));
+      }
    }
 }
 
@@ -1924,6 +1954,33 @@ void ACAI::Client::poll (const int maximum)
 
    process_buffered_callbacks (maximum);
 }
+
+//------------------------------------------------------------------------------
+// static
+void ACAI::Client::setDebugLevel (const int level)
+{
+   debugLevel = level;
+}
+
+//------------------------------------------------------------------------------
+// static
+int ACAI::Client::getDebugLevel ()
+{
+   return debugLevel;
+}
+
+//------------------------------------------------------------------------------
+// static
+void* ACAI::Client::uniqueFunctionArg ()
+{
+   static size_t id = 0;
+
+   id++;
+   if ((void*) id == NULL) id++;
+
+   return (void*) id;
+}
+
 
 
 //==============================================================================

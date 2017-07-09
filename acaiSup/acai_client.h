@@ -154,6 +154,13 @@ public:
    ///
    static void poll (const int maximum = 800);
 
+   /// Set internal debug level. Larger the number more detail.
+   ///
+   static void setDebugLevel (const int level);
+
+   /// Get internal debug level
+   ///
+   static int getDebugLevel ();
 
    // object functions ---------------------------------------------------------
    //
@@ -787,6 +794,10 @@ private:
    // Utility put data wrapper function.
    //
    bool putData (const int dbf_type, const unsigned long  count, const void* dataPtr);
+
+   // Allocate a unique call back function argument. This is nenevr NULL.
+   //
+   void* uniqueFunctionArg ();
 
    // Converts type out of event_handler_args to text - for error message.
    // This type not exposed to the api, so this function is private.
