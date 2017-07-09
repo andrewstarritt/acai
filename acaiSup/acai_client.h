@@ -346,7 +346,7 @@ public:
    /// When a channel is connected, this function causes the data to be re-read once.
    /// If not connected this function does nothing.
    /// This intended for channels opened with read mode set to SingleRead (or NoRead),
-   /// however this will also force a reread (including meta data) of a subscribing
+   /// however this will also force a re-read (including meta data) of a subscribing
    /// channel.
    ///
    bool reReadChannel ();

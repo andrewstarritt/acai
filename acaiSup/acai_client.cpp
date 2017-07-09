@@ -543,12 +543,6 @@ bool ACAI::Client::openChannel ()
 
    if (strlen (this->pd->pv_name) > 0) {
 
-      // Allocate the unique call back function arguments.
-      //
-      this->pd->getFuncArg = this->uniqueFunctionArg ();
-      this->pd->subFuncArg = this->uniqueFunctionArg ();
-      this->pd->putFuncArg = this->uniqueFunctionArg ();
-
       status = ca_create_channel (this->pd->pv_name,
                                   buffered_connection_handler,
                                   this,     // user private
@@ -1208,8 +1202,7 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
    ACAI::ClientFieldType actualRequestType;
    chtype initial_type;
    chtype update_type;
-   unsigned long size;
-   char *env_var;
+   unsigned long elementSize;
    unsigned long max_array_size;
    unsigned long meta_data_size;
    unsigned long truncated;
@@ -1242,43 +1235,43 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
       case ACAI::ClientFieldSTRING:
          initial_type = DBR_STS_STRING;
          update_type = DBR_TIME_STRING;
-         size = sizeof (dbr_string_t);
+         elementSize = sizeof (dbr_string_t);
          break;
 
       case ACAI::ClientFieldSHORT:
          initial_type = DBR_CTRL_SHORT;
          update_type = DBR_TIME_SHORT;
-         size = sizeof (dbr_short_t);
+         elementSize = sizeof (dbr_short_t);
          break;
 
       case ACAI::ClientFieldFLOAT:
          initial_type = DBR_CTRL_FLOAT;
          update_type = DBR_TIME_FLOAT;
-         size = sizeof (dbr_float_t);
+         elementSize = sizeof (dbr_float_t);
          break;
 
       case ACAI::ClientFieldENUM:
          initial_type = DBR_CTRL_ENUM;
          update_type = DBR_TIME_ENUM;
-         size = sizeof (dbr_enum_t);
+         elementSize = sizeof (dbr_enum_t);
          break;
 
       case ACAI::ClientFieldCHAR:
          initial_type = DBR_CTRL_CHAR;
          update_type = DBR_TIME_CHAR;
-         size = sizeof (dbr_char_t);
+         elementSize = sizeof (dbr_char_t);
          break;
 
       case ACAI::ClientFieldLONG:
          initial_type = DBR_CTRL_LONG;
          update_type = DBR_TIME_LONG;
-         size = sizeof (dbr_long_t);
+         elementSize = sizeof (dbr_long_t);
          break;
 
       case ACAI::ClientFieldDOUBLE:
          initial_type = DBR_CTRL_DOUBLE;
          update_type = DBR_TIME_DOUBLE;
-         size = sizeof (dbr_double_t);
+         elementSize = sizeof (dbr_double_t);
          break;
 
       default:
@@ -1291,7 +1284,7 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
 
    // Attempt to read EPICS_CA_MAX_ARRAY_BYTES environment variable.
    //
-   env_var = getenv ("EPICS_CA_MAX_ARRAY_BYTES");
+   const char* env_var = getenv ("EPICS_CA_MAX_ARRAY_BYTES");
    if (env_var) {
       status = sscanf (env_var, "%ld", &max_array_size);
       if (status == 1) {
@@ -1311,8 +1304,8 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
    // Check if Max_Array_Size, i.e. ${EPICS_CA_MAX_ARRAY_BYTES}, is
    // large enough to handle the request.
    //
-   if ((meta_data_size + (count * size)) >= max_array_size) {
-      truncated = (max_array_size - meta_data_size) / size;
+   if ((meta_data_size + (count * elementSize)) >= max_array_size) {
+      truncated = (max_array_size - meta_data_size) / elementSize;
 
       reportError ("PV (%s) request count truncated from %ld to %ld elements",
                    this->pd->pv_name, count, truncated);
@@ -1349,6 +1342,9 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
          reportError ("ca_create_subscription %s", this->pd->pv_name);
       }
 
+      // Allocate the unique subscription call back function argument.
+      //
+      this->pd->subFuncArg = this->uniqueFunctionArg ();
       status = ca_create_subscription (update_type, count, this->pd->channel_id,
                                        this->pd->eventMask, buffered_event_handler,
                                        this->pd->subFuncArg, &this->pd->event_id);
@@ -1382,9 +1378,11 @@ void ACAI::Client::unsubscribeChannel ()
          reportError ("ca_clear_subscription (%s) failed (%s)",
                       this->pd->pv_name, ca_message (status));
       }
-      this->pd->event_id = NULL;
 
-      // Save discconection time
+      this->pd->event_id = NULL;
+      this->pd->subFuncArg = NULL;
+
+      // Save disconnection time
       //
       time (&this->pd->disconnect_time);
    }
@@ -1638,6 +1636,12 @@ void ACAI::Client::connectionHandler (struct connection_handler_args& args)
 
          this->pd->data_element_count = 0;                // no data yet
          this->pd->is_first_update = true;                // initial request.
+
+         // Allocate the unique get/put call back function arguments per connection.
+         //
+         this->pd->getFuncArg = this->uniqueFunctionArg ();
+         this->pd->putFuncArg = this->uniqueFunctionArg ();
+
          this->readSubscribeChannel (this->pd->readMode); // read and optionally subscribe.
          this->callConnectionUpdate ();
          break;
@@ -1657,6 +1661,11 @@ void ACAI::Client::connectionHandler (struct connection_handler_args& args)
          // precision, num elements, and even native type) have changed.
          //
          this->unsubscribeChannel ();
+
+         // Clear unique call back function arguments.
+         //
+         this->pd->getFuncArg = NULL;
+         this->pd->putFuncArg = NULL;
 
          // Any buffered data is now meaningless.
          //
@@ -1866,7 +1875,8 @@ void ACAI::Client::callPutCallbackNotifcation (const bool isSuccessfulIn)
 }
 
 
-// TODO: Must/should mutex access to this ??
+// TODO: Must/should usa a mutex access to this ??
+//
 static struct ca_client_context*  acai_context = NULL;
 
 //------------------------------------------------------------------------------
