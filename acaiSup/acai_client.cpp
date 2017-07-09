@@ -106,7 +106,7 @@ public:
 
    int magic_number;        // used to verify void* to PrivateData* conversions.
 
-   // Channel Access passes back a pointer to one of these as user data.
+   // Channel Access passes back one of these to callbach functions as user data.
    // Note: We always get a ref to the client using the args' chanId chid.
    //
    void* getFuncArg;
@@ -543,6 +543,8 @@ bool ACAI::Client::openChannel ()
 
    if (strlen (this->pd->pv_name) > 0) {
 
+      // Allocate the unique call back function arguments.
+      //
       this->pd->getFuncArg = this->uniqueFunctionArg ();
       this->pd->subFuncArg = this->uniqueFunctionArg ();
       this->pd->putFuncArg = this->uniqueFunctionArg ();
@@ -1980,7 +1982,6 @@ void* ACAI::Client::uniqueFunctionArg ()
 
    return (void*) id;
 }
-
 
 
 //==============================================================================
