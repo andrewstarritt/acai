@@ -154,6 +154,10 @@ public:
    ///
    static void poll (const int maximum = 800);
 
+   /// Under the covers, this fuction just calls ca_flush_io.
+   //
+   static void flush ();
+
    /// Set internal debug level. Larger the number more detail is provided.
    ///
    static void setDebugLevel (const int level);
@@ -171,8 +175,8 @@ public:
    explicit Client (const ACAI::ClientString& pvName = "");
 
    /// Class destructor. The destructor calls unsubscribeChannel and closeChannel.
-   /// It also removes itself form any Abstract_Client_User object that it is
-   /// registered with, clears the the 'magic' number, and finally deletes any
+   /// It also removes itself form any Abstract_Client_User object with which it
+   /// is registered, clears the the 'magic' number, and finally deletes any
    /// associated internal objects.
    ///
    virtual ~Client ();
@@ -195,8 +199,8 @@ public:
 
    /// This function sets the data request type to one of the standard EPICS field types.
    ///
-   /// By default, the date data request type is ClientFieldDefault and as such the data
-   /// subscription request is based on the host (IOC) native field type, e.g. if
+   /// By default, the default data request type is ClientFieldDefault and as such the
+   /// data subscription request is based on the host (IOC) native field type, e.g. if
    /// the native field type if DBF_DOUBLE (ClientFieldDOUBLE) then the request is
    /// DBF_DOUBLE (ClientFieldDOUBLE). However, a client user may choose to override
    /// this by setting the data request type.
@@ -364,9 +368,9 @@ public:
    bool dataIsAvailable () const;
 
    // If the channel is closed, these functions return default values (0, 0.0,
-   // "", etc. depending upon the data type). If user cares enough then
-   // dataIsAvailable should be used in order to determine the veracity of
-   // the returned values.
+   // "", etc. depending upon the data type). If user cares enough then the
+   // dataIsAvailable function should be used in order to determine the veracity
+   // of the returned values.
    //
    /// For a connected channel, this fuction returns the precision typically
    /// specified in a record's PREC field. When the channel is not connected,
@@ -591,11 +595,13 @@ public:
    /// Write a traditional string array value to the channel.
    bool putStringArray   (const ACAI::ClientString*   valueArray, const unsigned int count);
 
-   /// Extract the channel enumeration state strings if they exist.
-   /// This function gets the enum state string, not the state string for the
-   /// n-th element of a waveform of enums.
+   /// Extract the channel enumeration state strings if they exist, else returns
+   /// the string "#<state>", e.g. "#27".
    ///
-   /// Use Client::getInteger or Client::getIntegerArray to get enum values.
+   /// Use Client::getInteger or Client::getIntegerArray to get enum state values.
+   ///
+   /// NOTE: This function gets the enum state string, not the state string for the
+   /// n-th element of a waveform of enums.
    ///
    /// NOTE: Does a special for {recordname}.STAT which has more than 16 states.
    /// Others (like sscan.FAZE) are not addressed here.
@@ -613,6 +619,7 @@ public:
    ACAI::ClientStringArray getEnumerationStates () const;
 
    /// Extract the number of enumeration states.
+   /// NOTE: Does a special for {recordname}.STAT which has more than 16 states.
    ///
    int enumerationStatesCount () const;
 
@@ -636,7 +643,7 @@ public:
    /// Return value is NULL if data is not available or offset exceeds size of payload.
    ///
    /// NOTE: The data pointer returned is only guarenteed valid until the next call
-   /// to Client::poll ().
+   /// to ACAI::Client::poll ().
    /// Do NOT store pointer - only valid during dataUpdate function call.
    /// Do NOT write to the data - use as read only access.
    ///

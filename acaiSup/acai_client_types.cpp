@@ -85,6 +85,15 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::limitedAssign (const char* source, con
 
 //------------------------------------------------------------------------------
 //
+ACAI_SHARED_FUNC bool ACAI::alarmSeverityIsValid (const ACAI::ClientAlarmSeverity severity)
+{
+   return ((severity == ClientSevNone)  ||
+           (severity == ClientSevMinor) ||
+           (severity == ClientSevMajor));
+}
+
+//------------------------------------------------------------------------------
+//
 ACAI_SHARED_FUNC ACAI::ClientString ACAI::alarmSeverityImage (const ACAI::ClientAlarmSeverity severity)
 {
    ClientString result;

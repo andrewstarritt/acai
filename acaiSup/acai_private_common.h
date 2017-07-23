@@ -27,6 +27,9 @@
 #ifndef ACAI__PRIVATE_COMMON_H_
 #define ACAI__PRIVATE_COMMON_H_
 
+#include <iostream>
+#include <exception>
+
 // Useful type neutral numerical macro fuctions.
 //
 #define ABS(a)             ((a) >= 0  ? (a) : -(a))
@@ -40,9 +43,22 @@
 
 // Iterate over std::set or std::list (infact any std container)
 //
-#define ITERATE(ContainerType, container, item)                 \
-   for (ContainerType::iterator item = container.begin ();      \
+#define ITERATE(ContainerType, container, item)                    \
+   for (ContainerType::iterator item = container.begin ();         \
         item != container.end (); ++item)
+
+
+// Catch exeptions used (initially) in the callback functions
+//
+#define ACAI_CATCH_EXCEPTION                                       \
+catch (const std::exception& e) {                                  \
+   std::cerr << __FUNCTION__ << " ("<< this->pvName() << "): "     \
+             << "standard exception: '" << e.what() << "'\n";      \
+}                                                                  \
+catch (...) {                                                      \
+   std::cerr << __FUNCTION__ << " ("<< this->pvName() << "): "     \
+             << "unknown exception.\n";                            \
+}
 
 
 #endif   // ACAI__PRIVATE_COMMON_H_

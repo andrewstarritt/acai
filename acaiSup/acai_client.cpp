@@ -94,6 +94,7 @@ class ACAI::Client::PrivateData {
 public:
    explicit PrivateData (ACAI::Client* owner);
    ~PrivateData ();
+
    void clearBuffer ();     // clears buffer
    const union db_access_val*  updateBuffer (struct event_handler_args& args);
 
@@ -1789,7 +1790,6 @@ void ACAI::Client::putCallbackNotifcation (const bool)
    // place holder - not quite a pure abstract function
 }
 
-
 //------------------------------------------------------------------------------
 //
 void ACAI::Client::callConnectionUpdate ()
@@ -1803,9 +1803,12 @@ void ACAI::Client::callConnectionUpdate ()
    // Call hook function, but only if necessary, i.e. if status has changed.
    //
    isConnected = this->isConnected ();
-   if (this->pd->lastIsConnected != isConnected) {
-      this->pd->lastIsConnected = isConnected;
+   if (this->pd->lastIsConnected == isConnected) return;
+   this->pd->lastIsConnected = isConnected;
 
+   // Catch any exceptions here.
+   //
+   try {
       // This is a dispatching call. This is done FIRST in order to ensure that
       // the object performs any necessary self updates prior to notifiy other
       // users of the change.
@@ -1824,58 +1827,71 @@ void ACAI::Client::callConnectionUpdate ()
          this->connectionUpdateEventHandler (this, isConnected);
       }
    }
+   ACAI_CATCH_EXCEPTION
 }
 
 //------------------------------------------------------------------------------
 //
 void ACAI::Client::callDataUpdate (const bool isFirstUpdateIn)
 {
-   // First update: This is done FIRST in order to ensure that the object performs
-   // any self necessary updates prior to notifiying other users of the change.
+   // Catch any exceptions here
    //
-   // Call hook function - this is a dispatching call.
-   //
-   this->dataUpdate (isFirstUpdateIn);
+   try {
 
-   // Second update: Call registered users.
-   //
-   ITERATE (RegisteredUsers, this->registeredUsers, user) {
-      (*user)->dataUpdate (this, isFirstUpdateIn);
-   }
+      // First update: This is done FIRST in order to ensure that the object performs
+      // any self necessary updates prior to notifiying other users of the change.
+      //
+      // Call hook function - this is a dispatching call.
+      //
+      this->dataUpdate (isFirstUpdateIn);
 
-   // Third update: Call event handler.
-   //
-   if (this->dataUpdateEventHandler) {
-      this->dataUpdateEventHandler (this, isFirstUpdateIn);
+      // Second update: Call registered users.
+      //
+      ITERATE (RegisteredUsers, this->registeredUsers, user) {
+         (*user)->dataUpdate (this, isFirstUpdateIn);
+      }
+
+      // Third update: Call event handler.
+      //
+      if (this->dataUpdateEventHandler) {
+         this->dataUpdateEventHandler (this, isFirstUpdateIn);
+      }
    }
+   ACAI_CATCH_EXCEPTION
 }
 
 //------------------------------------------------------------------------------
 //
 void ACAI::Client::callPutCallbackNotifcation (const bool isSuccessfulIn)
 {
-   // First update: This is done FIRST in order to ensure that the object performs
-   // any self necessary updates prior to notifiying other users of the change.
+   // Catch any exceptions here
    //
-   // Call hook function - this is a dispatching call.
-   //
-   this->putCallbackNotifcation (isSuccessfulIn);
+   try {
 
-   // Second update: Call registered users.
-   //
-   ITERATE (RegisteredUsers, this->registeredUsers, user) {
-      (*user)->putCallbackNotifcation (this, isSuccessfulIn);
-   }
+      // First update: This is done FIRST in order to ensure that the object performs
+      // any self necessary updates prior to notifiying other users of the change.
+      //
+      // Call hook function - this is a dispatching call.
+      //
+      this->putCallbackNotifcation (isSuccessfulIn);
 
-   // Third update: Call event handler.
-   //
-   if (this->putCallbackEventHandler) {
-      this->putCallbackEventHandler (this, isSuccessfulIn);
+      // Second update: Call registered users.
+      //
+      ITERATE (RegisteredUsers, this->registeredUsers, user) {
+         (*user)->putCallbackNotifcation (this, isSuccessfulIn);
+      }
+
+      // Third update: Call event handler.
+      //
+      if (this->putCallbackEventHandler) {
+         this->putCallbackEventHandler (this, isSuccessfulIn);
+      }
    }
+   ACAI_CATCH_EXCEPTION
 }
 
-
-// TODO: Must/should usa a mutex access to this ??
+//------------------------------------------------------------------------------
+// TODO: Must/should we use a mutex access to this??
 //
 static struct ca_client_context*  acai_context = NULL;
 
@@ -1965,6 +1981,18 @@ void ACAI::Client::poll (const int maximum)
    }
 
    process_buffered_callbacks (maximum);
+}
+
+//------------------------------------------------------------------------------
+// static
+void ACAI::Client::flush ()
+{
+   if (!acai_context) return;
+
+   const int status = ca_flush_io ();
+   if (status != ECA_NORMAL) {
+      reportError ("ca_flush_io failed - %s", ca_message (status));
+   }
 }
 
 //------------------------------------------------------------------------------

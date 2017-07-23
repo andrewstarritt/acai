@@ -50,7 +50,7 @@ namespace ACAI {
 // Defines the patch version number, this increments for bug fixes and/or
 // backward compatible API enhancements.
 //
-#define ACAI_PATCH              2
+#define ACAI_PATCH              3
 
 // Integer and string versions
 //
@@ -245,6 +245,12 @@ enum EventMasks {
    EventAlarm =    (1<<2),  ///< Trigger an event when the alarm state changes
    EventProperty = (1<<3)   ///< Trigger an event when a property change (control limit, graphical limit, status string, enum string ...) occurs.
 };
+
+//------------------------------------------------------------------------------
+/// This function returns true if the specified alarm severity is one of no alarm,
+/// minor alarm or major alarm otherwise false, i.e. when invalid, disconnected.
+///
+ACAI_SHARED_FUNC bool alarmSeverityIsValid (const ACAI::ClientAlarmSeverity severity);
 
 //------------------------------------------------------------------------------
 /// This function returns a textual/displayable form of the specified alarm severity.
