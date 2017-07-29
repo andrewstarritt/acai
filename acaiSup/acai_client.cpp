@@ -1135,6 +1135,13 @@ ACAI::ClientString ACAI::Client::alarmSeverityImage () const
 
 //------------------------------------------------------------------------------
 //
+bool ACAI::Client::hasValidSeverity () const
+{
+   return ACAI::alarmSeverityIsValid (this->alarmSeverity ());
+}
+
+//------------------------------------------------------------------------------
+//
 bool ACAI::Client::readAccess () const
 {
    return ca_read_access (this->pd->channel_id);

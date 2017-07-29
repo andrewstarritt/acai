@@ -22,7 +22,7 @@
 TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
 
 # EPICS_BASE usually appears last so other apps can override stuff:
-# Modify this to reference to _your_ local EPICS base installation
+# Modify this to reference to __your__ local EPICS base installation.
 # 
 EPICS_BASE=/epics/base
 

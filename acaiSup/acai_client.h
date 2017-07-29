@@ -492,6 +492,10 @@ public:
    ///
    ACAI::ClientString alarmSeverityImage () const;  // alarmSeverityString defined as macro
 
+   /// This function returns true iff the sevrity is valid, i.e. No Alrm, Minor or Major.
+   ///
+   bool hasValidSeverity () const;
+
    /// This function returns the channel's read access permission.
    ///
    bool readAccess () const;
