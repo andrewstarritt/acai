@@ -452,7 +452,7 @@ public:
    ///
    /// This can be less than hostElementCount because it has been limited by a
    /// call to setRequestCount and/or because the EPICS_CA_MAX_ARRAY_BYTES
-   /// environment variable is less than is needed to handle all elements.
+   /// environment variable is less than is needed to handle all the elements.
    ///
    unsigned int dataElementCount () const;
 
@@ -532,7 +532,7 @@ public:
 
    /// Returns the index-th element of the channel data store in the client as an integer value.
    ///
-   ACAI::ClientInteger  getInteger  (unsigned int index = 0) const;
+   ACAI::ClientInteger getInteger  (unsigned int index = 0) const;
 
    /// Returns the index-th element of the channel data stored within in the client as a
    /// string value. If deemed a long string, see ACAI::Client::processingAsLongString, then
@@ -555,11 +555,11 @@ public:
 
    /// Get client array (waveform) data as an array of integer values.
    ///
-   ACAI::ClientIntegerArray  getIntegerArray  () const;
+   ACAI::ClientIntegerArray getIntegerArray  () const;
 
    /// Get client array (waveform) data as an array of string values.
    ///
-   ACAI::ClientStringArray   getStringArray   () const;
+   ACAI::ClientStringArray getStringArray   () const;
 
    /// Write scaler value to channel.
    /// On the wire (via CA protocol) we use DBF_DOUBLE format, not the PV's native field format.
@@ -572,8 +572,9 @@ public:
    bool putInteger (const ACAI::ClientInteger value);
 
    /// Write scaler value to channel.
-   /// On the wire (via CA protocol) we use DBF_STRING format, not the PV's native field format.
-   /// The string is truncated if necessary.
+   /// On the wire (via CA protocol) we use DBF_STRING format, not the PV's native
+   /// field format. If deemed a long string, see ACAI::Client::processingAsLongString,
+   /// then we use DBF_CHAR format. The string is truncated if necessary.
    ///
    bool putString (const ACAI::ClientString& value);   // tuncated if needs be.
 

@@ -59,6 +59,8 @@
 //
 static int debugLevel = 0;
 
+// Size threshold for static allocation vs. dynamic allocation.
+//
 #define MINIMUM_BUFFER_SIZE   (sizeof (dbr_string_t))
 
 
@@ -900,13 +902,45 @@ bool ACAI::Client::putInteger (const ACAI::ClientInteger value)
 //
 bool ACAI::Client::putString (const ACAI::ClientString& value)
 {
-   // Convert and truncate ClientString to basic c string.
-   //
-   dbr_string_t dbr_value;
-   snprintf (dbr_value, sizeof (dbr_value), "%s", value.c_str ());
-   return this->putData (DBF_STRING, 1, dbr_value);
-}
+   const char* c_str_val = value.c_str ();
+   bool result;
 
+   // Is this PV to be treated as a long string?
+   //
+   if (this->processingAsLongString ()) {
+      // Yes - limit the size to dataElementCount.
+      //
+      const unsigned int count = strnlen (c_str_val, this->dataElementCount ());
+
+      if (count < this->dataElementCount ()) {
+         // plus 1 - include the trailing zero.
+         result = this->putData (DBF_CHAR, count + 1, c_str_val);
+
+      } else if (count <= 800) {    // 800 is a bit arbitary
+         // Just use a stack buffer.
+         //
+         char work [count];
+         snprintf (work, count, "%s", c_str_val);  // snprintf always forces a '\0'
+         result = this->putData (DBF_CHAR, count, work);
+
+      } else {
+         // Tooo big for stack, allocate/free work buffer.
+         //
+         char* work = (char*) malloc (count);
+         snprintf (work, count, "%s", c_str_val);  // snprintf always forces a '\0'
+         result = this->putData (DBF_CHAR, count, work);
+         free (work);
+      }
+
+   } else {
+      // No - convert and truncate ClientString to a basic C string.
+      //
+      dbr_string_t dbr_value;
+      snprintf (dbr_value, sizeof (dbr_value), "%s", c_str_val);
+      result = this->putData (DBF_STRING, 1, dbr_value);
+   }
+   return result;
+}
 
 //------------------------------------------------------------------------------
 //
