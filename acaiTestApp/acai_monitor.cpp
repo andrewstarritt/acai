@@ -22,6 +22,8 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
          for (int j = 0; j < n; j++) {
             std::cout << "[" << j << "/" << n << "] " << client->getEnumeration (j) <<  std::endl;
          }
+         std::cout << "egu: " << client->units() << ", prec: " << client->precision() <<  std::endl;
+
       }
 
       if (!firstupdate || (client->readMode() != ACAI::Subscribe)) {

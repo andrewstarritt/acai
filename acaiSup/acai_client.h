@@ -253,7 +253,7 @@ public:
 
    /// When set, arrays of DBF_CHAR interpretted as string by getString/putString.
    /// Note: Since base 3.14.11, this is implicit for certain field types when '$'
-   /// appended to the field name.
+   /// appended to the field name. The default is false.
    //
    void setLongString (const bool isLongString);
 
@@ -332,6 +332,12 @@ public:
    /// Note: there is no automatic clear pending put call back notification timeout.
    ///
    void clearPendingPutCallback ();
+
+   /// Reset to the default setting for data request type, element request count,
+   /// subscrbing mode, subscription event mask, long string mode and use put callback
+   /// mode to default/initial state.
+   ///
+   void setDefaultOptions ();
 
    /// Create channel, and once connected and read data (with all meta data) and
    /// optionally, depending on the Read Mode, subscribe for updates. Returns true if

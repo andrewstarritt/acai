@@ -63,7 +63,6 @@ static int debugLevel = 0;
 //
 #define MINIMUM_BUFFER_SIZE   (sizeof (dbr_string_t))
 
-
 //==============================================================================
 // PRIVATE FUNCTIONS
 //==============================================================================
@@ -245,12 +244,19 @@ ACAI::Client::PrivateData::PrivateData (ACAI::Client* ownerIn)
    this->lastIsConnected = false;
    this->isLongString = false;
    this->priority = 10;
+
+   // Attempt to request number of elements host on server,
+   // subject to any max array bytes constraint.
+   //
    this->request_element_count_defined = false;
    this->request_element_count = 0;
+
+   // Set up put call back states.
+   //
    this->use_put_callback = false;
    this->pending_put_callback = false;
 
-   // Set request typer to default, i.e. request as per native filed type.
+   // Set request type to default, i.e. request as per native field type.
    //
    this->data_request_type = ACAI::ClientFieldDefault;
 
@@ -312,6 +318,9 @@ const union db_access_val* ACAI::Client::PrivateData::updateBuffer (struct event
       // The buffered callback module will free this memory.
       //
       memcpy ((void*) this->dataValues.genericRef, valuesPtr, length);
+
+      // And reference the local buffer.
+      //
       this->dataValues.genericRef = &this->localBuffer;
       pDbr = (union db_access_val *) args.dbr;
 
@@ -537,6 +546,19 @@ void ACAI::Client::clearPendingPutCallback ()
 
 //------------------------------------------------------------------------------
 //
+void ACAI::Client::setDefaultOptions ()
+{
+   this->setDataRequestType (ACAI::ClientFieldDefault);
+   this->clearRequestCount ();
+   this->setPriority (10);
+   this->setLongString (false);
+   this->setReadMode (ACAI::Subscribe);
+   this->setEventMask (ACAI::EventMasks (ACAI::EventValue | ACAI::EventAlarm));
+   this->setUsePutCallback (false);
+}
+
+//------------------------------------------------------------------------------
+//
 bool ACAI::Client::openChannel ()
 {
    bool result = false;
@@ -715,7 +737,7 @@ ACAI::ClientInteger ACAI::Client::getInteger (unsigned int index) const
 //
 ACAI::ClientString ACAI::Client::getString (unsigned int index) const
 {
-   char append_units[MAX_UNITS_SIZE + 2];
+   char append_units [MAX_UNITS_SIZE + 2];
    char format[20];
    int enum_state;
    int p;
@@ -1481,7 +1503,7 @@ void ACAI::Client::updateHandler (struct event_handler_args& args)
 
 #define ASSIGN_META_DATA(from, prec)                                       \
    tpd->precision = prec;                                                  \
-   strncpy (tpd->units, pDbr->cfltval.units, sizeof (tpd->units) - 1);     \
+   snprintf (tpd->units, sizeof (tpd->units), "%s", from.units);           \
    tpd->num_states = 0;                                                    \
    tpd->upper_disp_limit    = (double) from.upper_disp_limit;              \
    tpd->lower_disp_limit    = (double) from.lower_disp_limit;              \
