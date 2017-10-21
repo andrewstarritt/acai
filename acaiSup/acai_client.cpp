@@ -63,11 +63,29 @@ static int debugLevel = 0;
 //
 #define MINIMUM_BUFFER_SIZE   (sizeof (dbr_string_t))
 
+// static
+ACAI::Client::NotificationHandlers ACAI::Client::notificationHandler = NULL;
+
 //==============================================================================
 // PRIVATE FUNCTIONS
 //==============================================================================
-//
-static void reportErrorFunc (const int line, const char* function, const char* format, ...)
+// static
+void ACAI::Client::callNotificationHandler (const char* notification)
+{
+   // If the notification handler has been registered, use it, otherwise just
+   // output to standard error.
+   //
+   if (ACAI::Client::notificationHandler) {
+      ACAI::Client::notificationHandler (notification);
+   } else {
+      fprintf (stderr, notification);
+      fflush (stderr);
+   }
+}
+
+//------------------------------------------------------------------------------
+// static
+void ACAI::Client::reportErrorFunc (const int line, const char* function, const char* format, ...)
 {
    va_list args;
    char buffer [200];
@@ -76,8 +94,9 @@ static void reportErrorFunc (const int line, const char* function, const char* f
    vsnprintf (buffer, sizeof (buffer), format, args);
    va_end (args);
 
-   fprintf (stderr, "ACAI::Client:%d %s: %s\n", line, function, buffer);
-   fflush (stderr);
+   char notification [240];
+   snprintf (notification, sizeof (notification), "ACAI::Client:%d %s: %s\n", line, function, buffer);
+   ACAI::Client::callNotificationHandler (notification);
 }
 
 // Wrapper macros to reportErrorFunc.
@@ -226,10 +245,6 @@ ACAI::Client::PrivateData::PrivateData (ACAI::Client* ownerIn)
 
    this->owner = ownerIn;
 
-   // Set magic number - used by validate channel id.
-   //
-   this->magic_number = MAGIC_NUMBER_P;
-
    this->getFuncArg = NULL;
    this->subFuncArg = NULL;
    this->putFuncArg = NULL;
@@ -266,6 +281,10 @@ ACAI::Client::PrivateData::PrivateData (ACAI::Client* ownerIn)
    this->dataValues.genericRef = &this->localBuffer;
    this->argsDbr = NULL;
    this->logical_data_size = 0;
+
+   // Lastly set magic number - used by validate channel id.
+   //
+   this->magic_number = MAGIC_NUMBER_P;
 }
 
 //------------------------------------------------------------------------------
@@ -1833,6 +1852,20 @@ ACAI::Client::PutCallbackHandlers ACAI::Client::putCallbackHandler () const
 }
 
 //------------------------------------------------------------------------------
+// static
+void ACAI::Client::setNotificationHandler (NotificationHandlers printfHandlerIn)
+{
+   ACAI::Client::notificationHandler = printfHandlerIn;
+}
+
+//------------------------------------------------------------------------------
+// static
+ACAI::Client::NotificationHandlers ACAI::Client::getNotificationHandler ()
+{
+   return ACAI::Client::notificationHandler;
+}
+
+//------------------------------------------------------------------------------
 //
 void ACAI::Client::connectionUpdate (const bool)
 {
@@ -2254,10 +2287,11 @@ void ACAI::Client::removeClientFromAllUserLists ()
 // ACAI::Client_Private is a friend class of ACAI::Client, and as such is allowed
 // access to private ACAI::Client class functions, specifically:
 //
-//    validateChannelId ()
+//    validateChannelId ()  and
+//    callPrintfHandler ()
 //
 // This is why this functionality is implemented as a class as opposed to just a
-// couple of static functions.
+// set of static functions.
 //
 namespace ACAI {
 
@@ -2287,6 +2321,16 @@ public:
          pClient->eventHandler (args);
       }
    }
+
+   //---------------------------------------------------------------------------
+   //
+   static void printfHandler (const char* formated_text)
+   {
+      // Note formated_text already ends with '\n'.
+      //
+      ACAI::Client::callNotificationHandler (formated_text);
+   }
+
 };
 
 }
@@ -2299,7 +2343,7 @@ public:
 extern "C" {
 void application_connection_handler (struct connection_handler_args* args);
 void application_event_handler (struct event_handler_args* args);
-void application_printf_handler (char* formated_text);
+void application_printf_handler (const char* formated_text);
 }
 
 //------------------------------------------------------------------------------
@@ -2325,11 +2369,9 @@ void application_event_handler (struct event_handler_args* args)
 //------------------------------------------------------------------------------
 // Replacement printf handler
 //
-void application_printf_handler (char* formated_text)
+void application_printf_handler (const char* formated_text)
 {
-   // Note strings already end with '\n'.
-   //
-   fprintf (stderr, "%s", formated_text);
+   if (formated_text) ACAI::Client_Private::printfHandler (formated_text);
 }
 
 // end

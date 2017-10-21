@@ -64,7 +64,7 @@
  *
  * ---------------------------------------------------------------------------
  * For Lazarus Pascal, the connection handler would be as follows. Note, while
- * Pascal is basically case insensitive with respect to procedure names, the
+ * Pascal is normally case insensitive with respect to procedure names, the
  * case of the procedure name IS significant here.
  *
  *   procedure application_connection_handler
@@ -75,14 +75,14 @@
  * For C++, one would need this or similar:
  *
  *    extern "C" {
- *       void application_connection_handler (struct connection_handler_args *args);
- *       void application_event_handler (struct event_handler_args *args);
- *       void application_printf_handler (char *formated_text);
+ *       void application_connection_handler (struct connection_handler_args* args);
+ *       void application_event_handler (struct event_handler_args* args);
+ *       void application_printf_handler (char* formated_text);
  *    }
  *
- *    void application_connection_handler (struct connection_handler_args *args) { .... }
- *    void application_event_handler (struct event_handler_args *args) { .... }
- *    void application_printf_handler (char *formated_text) { .... }
+ *    void application_connection_handler (struct connection_handler_args* args) { .... }
+ *    void application_event_handler (struct event_handler_args* args) { .... }
+ *    void application_printf_handler (const char* formated_text) { .... }
  *
  * ---------------------------------------------------------------------------
  *
@@ -114,7 +114,7 @@ extern "C" {
  */
 void buffered_connection_handler (struct connection_handler_args args);
 void buffered_event_handler (struct event_handler_args args);
-int  buffered_printf_handler (const char *pformat, va_list args);
+int  buffered_printf_handler (const char* pformat, va_list args);
 
 /* This function should be called once, prior to calling process_buffered_callbacks
  * or the possibility of any callbacks.

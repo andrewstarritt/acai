@@ -58,11 +58,11 @@
  * Note: unlike the equivelent raw channel access callback functions,
  *       these functions always take POINTER arguments.
  */
-extern void application_connection_handler (struct connection_handler_args *ptr);
+extern void application_connection_handler (struct connection_handler_args* ptr);
 
-extern void application_event_handler (struct event_handler_args *ptr);
+extern void application_event_handler (struct event_handler_args* ptr);
 
-extern void application_printf_handler (char *formatted_text);
+extern void application_printf_handler (const char* formatted_text);
 
 
 /* -----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ static void free_element (Callback_Items * pci)
          break;
 
       default:
-         /* What the .... ? */
+         /* What the ....? */
          break;
 
    }

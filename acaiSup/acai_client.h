@@ -114,6 +114,12 @@ public:
    ///
    typedef void (*PutCallbackHandlers)  (ACAI::Client* client, const bool isSuccessful);
 
+   /// This defines the error/warning notification handler for messages from the
+   /// CA library and from ACAI itself. When not specified, such notifications
+   /// are written to standard error.
+   ///
+   typedef void (*NotificationHandlers) (const char* notification);
+
 
    // static functions ---------------------------------------------------------
    //
@@ -720,6 +726,15 @@ public:
    ///
    PutCallbackHandlers putCallbackHandler () const;
 
+   /// Set notifcation handler, which is is called indirectly via the
+   /// ca_replace_printf_handler mechanism.
+   /// Note this is a static class wide defn.
+   ///
+   static void setNotificationHandler (NotificationHandlers notificationHandler);
+
+   /// Returns the notifcation handler function reference.
+   ///
+   static NotificationHandlers getNotificationHandler ();
 
    /// An int tag: not used by the class per se but available to client
    /// users and call back handlers to use and abuse as they see fit.
@@ -782,11 +797,15 @@ private:
    ConnectionHandlers connectionUpdateEventHandler;
    UpdateHandlers dataUpdateEventHandler;
    PutCallbackHandlers putCallbackEventHandler;
+   static NotificationHandlers notificationHandler;
 
    // Registered users.
    //
    typedef std::set<ACAI::Abstract_Client_User*> RegisteredUsers;
    RegisteredUsers registeredUsers;
+
+   static void callNotificationHandler (const char* notification);
+   static void reportErrorFunc (const int line, const char* function, const char* format, ...);
 
    // These function are used within the ACAI::Client object to
    // call the corresponsing hook functions, registered abstract user hook
