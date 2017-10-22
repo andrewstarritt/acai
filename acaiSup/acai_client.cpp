@@ -69,17 +69,28 @@ ACAI::Client::NotificationHandlers ACAI::Client::notificationHandler = NULL;
 //==============================================================================
 // PRIVATE FUNCTIONS
 //==============================================================================
+//
+// callNotificationHandler does not auotmatically append newline.
 // static
+//
 void ACAI::Client::callNotificationHandler (const char* notification)
 {
    // If the notification handler has been registered, use it, otherwise just
-   // output to standard error.
+   // output to the notification to standard error.
    //
    if (ACAI::Client::notificationHandler) {
-      ACAI::Client::notificationHandler (notification);
+
+      // Catch any exceptions here.
+      //
+      try {
+         ACAI::Client::notificationHandler (notification);
+      }
+      catch (...) {
+         std::cerr << __FUNCTION__ << ": exception." << std::endl;
+      }
+
    } else {
-      fprintf (stderr, notification);
-      fflush (stderr);
+      std::cerr << notification << std::endl;
    }
 }
 
@@ -99,7 +110,7 @@ void ACAI::Client::reportErrorFunc (const int line, const char* function, const 
    ACAI::Client::callNotificationHandler (notification);
 }
 
-// Wrapper macros to reportErrorFunc.
+// Wrapper macro for reportErrorFunc.
 // Folds in line number and function name automatically.
 //
 #define reportError(...) reportErrorFunc (__LINE__, __FUNCTION__, __VA_ARGS__)
@@ -1255,6 +1266,13 @@ ACAI::ClientString ACAI::Client::utcTimeImage (const int precision) const
 
 //------------------------------------------------------------------------------
 //
+ACAI::ClientString ACAI::Client::localTimeImage (const int precision) const
+{
+   return ACAI::localTimeImage (this->timeStamp(), precision);
+}
+
+//------------------------------------------------------------------------------
+//
 bool ACAI::Client::isAlarmStatusPv () const
 {
    ACAI::ClientString pvName = this->pvName ();
@@ -2323,17 +2341,47 @@ public:
    }
 
    //---------------------------------------------------------------------------
+   // Channel access reports an error by multiple calls to the registered
+   // printf handler.  The purpose of this function to aggregate these
+   // into a single string prior to calling the notification handler.
    //
    static void printfHandler (const char* formated_text)
    {
-      // Note formated_text already ends with '\n'.
+      // Note: These two lines may change with a new/modified version of EPICS.
       //
-      ACAI::Client::callNotificationHandler (formated_text);
-   }
+      static const char* firstLine = "CA.Client.Exception...............................................";
+      static const char* lastLine  = "..................................................................";
 
+      static ACAI::ClientString acculuatedText = "";
+
+      // Find length less any CR/LF characters.
+      //
+      int len = strlen (formated_text);
+      while ((len > 0) && ((formated_text [len - 1] == '\n') ||
+                           (formated_text [len - 1] == '\r'))) {
+         len--;
+      }
+
+      if (strncmp (formated_text, firstLine, len) == 0) {
+         // Start of exception notifcation.
+         //
+         acculuatedText = "CA.Client.Exception\n";
+
+      } else if (strncmp (formated_text, lastLine, len) == 0) {
+         // End of exception notifcation.
+         //
+         ACAI::Client::callNotificationHandler (acculuatedText.c_str ());
+         acculuatedText = "";   // belts 'n' braces
+
+      } else {
+         // Add to accumulated notification text.
+         //
+         acculuatedText = acculuatedText + formated_text;
+      }
+   }
 };
 
-}
+}   // ACAI
 
 //------------------------------------------------------------------------------
 // Buffered callbacks is a C module, not C++.

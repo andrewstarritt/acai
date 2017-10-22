@@ -141,17 +141,21 @@ ACAI_SHARED_FUNC time_t ACAI::utcTimeOf (const ACAI::ClientTimeStamp& ts, int* n
    return ts.secPastEpoch + epics_epoch;
 }
 
+
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC ACAI::ClientString ACAI::utcTimeImage (const ACAI::ClientTimeStamp& ts,
-                                                        const int precision)
+typedef tm* (*GetBrokenDownTimeR) (const time_t *timep, struct tm *result);
+
+static ACAI::ClientString commonTimeImage (GetBrokenDownTimeR break_time_r,
+                                           const ACAI::ClientTimeStamp& ts,
+                                           const int precision)
 {
    static const int scale [10] = {
       1000000000, 100000000, 10000000, 1000000,
       100000, 10000, 1000, 100, 10, 1
    };
 
-   ClientString result;
+   ACAI::ClientString result;
 
    // Convert time
    //
@@ -163,9 +167,9 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::utcTimeImage (const ACAI::ClientTimeSt
    struct tm bt;
    bt.tm_year = bt.tm_mon = bt.tm_mday = bt.tm_hour = bt.tm_min = bt.tm_sec = 0;
 
-   // Form broken-down UTC time bt
+   // Form broken-down time bt
    //
-   gmtime_r (&utc, &bt);
+   break_time_r (&utc, &bt);
 
    // In broken-down time, tm_year is the number of years since 1900,
    // and January is month 0.
@@ -191,6 +195,22 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::utcTimeImage (const ACAI::ClientTimeSt
    }
 
    return  result;
+}
+
+//------------------------------------------------------------------------------
+//
+ACAI_SHARED_FUNC ACAI::ClientString ACAI::utcTimeImage (const ACAI::ClientTimeStamp& ts,
+                                                        const int precision)
+{
+   return commonTimeImage (gmtime_r, ts, precision);
+}
+
+//------------------------------------------------------------------------------
+//
+ACAI_SHARED_FUNC ACAI::ClientString ACAI::localTimeImage (const ACAI::ClientTimeStamp& ts,
+                                                          const int precision)
+{
+   return commonTimeImage (localtime_r, ts, precision);
 }
 
 //------------------------------------------------------------------------------

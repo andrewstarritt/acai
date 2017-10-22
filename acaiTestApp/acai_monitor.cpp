@@ -1,7 +1,13 @@
 // acai_monitor.cpp
 //
+// The is a simple command line programs that uses the ACAI framework.
+// This programs mimics the EPICS base program camonitor.
+// This program is intended as example (and test) of the ACAI framework
+// rather than as replacements for the afore mentioned camonitor program.
+//
 
 #include <iostream>
+#include <iomanip>
 #include <signal.h>
 #include <acai_client_types.h>
 #include <acai_client.h>
@@ -18,16 +24,22 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
       // Don't need do a double output.
       //
       if (firstupdate) {
-         int n = client->enumerationStatesCount ();
-         for (int j = 0; j < n; j++) {
-            std::cout << "[" << j << "/" << n << "] " << client->getEnumeration (j) <<  std::endl;
+         std::cout << std::left << std::setw (40) << client->pvName ();
+         const int n = client->enumerationStatesCount ();
+         if (n > 0) {
+            std::cout << " enum values:" << std::endl;
+            for (int j = 0; j < n; j++) {
+               std::cout << " [" << j << "/" << n << "] " << client->getEnumeration (j) <<  std::endl;
+            }
+         } else {
+            std::cout << " egu: " << client->units()
+                      << ", prec: " << client->precision () << std::endl;
          }
-         std::cout << "egu: " << client->units() << ", prec: " << client->precision() <<  std::endl;
-
       }
 
       if (!firstupdate || (client->readMode() != ACAI::Subscribe)) {
-         std::cout << client->pvName () << " ";
+         std::cout << std::left << std::setw (40) << client->pvName () << " ";
+         std::cout << client->localTimeImage (3) << " ";
 
          if (client->processingAsLongString ()) {
             std::cout <<  " " << client->getString () << std::endl;

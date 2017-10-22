@@ -534,6 +534,11 @@ public:
    ///
    ACAI::ClientString utcTimeImage (const int precision = 0) const;
 
+   /// Format is: "yyyy-mm-dd hh:nn:ss[.ffff]"
+   /// As above, but local, i.e. wall clock, time.
+   ///
+   ACAI::ClientString localTimeImage (const int precision = 0) const;
+
    // Get PV value as basic scaler. For array (e.g. waveform) records, index
    // can be used to specify which element of the array is required.
    // Array elements are indexed from zero - this is C++ after all.

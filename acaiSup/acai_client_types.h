@@ -50,7 +50,7 @@ namespace ACAI {
 // Defines the patch version number, this increments for bug fixes and/or
 // backward compatible API enhancements.
 //
-#define ACAI_PATCH              7
+#define ACAI_PATCH              8
 
 // Integer and string versions
 //
@@ -269,12 +269,20 @@ ACAI_SHARED_FUNC ACAI::ClientString alarmStatusImage (const ACAI::ClientAlarmCon
 ACAI_SHARED_FUNC time_t utcTimeOf (const ACAI::ClientTimeStamp& ts, int* nanoSecOut = NULL);
 
 //------------------------------------------------------------------------------
-/// This function returns a textual/displayable form of the tiime stamp.
+/// This function returns a textual/displayable form of the time stamp.
 /// Format is: "yyyy-mm-dd hh:nn:ss[.ffff]"
 /// Without fractions, this is a suitable format for MySql.
 ///
 ACAI_SHARED_FUNC ACAI::ClientString utcTimeImage (const ACAI::ClientTimeStamp& ts,
                                                   const int precision = 0);
+
+//------------------------------------------------------------------------------
+/// This function returns a textual/displayable form of the time stamp.
+/// Format is: "yyyy-mm-dd hh:nn:ss[.ffff]"
+/// As above, but local time.
+///
+ACAI_SHARED_FUNC ACAI::ClientString localTimeImage (const ACAI::ClientTimeStamp& ts,
+                                                    const int precision = 0);
 
 //------------------------------------------------------------------------------
 /// This function provides a textual/displayable image for the field type.
@@ -313,6 +321,6 @@ ACAI_SHARED_FUNC int version ();
 ///
 ACAI_SHARED_FUNC ACAI::ClientString versionString ();
 
-}
+} // ACAI namespace
 
 #endif // ACAI__CLIENT_TYPES_H
