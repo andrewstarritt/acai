@@ -1,6 +1,6 @@
 // acai_monitor.cpp
 //
-// The is a simple command line programs that uses the ACAI framework.
+// This is a simple command line programs that uses the ACAI framework.
 // This programs mimics the EPICS base program camonitor.
 // This program is intended as example (and test) of the ACAI framework
 // rather than as replacements for the afore mentioned camonitor program.
