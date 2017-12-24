@@ -23,13 +23,15 @@
  *
  */
 
-#include <alarm.h>
-#include <alarmString.h>
 #include <acai_client_types.h>
 #include <acai_private_common.h>
+
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+
+#include <alarm.h>
+#include <alarmString.h>
 
 //------------------------------------------------------------------------------
 //

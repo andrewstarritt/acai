@@ -49,8 +49,8 @@ class Abstract_Client_User;    // differed declaration.
 /// An ACAI::Client object has number of attributes, but of primary importance is its
 /// process variable (PV) name and this is the only attribute that may be set during
 /// construction. All other attributes have their own set and get functions. The default
-/// settings for these other attributes have been chosen to be suitable for typical use
-/// case and as such will most likely need not be changed.
+/// settings for these other attributes have been chosen to be suitable for the typical
+/// use case and as such will most likely need not be changed.
 ///
 /// It should be noted that many of these attributes only take effect when Client::openChannel
 /// function is called (which calls ca_create_channel) or when a successfull connection
@@ -115,8 +115,8 @@ public:
    typedef void (*PutCallbackHandlers)  (ACAI::Client* client, const bool isSuccessful);
 
    /// This defines the error/warning notification handler for messages from the
-   /// CA library and from ACAI itself. When not specified, such notifications
-   /// are written to standard error.
+   /// CA library and from ACAI itself. When not specified, see ACAI::setNotificationHandler,
+   /// such notifications are written to standard error.
    ///
    typedef void (*NotificationHandlers) (const char* notification);
 
@@ -164,6 +164,16 @@ public:
    //
    static void flush ();
 
+   /// Set notifcation handler, which is is called indirectly via the
+   /// ca_replace_printf_handler mechanism.
+   /// Note this is a static class wide defn.
+   ///
+   static void setNotificationHandler (NotificationHandlers notificationHandler);
+
+   /// Returns the notifcation handler function reference.
+   ///
+   static NotificationHandlers getNotificationHandler ();
+
    /// Set internal debug level. Larger the number more detail is provided.
    ///
    static void setDebugLevel (const int level);
@@ -171,6 +181,7 @@ public:
    /// Get internal debug level.
    ///
    static int getDebugLevel ();
+
 
    // object functions ---------------------------------------------------------
    //
@@ -267,8 +278,8 @@ public:
    ///
    bool isLongString () const;
 
-   /// Determines if long string processing required. This may be either
-   /// explicit by setting longString to true (however field type must also be DBF_CHAR)
+   /// Determines if long string processing required. This may be either explicit
+   /// by setting longString to true (however field type must also be DBF_CHAR)
    /// or implicit (PV name ends with $).
    //
    /// Note: As of 3.14.11, IOCs now provides support for strings longer than 40
@@ -504,7 +515,7 @@ public:
    ///
    ACAI::ClientString alarmSeverityImage () const;  // alarmSeverityString defined as macro
 
-   /// This function returns true iff the sevrity is valid, i.e. No Alrm, Minor or Major.
+   /// This function returns true iff the sevrity is valid, i.e. No Alarm, Minor or Major.
    ///
    bool hasValidSeverity () const;
 
@@ -645,8 +656,8 @@ public:
    ///
    int enumerationStatesCount () const;
 
-   /// Raw data access - mainly intended for large waveforms.
-   ///
+   // Raw data access - mainly intended for large waveforms.
+   //
    /// Return size of raw data in bytes - excludes meta data.
    ///
    size_t rawDataSize () const;
@@ -731,16 +742,8 @@ public:
    ///
    PutCallbackHandlers putCallbackHandler () const;
 
-   /// Set notifcation handler, which is is called indirectly via the
-   /// ca_replace_printf_handler mechanism.
-   /// Note this is a static class wide defn.
-   ///
-   static void setNotificationHandler (NotificationHandlers notificationHandler);
-
-   /// Returns the notifcation handler function reference.
-   ///
-   static NotificationHandlers getNotificationHandler ();
-
+   //  User "cargo container" members
+   //
    /// An int tag: not used by the class per se but available to client
    /// users and call back handlers to use and abuse as they see fit.
    ///
@@ -809,6 +812,8 @@ private:
    typedef std::set<ACAI::Abstract_Client_User*> RegisteredUsers;
    RegisteredUsers registeredUsers;
 
+   // Error/notifcation handling functions.
+   //
    static void callNotificationHandler (const char* notification);
    static void reportErrorFunc (const int line, const char* function, const char* format, ...);
 
@@ -820,8 +825,8 @@ private:
    void callDataUpdate (const bool firstUpdate);
    void callPutCallbackNotifcation (const bool isSuccessful);
 
-   /// Manage Client/Abstract_Client_User associations.
-   ///
+   // Manage Client/Abstract_Client_User associations.
+   //
    void registerUser (ACAI::Abstract_Client_User* user);
    void deregisterUser (ACAI::Abstract_Client_User* user);
    void removeClientFromAllUserLists ();

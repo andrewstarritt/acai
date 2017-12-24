@@ -23,11 +23,10 @@
  *
  */
 
-#include <epicsThread.h>
-
-#include <acai_abstract_client_user.h>
 #include <acai_client_set.h>
+#include <acai_abstract_client_user.h>
 #include <acai_private_common.h>
+#include <epicsThread.h>
 
 
 //------------------------------------------------------------------------------
@@ -85,7 +84,7 @@ void ACAI::Client_Set::insertAllClients (ACAI::Client_Set* other)
    //
    ACAI::Client_Set::ClientSets copy = other->clientList;
 
-   ITERATE (ACAI::Client_Set::ClientSets, copy, clientRef) {
+   ACAI_ITERATE (ACAI::Client_Set::ClientSets, copy, clientRef) {
       ACAI::Client* client = *clientRef;
       if (client) {
          this->insert (client);
@@ -103,7 +102,7 @@ void ACAI::Client_Set::removeAllClients (ACAI::Client_Set* other)
    //
    ACAI::Client_Set::ClientSets copy = other->clientList;
 
-   ITERATE (ACAI::Client_Set::ClientSets, copy, clientRef) {
+   ACAI_ITERATE (ACAI::Client_Set::ClientSets, copy, clientRef) {
       ACAI::Client* client = *clientRef;
       if (client) {
          this->remove (client);
@@ -142,7 +141,7 @@ void ACAI::Client_Set::deepClear ()
 {
    // Delete PV client objects.
    //
-   ITERATE (ACAI::Client_Set::ClientSets, this->clientList, clientRef) {
+   ACAI_ITERATE (ACAI::Client_Set::ClientSets, this->clientList, clientRef) {
       ACAI::Client* client = *clientRef;
       if (client) {
          delete client;
@@ -160,7 +159,7 @@ void ACAI::Client_Set::iterateChannels (ACAI::IteratorFunction func, void* conte
    //
    ACAI::Client_Set::ClientSets copy = this->clientList;
 
-   ITERATE (ACAI::Client_Set::ClientSets, copy, clientRef) {
+   ACAI_ITERATE (ACAI::Client_Set::ClientSets, copy, clientRef) {
       ACAI::Client* client = *clientRef;
       if (client && func) {
          func (client, context);
@@ -174,7 +173,7 @@ bool ACAI::Client_Set::openAllChannels ()
 {
    bool result = true;
 
-   ITERATE (ACAI::Client_Set::ClientSets, this->clientList, clientRef) {
+   ACAI_ITERATE (ACAI::Client_Set::ClientSets, this->clientList, clientRef) {
       ACAI::Client* client = *clientRef;
       if (client) {
          result &= client->openChannel ();
@@ -187,7 +186,7 @@ bool ACAI::Client_Set::openAllChannels ()
 //
 void ACAI::Client_Set::closeAllChannels ()
 {
-   ITERATE (ACAI::Client_Set::ClientSets, this->clientList, clientRef) {
+   ACAI_ITERATE (ACAI::Client_Set::ClientSets, this->clientList, clientRef) {
       ACAI::Client* client = *clientRef;
       if (client) {
          client->closeChannel ();
@@ -232,7 +231,7 @@ bool ACAI::Client_Set::areAllChannelsReady () const
 {
    bool result = true;
 
-   ITERATE (ACAI::Client_Set::ClientSets, this->clientList, clientRef) {
+   ACAI_ITERATE (ACAI::Client_Set::ClientSets, this->clientList, clientRef) {
       ACAI::Client* client = *clientRef;
       bool clientReady = this->clientIsReady (client);
       if (!clientReady) {
@@ -262,7 +261,7 @@ bool ACAI::Client_Set::waitAllChannelsReady (const double timeOut, const double 
 //
 void ACAI::Client_Set::registerAllClients (ACAI::Abstract_Client_User* user)
 {
-   ITERATE (ACAI::Client_Set::ClientSets, this->clientList, clientRef) {
+   ACAI_ITERATE (ACAI::Client_Set::ClientSets, this->clientList, clientRef) {
       ACAI::Client* client = *clientRef;
       if (client && user) {
           user->registerClient (client);
@@ -274,7 +273,7 @@ void ACAI::Client_Set::registerAllClients (ACAI::Abstract_Client_User* user)
 //
 void ACAI::Client_Set::deregisterAllClients (ACAI::Abstract_Client_User* user)
 {
-   ITERATE (ACAI::Client_Set::ClientSets, this->clientList, clientRef) {
+   ACAI_ITERATE (ACAI::Client_Set::ClientSets, this->clientList, clientRef) {
       ACAI::Client* client = *clientRef;
       if (client && user) {
           user->deregisterClient (client);

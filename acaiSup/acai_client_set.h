@@ -122,7 +122,7 @@ public:
 
    /// \brief Iterates over all clients in the container and invokes the specified function.
    ///
-   /// The iteration order is currently arbitary, and depends upon the underlying
+   /// Note: The iteration order is currently arbitary, and depends upon the underlying
    /// container class which may change.
    ///
    /// Note: The iterateChannels function creates and iterates over a copy of the
@@ -131,7 +131,7 @@ public:
    ///
    void iterateChannels (ACAI::IteratorFunction func, void* context = NULL);
 
-   /// Conveniance functions to open all channels. openAllChannels returns true
+   /// Conveniance function to open all channels. openAllChannels returns true
    /// if all channels open successully; stricty true if none fail, so an empty
    /// set always returns true.
    ///

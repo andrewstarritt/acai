@@ -5,15 +5,15 @@ TOP=..
 include $(TOP)/configure/CONFIG
 #----------------------------------------
 #  ADD MACRO DEFINITIONS AFTER THIS LINE
-#=============================
+#========================================
 
-#==================================================
-# build a support library
+#========================================
+# build a support library.
 
 LIBRARY_IOC += acai
 SHRLIB_VERSION = 1.3
 
-# specify that we are building the library
+# specify that we are building the library.
 #
 USR_CPPFLAGS += -DACAI_LIBRARY
 
@@ -24,7 +24,7 @@ INC += acai_abstract_client_user.h
 INC += acai_client_set.h
 INC += acai_client_types.h
 
-# specify all source files to be compiled and added to the library
+# specify all source files to be compiled and added to the library.
 #
 acai_SRCS += buffered_callbacks.c
 acai_SRCS += acai_client.cpp
@@ -37,7 +37,7 @@ acai_SRCS += acai_client_types.cpp
 acai_LIBS += ca
 acai_LIBS += Com
 
-#===========================
+#========================================
 
 include $(TOP)/configure/RULES
 #----------------------------------------

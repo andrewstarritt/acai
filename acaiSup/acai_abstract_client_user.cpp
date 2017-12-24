@@ -23,9 +23,9 @@
  *
  */
 
+#include <acai_abstract_client_user.h>
 #include <acai_client.h>
 #include <acai_client_set.h>
-#include <acai_abstract_client_user.h>
 
 
 //==============================================================================

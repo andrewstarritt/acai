@@ -9,10 +9,12 @@ ACAI (ar-sigh-ee) is the Asynchronous Channel Access Interface, or the ACAI
 Channel Access Interface if you prefer one of those recursive acronyms.
 
 ACAI provides a thin-ish C++ EPICS Channel Access abstraction around the
-basic Channel Access API.
+basic Channel Access API. By default ACAI monitors each channel and caches
+the data locally.
+
 It has been developed and tested on and for CentOS Linux. It has also been compiled,
-but not tested on Windows 7 (mingw 32 bit). In version 1.2.7, memset replaced the
-use og bzero in order to acheive this.
+but not tested on Windows 7 (mingw 32 bit). In version 1.2.7, memset was replaced
+the use og bzero in order to acheive this.
 
 The main ACAI::Client class was developed from the struct sCA_Client type
 and associated functions defined in pv_client.h/pv_client.c out of the kryten
@@ -142,7 +144,7 @@ a) within the event loop, just read the data, if available, out of the client ob
         double x = pv.getFloating ();
         // do something with x
      }
- 
+
 
 </pre>
 Note: pv.dataIsAvailable() returns true after channel has connected and the first

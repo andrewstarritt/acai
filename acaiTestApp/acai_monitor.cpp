@@ -3,7 +3,7 @@
 // This is a simple command line programs that uses the ACAI framework.
 // This programs mimics the EPICS base program camonitor.
 // This program is intended as example (and test) of the ACAI framework
-// rather than as replacements for the afore mentioned camonitor program.
+// rather than as a replacement for the afore mentioned camonitor program.
 //
 
 #include <iostream>
@@ -117,8 +117,6 @@ static bool shutDownIsRequired ()
 //
 int main (int argc, char* argv [])
 {
-   ACAI::Client_Set* clientSet = NULL;
-
    if (argc < 2) {
       std::cerr << "acai_monitor: No PV name(s) specified" <<  std::endl;
       return 2;
@@ -132,7 +130,7 @@ int main (int argc, char* argv [])
 
    signalSetup ();
 
-   clientSet = new ACAI::Client_Set (true);
+   ACAI::Client_Set* clientSet = new ACAI::Client_Set (true);
 
    for (int j = 1; j < argc; j++) {
       ACAI::Client* client;

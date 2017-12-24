@@ -50,7 +50,7 @@ namespace ACAI {
 // Defines the patch version number, this increments for bug fixes and/or
 // backward compatible API enhancements.
 //
-#define ACAI_PATCH              8
+#define ACAI_PATCH              9
 
 // Integer and string versions
 //
@@ -234,7 +234,7 @@ enum ClientFieldType {
    ClientFieldDefault   = 8
 };
 
-/// Controls event subscriptions - ref to caeventmask.h for details.
+/// Controls event subscriptions - refer to caeventmask.h for details.
 /// The default mode is Value | Alarm
 // Keep consistant with caeventmask.h
 //
@@ -248,7 +248,7 @@ enum EventMasks {
 
 //------------------------------------------------------------------------------
 /// This function returns true if the specified alarm severity is one of no alarm,
-/// minor alarm or major alarm otherwise false, i.e. when invalid, disconnected.
+/// minor alarm or major alarm otherwise false, i.e. when invalid or disconnected.
 ///
 ACAI_SHARED_FUNC bool alarmSeverityIsValid (const ACAI::ClientAlarmSeverity severity);
 

@@ -1,7 +1,7 @@
 /* acai_private_common.h
  *
  * This file is part of the ACAI library. It provides utilities considered
- * private tto the library.
+ * private to the library.
  *
  * Copyright (C) 2015,2017  Andrew C. Starritt
  *
@@ -43,7 +43,7 @@
 
 // Iterate over std::set or std::list (infact any std container)
 //
-#define ITERATE(ContainerType, container, item)                    \
+#define ACAI_ITERATE(ContainerType, container, item)               \
    for (ContainerType::iterator item = container.begin ();         \
         item != container.end (); ++item)
 

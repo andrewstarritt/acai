@@ -1931,7 +1931,7 @@ void ACAI::Client::callConnectionUpdate ()
 
       // Call registered users.
       //
-      ITERATE (RegisteredUsers, this->registeredUsers, user) {
+      ACAI_ITERATE (RegisteredUsers, this->registeredUsers, user) {
          (*user)->connectionUpdate (this, isConnected);
       }
 
@@ -1961,7 +1961,7 @@ void ACAI::Client::callDataUpdate (const bool isFirstUpdateIn)
 
       // Second update: Call registered users.
       //
-      ITERATE (RegisteredUsers, this->registeredUsers, user) {
+      ACAI_ITERATE (RegisteredUsers, this->registeredUsers, user) {
          (*user)->dataUpdate (this, isFirstUpdateIn);
       }
 
@@ -1991,7 +1991,7 @@ void ACAI::Client::callPutCallbackNotifcation (const bool isSuccessfulIn)
 
       // Second update: Call registered users.
       //
-      ITERATE (RegisteredUsers, this->registeredUsers, user) {
+      ACAI_ITERATE (RegisteredUsers, this->registeredUsers, user) {
          (*user)->putCallbackNotifcation (this, isSuccessfulIn);
       }
 
@@ -2289,7 +2289,7 @@ void ACAI::Client::removeClientFromAllUserLists ()
 {
    // Client about to be deleted - remove from any interested user lists.
    //
-   ITERATE (RegisteredUsers, this->registeredUsers, userRef) {
+   ACAI_ITERATE (RegisteredUsers, this->registeredUsers, userRef) {
       ACAI::Abstract_Client_User* user = *userRef;
       if (user) {
          user->removeClientFromList (this);
