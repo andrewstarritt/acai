@@ -13,8 +13,7 @@ basic Channel Access API. By default ACAI monitors each channel and caches
 the data locally.
 
 It has been developed and tested on and for CentOS Linux. It has also been compiled,
-but not tested on Windows 7 (mingw 32 bit). In version 1.2.7, memset was replaced
-the use og bzero in order to acheive this.
+but not tested on Windows 7 (mingw 32 bit).
 
 The main ACAI::Client class was developed from the struct sCA_Client type
 and associated functions defined in pv_client.h/pv_client.c out of the kryten
@@ -57,7 +56,7 @@ Lastly type make.
 <h3>Dependancies</h3>
 Apart from the EPICS shared libraries ca, Com and their dependancies, ACAI does
 not reply on any non-standard libraries and/or templates, therefore there are no
-troublesome or unexpected dependancies.
+troublesome or unexpected dependancies to worry about.
 
 <h2>Using ACAI - Getting started</h2>
 
@@ -90,7 +89,7 @@ Next, create a client object using your favorite process variable, and open the 
   pv.openChannel ();
 </pre> or <pre>
   ACAI::Client* pv = new ACAI::Client ("SR11MCM01:CURRENT_MONITOR");
-  pv->openChannel ();   // remember to delete the pv object
+  pv->openChannel ();   // remember to delete the pv client object
 </pre>
 
 The openChannel function creates a channel and when the connection event occurs
@@ -104,16 +103,16 @@ the associated client object, and then triggers the ACAI updates and callbacks.
 These all occur within the user's own thread.
 
 This avoids the need for any mutex locking when dealing with ACAI objects and/or data.
-It also means that if ACAI used another language other than C/C++, then the callbacks
+It also means that if ACAI used by another language other than C/C++, then the callbacks
 are executed in the a thread created by that language environment. Some environements,
-e.g. Ada 95 and Lazarus get very annoyed if Ada/Lazarus code is executed within the
-context of an "alien" thread.
+e.g. MatLab, Ada 95 and Lazarus get very annoyed if Ada/Lazarus code is executed within
+the context of an "alien" thread.
 
 If data is passed on to any third party threads, then you will need to manage that.
 See notes on multiple threads below.
 
 The ACAI library has been designed to be intrinsically asynchronous, and all ACAI
-applications must have some kind of event loop.
+applications <b>must have some kind of event loop</b>.
 The event loop should must contain a small delay, which very much application
 dependent, but typically 20mS to 50mS, e.g.:
 <pre>
@@ -128,7 +127,7 @@ dependent, but typically 20mS to 50mS, e.g.:
 
 If the application provides some means to break out of event loop then the following
 should be called to tidyup. This may be particularly important if leaving the event
-loop does not occur immediately before the application terminates.
+loop does not occur immediately before the application itself terminates.
 <pre>
    pv.closeChannel ();
    ACAI::Client::finalise ();
@@ -147,8 +146,8 @@ a) within the event loop, just read the data, if available, out of the client ob
 
 
 </pre>
-Note: pv.dataIsAvailable() returns true after channel has connected and the first
-PV data has been received.
+Note: pv.dataIsAvailable() returns true after channel has (re-)connected and the
+first PV data has been received.
 
 b) define and setup a connection and/or data update handler, e.g.
 <pre>
@@ -166,8 +165,8 @@ b) define and setup a connection and/or data update handler, e.g.
 
 </pre>
 
-c) derive a class based on ACAI::Client and override the ACAI::Client::connectionUpdate
-or ACAI::Client::dataUpdate or ACAI::Client::putCallbackNotifcation functions;
+c) derive your own class based on ACAI::Client and override the ACAI::Client::connectionUpdate
+or ACAI::Client::dataUpdate or ACAI::Client::putCallbackNotifcation functions, e.g.
 
 <pre>
   <b>class</b> MyClient : <b>public</b> ACAI::Client {
@@ -186,7 +185,8 @@ or ACAI::Client::dataUpdate or ACAI::Client::putCallbackNotifcation functions;
 
 </pre>
 
-d) use an ACAI::Abstract_Client_User class - refer to class documentation.
+d) use an ACAI::Abstract_Client_User class - refer to class documentation for details.
+
 
 Note: The various callbacks and polymorphic notification function calls are all
 executed in the thread that calls the poll function irrespective of which thread(s)
@@ -200,8 +200,8 @@ The is a simple command line program that use the ACAI framework.
 This programs mimics the basic fuctionality of the EPICS base program camonitor.
 
 Note:
-This program is intended as example (and test) ACAI program rather than as
-replacements for the afore mentioned camonitor program.
+This program is intended as an example (and test) ACAI program rather than as
+replacement for the afore mentioned camonitor program.
 
 An ACAI program, like the above example, may be built using the EPICS make system.
 However, as the ACAI header files only call up other ACAI header files and the

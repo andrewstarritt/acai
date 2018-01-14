@@ -27,6 +27,7 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
       //
       if (firstupdate) {
          std::cout << std::left << std::setw (40) << client->pvName ();
+
          const int n = client->enumerationStatesCount ();
          if (n > 0) {
             std::cout << " enum values:" << std::endl;
@@ -34,8 +35,11 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
                std::cout << " [" << j << "/" << n << "] " << client->getEnumeration (j) <<  std::endl;
             }
          } else {
-            std::cout << " egu: " << client->units()
-                      << ", prec: " << client->precision () << std::endl;
+            std::cout << "type: "   << ACAI::clientFieldTypeImage (client->dataFieldType())
+                      << ", num: "  << client->hostElementCount()
+                      << ", egu: "  << client->units()
+                      << ", prec: " << client->precision ()
+                      << std::endl;
          }
       }
 
@@ -122,9 +126,9 @@ int main (int argc, char* argv [])
    if (argc >= 2 && (strcmp (argv[1], "--help") == 0 || strcmp (argv[1], "-h") == 0)) {
       std::cout
       << "acai_monitor is a simple command line programs that uses the ACAI library."<<  std::endl
-      << "This programs mimics the EPICS base program camonitor."<<  std::endl
-      << "This program is intended as example (and test) of the ACAI library"<<  std::endl
-      << "rather than as replacements for the afore mentioned camonitor program."<< std::endl
+      << "This program mimics the EPICS base program camonitor. This program is"<<  std::endl
+      << "intended as an example (and test) of the ACAI library rather than as a "<<  std::endl
+      << "replacement for the afore mentioned camonitor program."<< std::endl
       << "" << std::endl
       << "usage: acai_monitor PV_NAMES..." << std::endl
       << "       acai_monitor -h | --help" << std::endl
