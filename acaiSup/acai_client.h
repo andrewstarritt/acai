@@ -116,7 +116,7 @@ public:
 
    /// This defines the error/warning notification handler for messages from the
    /// CA library and from ACAI itself. When not specified, see ACAI::setNotificationHandler,
-   /// such notifications are written to standard error.
+   /// all notifications are written to standard error.
    ///
    typedef void (*NotificationHandlers) (const char* notification);
 

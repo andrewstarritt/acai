@@ -8,11 +8,13 @@
 
 #include <iostream>
 #include <iomanip>
+#include <string.h>
 #include <signal.h>
 #include <acai_client_types.h>
 #include <acai_client.h>
 #include <acai_client_set.h>
 #include <epicsThread.h>
+#include <epicsVersion.h>
 
 //------------------------------------------------------------------------------
 //
@@ -117,6 +119,29 @@ static bool shutDownIsRequired ()
 //
 int main (int argc, char* argv [])
 {
+   if (argc >= 2 && (strcmp (argv[1], "--help") == 0 || strcmp (argv[1], "-h") == 0)) {
+      std::cout
+      << "acai_monitor is a simple command line programs that uses the ACAI library."<<  std::endl
+      << "This programs mimics the EPICS base program camonitor."<<  std::endl
+      << "This program is intended as example (and test) of the ACAI library"<<  std::endl
+      << "rather than as replacements for the afore mentioned camonitor program."<< std::endl
+      << "" << std::endl
+      << "usage: acai_monitor PV_NAMES..." << std::endl
+      << "       acai_monitor -h | --help" << std::endl
+      << "       acai_monitor -v | --version" << std::endl
+      << std::endl;
+
+      return 0;
+   }
+
+   if (argc >= 2 && (strcmp (argv[1], "--version") == 0 || strcmp (argv[1], "-v") == 0)) {
+      std::cout
+      << ACAI_VERSION_STRING << " using " EPICS_VERSION_STRING << std::endl
+      << std::endl;
+
+      return 0;
+   }
+
    if (argc < 2) {
       std::cerr << "acai_monitor: No PV name(s) specified" <<  std::endl;
       return 2;
@@ -165,8 +190,8 @@ int main (int argc, char* argv [])
    clientSet->closeAllChannels ();
    ACAI::Client::poll ();
 
-   ACAI::Client::finalise ();
    delete clientSet;             // performs a deepClear
+   ACAI::Client::finalise ();
 
    return 0;
 }
