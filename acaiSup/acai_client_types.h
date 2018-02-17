@@ -50,7 +50,7 @@ namespace ACAI {
 // Defines the patch version number, this increments for bug fixes and/or
 // backward compatible API enhancements.
 //
-#define ACAI_PATCH              9
+#define ACAI_PATCH              10
 
 // Integer and string versions
 //
