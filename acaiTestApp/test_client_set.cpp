@@ -5,6 +5,7 @@
 #include <acai_client_types.h>
 #include <acai_client.h>
 #include <acai_client_set.h>
+#include <acai_version.h>
 
 
 class TestClient : public ACAI::Client {

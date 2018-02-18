@@ -2,7 +2,7 @@
  *
  * This file is part of the ACAI library.
  *
- * Copyright (C) 2013,2014,2015,2017  Andrew C. Starritt
+ * Copyright (C) 2013,2014,2015,2017,2018  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -236,20 +236,6 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::clientFieldTypeImage (const ACAI::Clie
          break;
    }
    return  result;
-}
-
-//------------------------------------------------------------------------------
-//
-ACAI_SHARED_FUNC int ACAI::version ()
-{
-   return ACAI_VERSION;
-}
-
-//------------------------------------------------------------------------------
-//
-ACAI_SHARED_FUNC ACAI::ClientString ACAI::versionString ()
-{
-   return ACAI_VERSION_STRING;
 }
 
 // end

@@ -13,6 +13,7 @@
 #include <acai_client_types.h>
 #include <acai_client.h>
 #include <acai_client_set.h>
+#include <acai_version.h>
 #include <epicsThread.h>
 #include <epicsVersion.h>
 
@@ -35,7 +36,7 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
                std::cout << " [" << j << "/" << n << "] " << client->getEnumeration (j) <<  std::endl;
             }
          } else {
-            std::cout << "type: "   << ACAI::clientFieldTypeImage (client->dataFieldType())
+            std::cout << " type: "   << ACAI::clientFieldTypeImage (client->dataFieldType())
                       << ", num: "  << client->hostElementCount()
                       << ", egu: "  << client->units()
                       << ", prec: " << client->precision ()

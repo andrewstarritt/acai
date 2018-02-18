@@ -2,7 +2,7 @@
  *
  * This file is part of the ACAI library.
  *
- * Copyright (C) 2013,2014,2015,2016,2017  Andrew C. Starritt
+ * Copyright (C) 2013,2014,2015,2016,2017,2018  Andrew C. Starritt
  *
  * This ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,48 +39,7 @@ namespace ACAI {
 // Defines common ACAI macros, types and pseudo EPICS CA types.
 //
 
-// Defines the major version number, this increments when there is a major paradigm shift.
-//
-#define ACAI_MAJOR              1
-
-// Defines the minor version number, this increments when there is a non compatibile API change.
-//
-#define ACAI_MINOR              3
-
-// Defines the patch version number, this increments for bug fixes and/or
-// backward compatible API enhancements.
-//
-#define ACAI_PATCH              10
-
-// Integer and string versions
-//
-// The integer version is (major << 16) + (minor << 8) + patch, and this macro
-// is used to constuct an integer version number.
-//
-#define ACAI_INT_VERSION(major, minor, patch) (((major)<<16)|((minor)<<8)|(patch))
-
-// ACAI_VERSION is the actual version of this version of ACAI.
-// It can be used like this to perform version specific checking
-// #if (ACAI_VERSION >= ACAI_INT_VERSION(1, 2, 8))
-//
-#define ACAI_VERSION            ACAI_INT_VERSION (ACAI_MAJOR, ACAI_MINOR, ACAI_PATCH)
-
-// Deprecated - use ACAI_INT_VERSION instead (remove in 1.3.0)
-//
-#define ACAI_VERSION_CHECK(major, minor, patch)  ACAI_INT_VERSION(major, minor, patch)
-
-
-// Allows artefacts to be convert to a string
-//
-#define ACAI_STRINGIFY_INNER(s) #s
-#define ACAI_STRINGIFY(s)       ACAI_STRINGIFY_INNER(s)
-
-// Define the string version of ACAI, e.g. "ACAI 1.2.10"
-//
-#define ACAI_VERSION_STRING     "ACAI " ACAI_STRINGIFY(ACAI_MAJOR) \
-                                "."     ACAI_STRINGIFY(ACAI_MINOR) \
-                                "."     ACAI_STRINGIFY(ACAI_PATCH)
-
+// Note: Version related macros relocated to acai_version.h
 
 // Deal with shared stuff.
 // Not really important for Linux but Windows needs help.
@@ -99,7 +58,7 @@ namespace ACAI {
 #endif
 
 
-/// Controls how channel operates when the channel is opened.
+/// \brief Controls how channel operates when the channel is opened. Subscribe is the default mode.
 ///
 enum ReadModes {
    NoRead,             ///< just connects
@@ -217,7 +176,7 @@ struct ClientTimeStamp {
 
 
 // MUST be kept consistent with db_access.h
-/// Field type. Essentially a copy of db_access.h with addtion of a default
+/// \brief Field type. Essentially a copy of db_access.h with addtion of a default
 /// type used for requests only.
 ///
 enum ClientFieldType {
@@ -234,7 +193,7 @@ enum ClientFieldType {
    ClientFieldDefault   = 8
 };
 
-/// Controls event subscriptions - refer to caeventmask.h for details.
+/// \brief Controls event subscriptions - refer to caeventmask.h for details.
 /// The default mode is Value | Alarm
 // Keep consistant with caeventmask.h
 //
@@ -312,14 +271,6 @@ ACAI_SHARED_FUNC ACAI::ClientString csnprintf (size_t size, const char* format, 
 /// Kind of like strncpy, however result.c_str() always is null terminated.
 ///
 ACAI_SHARED_FUNC ACAI::ClientString limitedAssign (const char* source, const size_t maxSize);
-
-/// Returns runtime integer version, as opposed to compile time header version.
-///
-ACAI_SHARED_FUNC int version ();
-
-/// Returns runtime string version, as opposed to compile time header version.
-///
-ACAI_SHARED_FUNC ACAI::ClientString versionString ();
 
 } // ACAI namespace
 

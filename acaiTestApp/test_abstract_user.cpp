@@ -5,6 +5,7 @@
 #include <acai_client_types.h>
 #include <acai_client.h>
 #include <acai_abstract_client_user.h>
+#include <acai_version.h>
 #include <epicsThread.h>
 
 //==============================================================================
