@@ -36,7 +36,7 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
                std::cout << " [" << j << "/" << n << "] " << client->getEnumeration (j) <<  std::endl;
             }
          } else {
-            std::cout << " type: "   << ACAI::clientFieldTypeImage (client->dataFieldType())
+            std::cout << " type: "  << ACAI::clientFieldTypeImage (client->dataFieldType())
                       << ", num: "  << client->hostElementCount()
                       << ", egu: "  << client->units()
                       << ", prec: " << client->precision ()
@@ -49,17 +49,19 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
          std::cout << client->localTimeImage (3) << " ";
 
          if (client->processingAsLongString ()) {
-            std::cout <<  " " << client->getString () << std::endl;
+             std::cout << " " << client->getString ();
          } else {
             const unsigned int n = client->dataElementCount ();
             if (n > 1) {
                std::cout << "[" << n << "]";
             }
             for (unsigned int j = 0; j < n; j++) {
-               std::cout <<  " " << client->getString (j);
+               std::cout << " " << client->getString (j);
             }
-            std::cout << std::endl;
          }
+         std::cout << " " << client->alarmSeverityImage ()
+                   << " " << client->alarmStatusImage ();
+         std::cout << std::endl;
       }
    } else {
       std::cerr << "acai_monitor: null client" <<  std::endl;
