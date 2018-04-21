@@ -32,13 +32,27 @@
 
 #include <acai_client_types.h>
 #include <acai_private_common.h>
-
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
 
-#include <alarm.h>
-#include <alarmString.h>
+// Importing the severity and status strings from the EPICS libraries on windows
+// drives me crazy, so just going to roll my own.
+//
+static const char* ownAlarmSeverityStrings[ACAI::CLIENT_ALARM_NSEV] = {
+    "NO_ALARM",    "MINOR",       "MAJOR",       "INVALID",
+    "DISCONNECTED"
+};
+
+static const char* ownAlarmConditionStrings[ACAI::CLIENT_ALARM_NSTATUS] = {
+    "NO_ALARM",    "READ",        "WRITE",       "HIHI",
+    "HIGH",        "LOLO",        "LOW",         "STATE",
+    "COS",         "COMM",        "TIMEOUT",     "HWLIMIT",
+    "CALC",        "SCAN",        "LINK",        "SOFT",
+    "BAD_SUB",     "UDF",         "DISABLE",     "SIMM",
+    "READ_ACCESS", "WRITE_ACCESS"
+};
+
 
 //------------------------------------------------------------------------------
 //
@@ -106,13 +120,11 @@ ACAI_SHARED_FUNC bool ACAI::alarmSeverityIsValid (const ACAI::ClientAlarmSeverit
 ACAI_SHARED_FUNC ACAI::ClientString ACAI::alarmSeverityImage (const ACAI::ClientAlarmSeverity severity)
 {
    ClientString result;
-   const int n = int (severity);
-   if ((n >= 0) && (n < ALARM_NSEV)) {
-      result = ACAI::ClientString (epicsAlarmSeverityStrings[n]);
-   } else if (n == ClientDisconnected) {
-      result = ACAI::ClientString ("DISCONNECTED");
+   const int isevr = int (severity);
+   if ((isevr >= 0) && (isevr < CLIENT_ALARM_NSEV)) {
+      result = ACAI::ClientString (ownAlarmSeverityStrings[isevr]);
    } else {
-      result = ACAI::csnprintf (40, "unknown severity %d", n);
+      result = ACAI::csnprintf (40, "unknown severity %d", isevr);
    }
 
    return  result;
@@ -123,11 +135,11 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::alarmSeverityImage (const ACAI::Client
 ACAI_SHARED_FUNC ACAI::ClientString ACAI::alarmStatusImage (const ACAI::ClientAlarmCondition status)
 {
    ClientString result;
-   const int n = int (status);
-   if ((n >= 0) && (n < ALARM_NSTATUS)) {
-      result = ACAI::ClientString (epicsAlarmConditionStrings[n]);
+   const int istat = int (status);
+   if ((istat >= 0) && (istat < CLIENT_ALARM_NSTATUS)) {
+      result = ACAI::ClientString (ownAlarmConditionStrings[istat]);
    } else {
-      result = ACAI::csnprintf (40, "unknown status %d", n);
+      result = ACAI::csnprintf (40, "unknown status %d", istat);
    }
    return  result;
 }
@@ -153,9 +165,9 @@ ACAI_SHARED_FUNC time_t ACAI::utcTimeOf (const ACAI::ClientTimeStamp& ts, int* n
 
 //------------------------------------------------------------------------------
 //
-typedef tm* (*GetBrokenDownTimeR) (const time_t *timep, struct tm *result);
+typedef tm* (*GetBrokenDownTime) (const time_t *timep);
 
-static ACAI::ClientString commonTimeImage (GetBrokenDownTimeR break_time_r,
+static ACAI::ClientString commonTimeImage (GetBrokenDownTime break_time_r,
                                            const ACAI::ClientTimeStamp& ts,
                                            const int precision)
 {
@@ -177,8 +189,9 @@ static ACAI::ClientString commonTimeImage (GetBrokenDownTimeR break_time_r,
    bt.tm_year = bt.tm_mon = bt.tm_mday = bt.tm_hour = bt.tm_min = bt.tm_sec = 0;
 
    // Form broken-down time bt
+   // Deference the returned value.
    //
-   break_time_r (&utc, &bt);
+   bt = *break_time_r (&utc);
 
    // In broken-down time, tm_year is the number of years since 1900,
    // and January is month 0.
@@ -211,7 +224,7 @@ static ACAI::ClientString commonTimeImage (GetBrokenDownTimeR break_time_r,
 ACAI_SHARED_FUNC ACAI::ClientString ACAI::utcTimeImage (const ACAI::ClientTimeStamp& ts,
                                                         const int precision)
 {
-   return commonTimeImage (gmtime_r, ts, precision);
+   return commonTimeImage (gmtime, ts, precision);
 }
 
 //------------------------------------------------------------------------------
@@ -219,7 +232,7 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::utcTimeImage (const ACAI::ClientTimeSt
 ACAI_SHARED_FUNC ACAI::ClientString ACAI::localTimeImage (const ACAI::ClientTimeStamp& ts,
                                                           const int precision)
 {
-   return commonTimeImage (localtime_r, ts, precision);
+   return commonTimeImage (localtime, ts, precision);
 }
 
 //------------------------------------------------------------------------------
