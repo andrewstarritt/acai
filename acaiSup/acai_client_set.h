@@ -35,6 +35,7 @@
 
 #include <set>
 #include <acai_client.h>
+#include <acai_shared.h>
 
 namespace ACAI {
 

@@ -23,6 +23,7 @@ INC += acai_client.h
 INC += acai_abstract_client_user.h
 INC += acai_client_set.h
 INC += acai_client_types.h
+INC += acai_shared.h
 INC += acai_version.h
 
 # specify all source files to be compiled and added to the library.

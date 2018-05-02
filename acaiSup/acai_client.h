@@ -37,6 +37,7 @@
 #include <time.h>
 #include <set>
 #include <acai_client_types.h>
+#include <acai_shared.h>
 
 // Differed declaration - used in private part of this class.
 //

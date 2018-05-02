@@ -36,6 +36,7 @@
 #include <time.h>
 #include <string>
 #include <vector>
+#include <acai_shared.h>
 
 /// \brief
 /// All ACAI classes, typedefs, functons and enumerations are declared within
@@ -46,23 +47,9 @@ namespace ACAI {
 // Defines common ACAI macros, types and pseudo EPICS CA types.
 //
 
+// Note: Shared related macros relocated to acai_shared.h
 // Note: Version related macros relocated to acai_version.h
 
-// Deal with shared stuff.
-// Not really important for Linux but Windows needs help.
-//
-#if defined(_WIN32)
-#   if defined(ACAI_LIBRARY)
-#      define ACAI_SHARED_CLASS __declspec(dllexport)
-#      define ACAI_SHARED_FUNC  __declspec(dllexport)
-#   else
-#      define ACAI_SHARED_CLASS __declspec(dllimport)
-#      define ACAI_SHARED_FUNC  __declspec(dllimport)
-#   endif
-#else
-#   define ACAI_SHARED_CLASS
-#   define ACAI_SHARED_FUNC
-#endif
 
 
 /// \brief Controls how channel operates when the channel is opened. Subscribe is the default mode.

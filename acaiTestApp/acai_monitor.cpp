@@ -1,9 +1,9 @@
 // acai_monitor.cpp
 //
-// This is a simple command line programs that uses the ACAI framework.
-// This programs mimics the EPICS base program camonitor.
-// This program is intended as example (and test) of the ACAI framework
-// rather than as a replacement for the afore mentioned camonitor program.
+// This is a simple command line programs that uses the ACAI library.
+// This programs mimics some of the features of the EPICS base program camonitor.
+// This program is intended as example and test of the ACAI library rather
+// than as a replacement for the afore mentioned camonitor program.
 //
 
 #include <iostream>
@@ -56,6 +56,7 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
                std::cout << "[" << n << "]";
             }
             for (unsigned int j = 0; j < n; j++) {
+               client->setIncludeUnits (j == (n-1));
                std::cout << " " << client->getString (j);
             }
          }
@@ -130,7 +131,7 @@ int main (int argc, char* argv [])
       std::cout
       << "acai_monitor is a simple command line programs that uses the ACAI library."<<  std::endl
       << "This program mimics the EPICS base program camonitor. This program is"<<  std::endl
-      << "intended as an example (and test) of the ACAI library rather than as a "<<  std::endl
+      << "intended as an example and test of the ACAI library rather than as a "<<  std::endl
       << "replacement for the afore mentioned camonitor program."<< std::endl
       << "" << std::endl
       << "usage: acai_monitor PV_NAMES..." << std::endl

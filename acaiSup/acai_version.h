@@ -2,7 +2,7 @@
  *
  * This file is part of the ACAI library.
  *
- * Copyright (C) 2018  Andrew C. Starritt
+ * Copyright (C) 2017-2018  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by the
@@ -34,6 +34,7 @@
 #define ACAI__VERSION_H
 
 #include <acai_client_types.h>
+#include <acai_shared.h>
 
 // Defines the major version number, this increments when there is a major paradigm shift.
 //
@@ -46,7 +47,7 @@
 // Defines the patch version number, this increments for bug fixes and/or
 // backward compatible API enhancements.
 //
-#define ACAI_PATCH              4
+#define ACAI_PATCH              5
 
 // Integer and string versions
 //
@@ -83,7 +84,6 @@ ACAI_SHARED_FUNC int version ();
 ACAI_SHARED_FUNC ACAI::ClientString versionString ();
 
 } // ACAI namespace
-
 
 
 #endif // ACAI__VERSION_H

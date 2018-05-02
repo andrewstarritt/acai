@@ -83,7 +83,7 @@ ACAI::Client::NotificationHandlers ACAI::Client::notificationHandler = NULL;
 void ACAI::Client::callNotificationHandler (const char* notification)
 {
    // If the notification handler has been registered, use it, otherwise just
-   // output to the notification to standard error.
+   // output the notification to standard error.
    //
    if (ACAI::Client::notificationHandler) {
 
