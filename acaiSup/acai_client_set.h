@@ -71,7 +71,7 @@ public:
 
    /// Deletes a ACAI::Client* container.
    /// If deepDestruction was set true during construction then all client objects
-   /// in the container will also be deleted
+   /// in the container will also be deleted.
    ///
    virtual ~Client_Set ();
 

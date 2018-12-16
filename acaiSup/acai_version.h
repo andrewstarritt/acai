@@ -47,7 +47,7 @@
 // Defines the patch version number, this increments for bug fixes and/or
 // backward compatible API enhancements.
 //
-#define ACAI_PATCH              5
+#define ACAI_PATCH              6
 
 // Integer and string versions
 //
@@ -58,7 +58,7 @@
 
 // ACAI_VERSION is the actual version of this version of ACAI.
 // It can be used like this to perform version specific checking
-// #if (ACAI_VERSION >= ACAI_INT_VERSION(1, 4, 1))
+// #if (ACAI_VERSION >= ACAI_INT_VERSION(1, 4, 5))
 //
 #define ACAI_VERSION            ACAI_INT_VERSION (ACAI_MAJOR, ACAI_MINOR, ACAI_PATCH)
 
@@ -67,7 +67,7 @@
 #define ACAI_STRINGIFY_INNER(s) #s
 #define ACAI_STRINGIFY(s)       ACAI_STRINGIFY_INNER(s)
 
-// Define the string version of ACAI, e.g. "ACAI 1.2.10"
+// Define the string version of ACAI, e.g. "ACAI 1.4.6"
 //
 #define ACAI_VERSION_STRING     "ACAI " ACAI_STRINGIFY(ACAI_MAJOR) \
                                 "."     ACAI_STRINGIFY(ACAI_MINOR) \

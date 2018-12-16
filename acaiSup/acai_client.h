@@ -61,8 +61,8 @@ class Abstract_Client_User;    // differed declaration.
 /// use case and as such will most likely need not be changed.
 ///
 /// It should be noted that many of these attributes only take effect when Client::openChannel
-/// function is called (which calls ca_create_channel) or when a successfull connection
-/// occurs (when ca_array_get_callback and ca_create_subscription are called).
+/// function is called (which calls ca_create_channel) or after a successfull connection
+/// occurs (when ca_array_get_callback and ca_create_subscription are then called).
 ///
 /// When a channel disconnects any subscription is cancelled. If/when the channel
 /// reconnects, the channels meta data is re-read and the subscription re-established.
@@ -94,8 +94,12 @@ class Abstract_Client_User;    // differed declaration.
 /// It is intended that appications may use the ACAI::Client class instances directly
 /// or derive their own client classes using ACAI::Client as a base class. A number
 /// of functions have been declared virtual specifically to support this.
-/// The virtual functions are Client::~Client, Client::getString, Client::connectionUpdate,
-/// Client::dataUpdate and Client::putCallbackNotifcation,
+/// The virtual functions are:
+///    Client::~Client,
+///    Client::getString,
+///    Client::connectionUpdate,
+///    Client::dataUpdate, and
+///    Client::putCallbackNotifcation,
 ///
 class ACAI_SHARED_CLASS Client {
 public:
@@ -199,6 +203,10 @@ public:
    ///
    explicit Client (const ACAI::ClientString& pvName = "");
 
+   /// Class constructor with plain c string
+   //
+   explicit Client (const char* pvName = "");
+
    /// Class destructor. The destructor calls unsubscribeChannel and closeChannel.
    /// It also removes itself form any Abstract_Client_User object with which it
    /// is registered, clears the the 'magic' number, and finally deletes any
@@ -213,6 +221,10 @@ public:
    /// immediately.
    ///
    void setPvName (const ACAI::ClientString& pvName, const bool doImmediateReopen = false);
+
+   /// Overloaded fuction of setPvName using plain c string.
+   ///
+   void setPvName (const char* pvName, const bool doImmediateReopen = false);
 
    /// Returns the current channel name as a ClientString.
    ///
@@ -824,6 +836,10 @@ private:
    //
    static void callNotificationHandler (const char* notification);
    static void reportErrorFunc (const int line, const char* function, const char* format, ...);
+
+   // common constructor setup fuction
+   //
+   void commonConstruct();
 
    // These function are used within the ACAI::Client object to
    // call the corresponsing hook functions, registered abstract user hook

@@ -386,7 +386,7 @@ const union db_access_val* ACAI::Client::PrivateData::updateBuffer (struct event
 // ACAI::Client class methods
 //==============================================================================
 //
-ACAI::Client::Client (const ClientString& pvName)
+void ACAI::Client::commonConstruct()
 {
    // Create the private data.
    //
@@ -409,8 +409,22 @@ ACAI::Client::Client (const ClientString& pvName)
    // Set magic number - used by validate channel id.
    //
    this->magic_number = MAGIC_NUMBER_C;
+}
 
-   this->setPvName (pvName);
+//------------------------------------------------------------------------------
+//
+ACAI::Client::Client (const ClientString& pvName)
+{
+   this->commonConstruct ();
+   this->setPvName (pvName, false);
+}
+
+//------------------------------------------------------------------------------
+//
+ACAI::Client::Client (const char* pvName)
+{
+   this->commonConstruct ();
+   this->setPvName (pvName, false);
 }
 
 //------------------------------------------------------------------------------
@@ -431,16 +445,20 @@ ACAI::Client::~Client ()
 //
 void ACAI::Client::setPvName (const ClientString& pvName, const bool doImmediateReopen)
 {
-   const char* c_string_name;
+   // Convert to plan old c string can call over-loaded fuction.
+   //
+   this->setPvName (pvName.c_str (), doImmediateReopen);
+}
 
+//------------------------------------------------------------------------------
+//
+void ACAI::Client::setPvName (const char* pvName, const bool doImmediateReopen)
+{
    // We store the PV name as a traditional C string, as this is the format
    // required by the Channel Access API.
-   //
-   c_string_name = pvName.c_str ();
-
    // snprintf ensures pv_name is null terminated.
    //
-   snprintf (this->pd->pv_name, sizeof (this->pd->pv_name), "%s", c_string_name);
+   snprintf (this->pd->pv_name, sizeof (this->pd->pv_name), "%s", pvName);
 
    if (doImmediateReopen) {
       this->reopenChannel ();

@@ -218,7 +218,7 @@ bool ACAI::Client_Set::clientIsReady (ACAI::Client* client) const
 
          case ACAI::SingleRead:
          case ACAI::Subscribe:
-            result = client->dataIsAvailable();
+            result = client->dataIsAvailable ();
             break;
 
          default:
