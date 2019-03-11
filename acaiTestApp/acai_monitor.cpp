@@ -5,6 +5,26 @@
 // This program is intended as example and test of the ACAI library rather
 // than as a replacement for the afore mentioned camonitor program.
 //
+// Copyright (C) 2015-2019  Andrew C. Starritt
+//
+// The acai_monitor program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by the
+// Free Software Foundation, either version 3 of the License, or (at your
+// option) any later version.
+//
+// The acai_monitor program is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+// for more details.
+//
+// You should have received a copy of the GNU General Public License and
+// the Lesser GNU General Public License along with the acai_monitor program.
+// If not, see <http://www.gnu.org/licenses/>.
+//
+// Contact details:
+// andrew.starritt@gmail.com
+// PO Box 3118, Prahran East, Victoria 3181, Australia.
+//
 
 #include <iostream>
 #include <iomanip>
@@ -31,13 +51,14 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
 
          const int n = client->enumerationStatesCount ();
          if (n > 0) {
-            std::cout << " enum values:" << std::endl;
+            std::cout << " info: type: " << ACAI::clientFieldTypeImage (client->dataFieldType())
+                      << ", values:" << std::endl;
             for (int j = 0; j < n; j++) {
                std::cout << " [" << j << "/" << n << "] " << client->getEnumeration (j) <<  std::endl;
             }
          } else {
-            std::cout << " type: "  << ACAI::clientFieldTypeImage (client->dataFieldType())
-                      << ", num: "  << client->hostElementCount()
+            std::cout << " info: type: " << ACAI::clientFieldTypeImage (client->dataFieldType())
+                      << ", nelm: " << client->hostElementCount()
                       << ", egu: "  << client->units()
                       << ", prec: " << client->precision ()
                       << std::endl;
@@ -75,7 +96,7 @@ static void reportConnectionFailures (ACAI::Client* client, void* /* context */ 
 {
    if (client) {
       if (!client->isConnected ()) {
-         std::cerr << "Channel connect timed out: " << client->pvName () << " PV not found" <<  std::endl;
+         std::cerr << "Channel connection timed out: " << client->pvName () << " PV not found" <<  std::endl;
       } else
       if (!client->dataIsAvailable ()) {
          std::cerr << "Channel read failure: " << client->pvName () << " PV data not available" <<  std::endl;
@@ -167,7 +188,7 @@ int main (int argc, char* argv [])
 
    for (int j = 1; j < argc; j++) {
       ACAI::Client* client;
-      client = new  ACAI::Client (argv [j]);
+      client = new ACAI::Client (argv [j]);
       client->setReadMode (ACAI::Subscribe);   // default
       client->setIncludeUnits (true);
       client->setUpdateHandler (dataUpdateEventHandlers);
@@ -179,8 +200,9 @@ int main (int argc, char* argv [])
    // Run simple event loop for 2 seconds.
    //
    ok = clientSet->waitAllChannelsReady (2.0, 0.02);
-   std::cerr << "waitAllChannelsReady: "
-             << (ok ? "true " : "false" ) << std::endl;
+   if (!ok) {
+      std::cerr << "** Not all channels connected" << std::endl;
+   }
 
    // Check for connection failures.
    //
