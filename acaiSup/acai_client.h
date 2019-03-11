@@ -3,7 +3,7 @@
  * This file is part of the ACAI library.
  * The class derived from pv_client developed for the kryten application.
  *
- * Copyright (C) 2013-2018  Andrew C. Starritt
+ * Copyright (C) 2013-2019  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by the
@@ -26,7 +26,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  *
  * Contact details:
- * starritt@netspace.net.au
+ * andrew.starritt@gmail.com
  * PO Box 3118, Prahran East, Victoria 3181, Australia.
  *
  */

@@ -5,7 +5,7 @@
  * party libraries.  It also provides a buffering mechanism that can be
  * useful even in native C/C++ applications.
  *
- * Copyright (C) 2005-2017  Andrew C. Starritt
+ * Copyright (C) 2005-2019  Andrew C. Starritt
  *
  * This module is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by the
@@ -28,7 +28,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  *
  * Contact details:
- * starritt@netspace.net.au
+ * andrew.starritt@gmail.com
  * PO Box 3118, Prahran East, Victoria 3181, Australia.
  */
 
