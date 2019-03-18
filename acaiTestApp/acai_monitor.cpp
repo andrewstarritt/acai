@@ -96,10 +96,12 @@ static void reportConnectionFailures (ACAI::Client* client, void* /* context */ 
 {
    if (client) {
       if (!client->isConnected ()) {
-         std::cerr << "Channel connection timed out: " << client->pvName () << " PV not found" <<  std::endl;
+         std::cerr << "Channel connect timed out: " << client->pvName ()
+                   << " PV not found" <<  std::endl;
       } else
       if (!client->dataIsAvailable ()) {
-         std::cerr << "Channel read failure: " << client->pvName () << " PV data not available" <<  std::endl;
+         std::cerr << "Channel read failure: " << client->pvName ()
+                   << " PV data not available" <<  std::endl;
       }
    } else {
       std::cerr << "acai_monitor: null client" <<  std::endl;

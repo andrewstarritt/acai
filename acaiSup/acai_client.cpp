@@ -1610,9 +1610,12 @@ void ACAI::Client::updateHandler (struct event_handler_args& args)
    length = dbr_value_size [args.type] * args.count;
 
    if (length <= 0) {
-      reportError ("%s: zero/negative (%ld) length data for dbr type %s (%ld)",
-                   tpd->pv_name, args.count, ACAI::Client::dbRequestTypeImage (args.type),
-                   args.type);
+      // Although a sensible check, do not report this - it is not unexpected
+      // to get such an update for a channel that has just recently been deleted.
+      //
+      //reportError ("%s: zero/negative (%ld) length data for dbr type %s (%ld)",
+      //             tpd->pv_name, args.count, ACAI::Client::dbRequestTypeImage (args.type),
+      //             args.type);
       return;
    }
 
