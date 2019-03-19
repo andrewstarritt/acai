@@ -1336,7 +1336,10 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
 
    count = this->pd->channel_element_count;
    if (count == 0) {
-      reportError ("element count (%s) is zero", this->pd->pv_name);
+      // Although a sensible check, do not report this - it is not unexpected
+      // to get such an update for a channel that has just recently been deleted.
+      //
+      // reportError ("element count (%s) is zero", this->pd->pv_name);
       return false;
    }
 
