@@ -982,9 +982,9 @@ bool ACAI::Client::putString (const ACAI::ClientString& value)
    const char* c_str_val = value.c_str ();
    bool result;
 
-   // Is this PV to be treated as a long string?
+   // Can this PV to be treated as a long string?
    //
-   if (this->processingAsLongString ()) {
+   if (this->pd->host_field_type == ACAI::ClientFieldCHAR) {
       // Yes - limit the size to dataElementCount.
       //
       const unsigned int count = strnlen (c_str_val, this->dataElementCount ());
@@ -1301,7 +1301,7 @@ ACAI::ClientString ACAI::Client::localTimeImage (const int precision) const
 bool ACAI::Client::isAlarmStatusPv () const
 {
    ACAI::ClientString pvName = this->pvName ();
-   int l = pvName.length ();
+   const int l = pvName.length ();
 
    return (l >= 5) && (pvName.substr (l - 5, 5) == ".STAT");
 }
@@ -1311,7 +1311,7 @@ bool ACAI::Client::isAlarmStatusPv () const
 bool ACAI::Client::processingAsLongString () const
 {
    ACAI::ClientString pvName = this->pvName ();
-   int l = pvName.length ();
+   const int l = pvName.length ();
 
    return (this->pd->host_field_type == ACAI::ClientFieldCHAR) &&
           (this->pd->isLongString || (l >= 1 && this->pvName() [l - 1] == '$'));

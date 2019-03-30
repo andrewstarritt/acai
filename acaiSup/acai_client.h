@@ -288,9 +288,9 @@ public:
    ///
    unsigned int priority () const;
 
-   /// When set, arrays of DBF_CHAR interpretted as string by getString/putString.
-   /// Note: Since base 3.14.11, this is implicit for certain field types when '$'
-   /// appended to the field name. The default is false.
+   /// When set, arrays of DBF_CHAR interpretted as string by getString.
+   /// Note: Since base 3.14.11, this is implicit for certain field types
+   /// when '$' appended to the field name. The default is false.
    //
    void setLongString (const bool isLongString);
 
@@ -621,8 +621,9 @@ public:
 
    /// Write scaler value to channel.
    /// On the wire (via CA protocol) we use DBF_STRING format, not the PV's native
-   /// field format. If deemed a long string, see ACAI::Client::processingAsLongString,
-   /// then we use DBF_CHAR format. The string is truncated if necessary.
+   /// field format unless the PV's native data type is DBF_CHAR and then it is
+   /// deemed a long string. NOTE: this is irrespective of the isLongString setting.
+   /// The string is truncated if necessary.
    ///
    bool putString (const ACAI::ClientString& value);   // tuncated if needs be.
 
