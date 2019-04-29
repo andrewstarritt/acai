@@ -984,10 +984,11 @@ bool ACAI::Client::putString (const ACAI::ClientString& value)
 
    // Can this PV to be treated as a long string?
    //
-   if (this->pd->host_field_type == ACAI::ClientFieldCHAR) {
-      // Yes - limit the size to dataElementCount.
+   if ((this->pd->host_field_type == ACAI::ClientFieldCHAR) &&
+       (this->hostElementCount () >= 2)) {
+      // Yes - limit the size to hostElementCount.
       //
-      const unsigned int count = strnlen (c_str_val, this->dataElementCount ());
+      const unsigned int count = strnlen (c_str_val, this->hostElementCount ());
 
       if (count < this->dataElementCount ()) {
          // plus 1 - include the trailing zero.

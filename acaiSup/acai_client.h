@@ -621,8 +621,9 @@ public:
 
    /// Write scaler value to channel.
    /// On the wire (via CA protocol) we use DBF_STRING format, not the PV's native
-   /// field format unless the PV's native data type is DBF_CHAR and then it is
-   /// deemed a long string. NOTE: this is irrespective of the isLongString setting.
+   /// field format unless the PV's native data type is DBF_CHAR with two or more
+   /// elements. In this case it is deemed a long string.
+   /// NOTE: this is irrespective of the isLongString setting.
    /// The string is truncated if necessary.
    ///
    bool putString (const ACAI::ClientString& value);   // tuncated if needs be.
