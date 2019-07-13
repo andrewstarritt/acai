@@ -26,4 +26,12 @@ TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
 # 
 EPICS_BASE=/epics/base
 
+
+# These lines allow developers to override these RELEASE settings
+# without having to modify this file directly.
+#
+-include $(TOP)/../RELEASE.local
+-include $(TOP)/../RELEASE.$(EPICS_HOST_ARCH).local
+-include $(TOP)/configure/RELEASE.local
+
 # end
