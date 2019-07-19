@@ -194,18 +194,23 @@ public:
    ///
    static int getDebugLevel ();
 
-
    // object functions ---------------------------------------------------------
    //
+   /// Class constructor without a PV name being specified. The PV name may be set
+   /// later on using Client::setPvName. All other attributes have their own set
+   /// and get functions.
+   ///
+   explicit Client ();
+
    /// Class constructor. The PV name may be set during construction or (re)set
    /// later on using Client::setPvName. All other attributes have their own set
    /// and get functions.
    ///
-   explicit Client (const ACAI::ClientString& pvName = "");
+   explicit Client (const ACAI::ClientString& pvName);
 
    /// Class constructor with plain c string
    //
-   explicit Client (const char* pvName = "");
+   explicit Client (const char* pvName);
 
    /// Class destructor. The destructor calls unsubscribeChannel and closeChannel.
    /// It also removes itself form any Abstract_Client_User object with which it

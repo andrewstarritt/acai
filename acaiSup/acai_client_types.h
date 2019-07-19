@@ -247,15 +247,15 @@ ACAI_SHARED_FUNC ACAI::ClientString clientFieldTypeImage (const ACAI::ClientFiel
 //
 /// Like snprintf except targets an ACAI::ClientString.
 ///
-/// The size_t size paramter is used for an internal buffer (note: this is on the stack)
-/// and will constrain the final string size.
+/// The size_t size parameter is used to size internal buffer and will constrain
+/// the final string size. The return value is thr required string size.
 ///
 ACAI_SHARED_FUNC int csnprintf (ACAI::ClientString& target, size_t size, const char* format, ...);
 
 /// This creates and returns an ACAI::ClientString
 ///
-/// The size_t size paramter is used for an internal buffer (note: this is on the stack)
-/// and will constrain the final string size.
+/// The size_t size parameter is used to size internal buffer and will constrain
+/// the returned string size.
 ///
 ACAI_SHARED_FUNC ACAI::ClientString csnprintf (size_t size, const char* format, ...);
 

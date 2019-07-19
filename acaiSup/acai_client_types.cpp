@@ -58,15 +58,26 @@ static const char* ownAlarmConditionStrings[ACAI::CLIENT_ALARM_NSTATUS] = {
 //
 ACAI_SHARED_FUNC int ACAI::csnprintf (ACAI::ClientString& target, size_t size, const char* format, ...)
 {
-   va_list args;
-   char buffer [size + 1];
    int result;
-
+   va_list args;
    va_start (args, format);
-   result = vsnprintf (buffer, sizeof (buffer), format, args);
-   va_end (args);
 
-   target = buffer;
+   if (size <= 512) {    // 512 is a bit arbitary
+      // Just use a stack buffer, but still limit to size.
+      //
+      char buffer [512];
+      result = vsnprintf (buffer, size, format, args);
+      target = buffer;
+   } else {
+      // Large-ish, allocate/free work buffer.
+      //
+      char* buffer = (char*) malloc (size);
+      result = vsnprintf (buffer, size, format, args);
+      target = buffer;
+      free (buffer);
+   }
+
+   va_end (args);
    return result;
 }
 
@@ -74,14 +85,27 @@ ACAI_SHARED_FUNC int ACAI::csnprintf (ACAI::ClientString& target, size_t size, c
 //
 ACAI_SHARED_FUNC ACAI::ClientString ACAI::csnprintf (size_t size, const char* format, ...)
 {
+   ACAI::ClientString result;
    va_list args;
-   char buffer [size + 1];
-
    va_start (args, format);
-   vsnprintf (buffer, sizeof (buffer), format, args);
-   va_end (args);
 
-   return ACAI::ClientString (buffer);
+   if (size <= 512) {    // 512 is a bit arbitary
+      // Just use a stack buffer, but still limit to size.
+      //
+      char buffer [512];
+      vsnprintf (buffer, size, format, args);
+      result = ACAI::ClientString (buffer);
+   } else {
+      // Large-ish, allocate/free work buffer.
+      //
+      char* buffer = (char*) malloc (size);
+      vsnprintf (buffer, size, format, args);
+      result = ACAI::ClientString (buffer);
+      free (buffer);
+   }
+
+   va_end (args);
+   return result;
 }
 
 //------------------------------------------------------------------------------

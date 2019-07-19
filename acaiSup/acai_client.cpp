@@ -37,7 +37,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <alarm.h>
 #include <cadef.h>
@@ -413,6 +412,14 @@ void ACAI::Client::commonConstruct()
 
 //------------------------------------------------------------------------------
 //
+ACAI::Client::Client ()
+{
+   this->commonConstruct ();
+   this->setPvName ("", false);
+}
+
+//------------------------------------------------------------------------------
+//
 ACAI::Client::Client (const ClientString& pvName)
 {
    this->commonConstruct ();
@@ -445,7 +452,7 @@ ACAI::Client::~Client ()
 //
 void ACAI::Client::setPvName (const ClientString& pvName, const bool doImmediateReopen)
 {
-   // Convert to plan old c string can call over-loaded fuction.
+   // Convert to plain old traditional C string and call over-loaded function.
    //
    this->setPvName (pvName.c_str (), doImmediateReopen);
 }
@@ -988,16 +995,16 @@ bool ACAI::Client::putString (const ACAI::ClientString& value)
        (this->hostElementCount () >= 2)) {
       // Yes - limit the size to hostElementCount.
       //
-      const unsigned int count = strnlen (c_str_val, this->hostElementCount ());
+      size_t count = strnlen (c_str_val, this->hostElementCount ());
 
       if (count < this->dataElementCount ()) {
          // plus 1 - include the trailing zero.
          result = this->putData (DBF_CHAR, count + 1, c_str_val);
 
-      } else if (count <= 800) {    // 800 is a bit arbitary
+      } else if (count <= 512) {    // 512 is a bit arbitary
          // Just use a stack buffer.
          //
-         char work [count];
+         char work [512];
          snprintf (work, count, "%s", c_str_val);  // snprintf always forces a '\0'
          result = this->putData (DBF_CHAR, count, work);
 
