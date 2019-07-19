@@ -32,9 +32,11 @@
 
 #include <acai_client_types.h>
 #include <acai_private_common.h>
+
 #include <stdio.h>
-#include <string.h>
 #include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 
 // Importing the severity and status strings from the EPICS libraries on windows
 // drives me crazy, so just going to roll my own.
