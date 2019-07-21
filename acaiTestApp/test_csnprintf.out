@@ -1,0 +1,20 @@
+test csnprintf functions (ACAI 1.5.3)
+
+req len 40  actual len 20
+req len 40  actual len 19
+target: 0123456789ABCDE01234  target len 20
+
+req len 32  actual len 32
+req len 64  actual len 64
+req len 128  actual len 128
+req len 256  actual len 256
+req len 512  actual len 512
+req len 1024  actual len 512
+req len 1024  actual len 512
+req len 1024  actual len 512
+req len 1024  actual len 800
+req len 1600  actual len 800
+req len 1600  actual len 800
+req len 1600  actual len 800
+
+test csnprintf complete

@@ -65,16 +65,16 @@ ACAI_SHARED_FUNC int ACAI::csnprintf (ACAI::ClientString& target, size_t size, c
    va_start (args, format);
 
    if (size <= 512) {    // 512 is a bit arbitary
-      // Just use a stack buffer, but still limit to size.
+      // Just use a stack buffer, but still limit to size +1.
       //
-      char buffer [512];
-      result = vsnprintf (buffer, size, format, args);
+      char buffer [513];
+      result = vsnprintf (buffer, size + 1, format, args);   // +1 for null byte
       target = buffer;
    } else {
       // Large-ish, allocate/free work buffer.
       //
-      char* buffer = (char*) malloc (size);
-      result = vsnprintf (buffer, size, format, args);
+      char* buffer = (char*) malloc (size + 1);
+      result = vsnprintf (buffer, size + 1, format, args);
       target = buffer;
       free (buffer);
    }
@@ -92,16 +92,16 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::csnprintf (size_t size, const char* fo
    va_start (args, format);
 
    if (size <= 512) {    // 512 is a bit arbitary
-      // Just use a stack buffer, but still limit to size.
+      // Just use a stack buffer, but still limit to size +1.
       //
-      char buffer [512];
-      vsnprintf (buffer, size, format, args);
+      char buffer [513];
+      vsnprintf (buffer, size + 1, format, args);
       result = ACAI::ClientString (buffer);
    } else {
       // Large-ish, allocate/free work buffer.
       //
-      char* buffer = (char*) malloc (size);
-      vsnprintf (buffer, size, format, args);
+      char* buffer = (char*) malloc (size + 1);
+      vsnprintf (buffer, size + 1, format, args);
       result = ACAI::ClientString (buffer);
       free (buffer);
    }
