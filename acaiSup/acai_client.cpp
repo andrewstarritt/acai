@@ -182,7 +182,7 @@ public:
    //
    int precision;               // number of decimal places
    char units[MAX_UNITS_SIZE];  // units of value
-   unsigned char num_states;    // number of strings (was no_str)
+   unsigned short num_states;   // number of strings (was no_str)
    char enum_strings[MAX_ENUM_STATES][MAX_ENUM_STRING_SIZE];    // was strs
    double upper_disp_limit;     // upper limit of graph
    double lower_disp_limit;     // lower limit of graph
@@ -986,6 +986,8 @@ bool ACAI::Client::putInteger (const ACAI::ClientInteger value)
 //
 bool ACAI::Client::putString (const ACAI::ClientString& value)
 {
+   typedef unsigned long ulong;
+
    const char* c_str_val = value.c_str ();
    bool result;
 
@@ -999,21 +1001,21 @@ bool ACAI::Client::putString (const ACAI::ClientString& value)
 
       if (count < this->dataElementCount ()) {
          // plus 1 - include the trailing zero.
-         result = this->putData (DBF_CHAR, count + 1, c_str_val);
+         result = this->putData (DBF_CHAR, ulong (count + 1), c_str_val);
 
       } else if (count <= 512) {    // 512 is a bit arbitary
          // Just use a stack buffer.
          //
          char work [512];
          snprintf (work, count, "%s", c_str_val);  // snprintf always forces a '\0'
-         result = this->putData (DBF_CHAR, count, work);
+         result = this->putData (DBF_CHAR, ulong (count), work);
 
       } else {
          // Tooo big for stack, allocate/free work buffer.
          //
          char* work = (char*) malloc (count);
          snprintf (work, count, "%s", c_str_val);  // snprintf always forces a '\0'
-         result = this->putData (DBF_CHAR, count, work);
+         result = this->putData (DBF_CHAR, ulong (count), work);
          free (work);
       }
 
@@ -1309,9 +1311,9 @@ ACAI::ClientString ACAI::Client::localTimeImage (const int precision) const
 bool ACAI::Client::isAlarmStatusPv () const
 {
    ACAI::ClientString pvName = this->pvName ();
-   const int l = pvName.length ();
+   const size_t len = pvName.length ();
 
-   return (l >= 5) && (pvName.substr (l - 5, 5) == ".STAT");
+   return (len >= 5) && (pvName.substr (len - 5, 5) == ".STAT");
 }
 
 //------------------------------------------------------------------------------
@@ -1319,10 +1321,10 @@ bool ACAI::Client::isAlarmStatusPv () const
 bool ACAI::Client::processingAsLongString () const
 {
    ACAI::ClientString pvName = this->pvName ();
-   const int l = pvName.length ();
+   const size_t len = pvName.length ();
 
    return (this->pd->host_field_type == ACAI::ClientFieldCHAR) &&
-          (this->pd->isLongString || (l >= 1 && this->pvName() [l - 1] == '$'));
+          (this->pd->isLongString || (len >= 1 && this->pvName() [len - 1] == '$'));
 }
 
 //------------------------------------------------------------------------------
@@ -2395,7 +2397,7 @@ public:
 
       // Find length less any CR/LF characters.
       //
-      int len = strlen (formated_text);
+      size_t len = strlen (formated_text);
       while ((len > 0) && ((formated_text [len - 1] == '\n') ||
                            (formated_text [len - 1] == '\r'))) {
          len--;

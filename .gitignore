@@ -3,6 +3,7 @@ O.linux-x86_64/
 O.linux-x86/
 O.win32-x86-mingw/
 O.windows-x64-mingw/
+O.windows-x64/
 bin/
 lib/
 doc/
