@@ -13,7 +13,8 @@ basic Channel Access API. By default ACAI monitors each channel and caches
 the data locally.
 
 It has been developed and tested on and for CentOS Linux. It has also been compiled,
-but not tested on Windows 7 (mingw 32 bit).
+and tested on Windows 7 (mingw 32 bit). It has, since release v1.5.3, been
+modified to play nice with the MSVC complier.
 
 The main ACAI::Client class was developed from the struct sCA_Client type
 and associated functions defined in pv_client.h/pv_client.c out of the kryten

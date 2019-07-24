@@ -37,7 +37,7 @@
 #include <iostream>
 #include <exception>
 
-// Useful type neutral numerical macro fuctions.
+// Useful type neutral numerical macro functions.
 //
 #define ABS(a)             ((a) >= 0  ? (a) : -(a))
 #define MIN(a, b)          ((a) <= (b) ? (a) : (b))
