@@ -1,6 +1,7 @@
 // test_csnprintf.cpp
 //
 
+#include <stdio.h>
 #include <iostream>
 #include <acai_client_types.h>
 #include <acai_version.h>
