@@ -198,7 +198,7 @@ created the ACAI::Client object and/or called the openChannel function.
 An example program that brings all the above together has been included in
 acaiTestApp/acai_monitor.cpp
 The is a simple command line program that use the ACAI framework.
-This programs mimics the basic fuctionality of the EPICS base program camonitor.
+This programs mimics the basic functionality of the EPICS base program camonitor.
 
 Note:
 This program is intended as an example (and test) ACAI program rather than as

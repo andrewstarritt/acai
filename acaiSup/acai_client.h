@@ -208,8 +208,8 @@ public:
    ///
    explicit Client (const ACAI::ClientString& pvName);
 
-   /// Class constructor with plain c string
-   //
+   /// Class constructor with plain c string.
+   ///
    explicit Client (const char* pvName);
 
    /// Class destructor. The destructor calls unsubscribeChannel and closeChannel.
@@ -293,9 +293,10 @@ public:
    ///
    unsigned int priority () const;
 
-   /// When set, arrays of DBF_CHAR interpretted as string by getString.
+   /// When set, arrays of DBF_CHAR interpretted as string by getString. 
+   /// The default is false
    /// Note: Since base 3.14.11, this is implicit for certain field types
-   /// when '$' appended to the field name. The default is false.
+   /// when '$' appended to the field name.
    //
    void setLongString (const bool isLongString);
 
