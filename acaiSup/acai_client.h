@@ -135,9 +135,9 @@ public:
 
    // static functions ---------------------------------------------------------
    //
-   // These functions handle context creation/deletion and calls to CA flush io.
+   // These fuctions handle context creation/deletion and calls to CA flush io.
    //
-   /// The initialise function must be the first ACAI function called.
+   /// The initialise function must be the first ACAI fuction called.
    /// It should be called in the thread that is to be used for channel access.
    /// Note: not only does this function create the context, but also performs other
    /// initialisation required by ACAI. So whereas CA will create a context on the
@@ -156,13 +156,13 @@ public:
    ///
    static bool attach ();
 
-   /// The finalise should be called if/when the ACAI libray functionality is no longer required.
+   /// The finalise should be called if/when the ACAI libray fuctionality is no longer required.
    /// This includes when the application terminates and the application wishes to "play nice".
    ///
    static void finalise ();
 
    /// Call on regular basis, say every 10-50 mSec.
-   /// Under the covers, this function calls ca_flush_io and then processes any buffered callbacks.
+   /// Under the covers, this fuction calls ca_flush_io and then processes any buffered callbacks.
    /// The maximum parameter specifies max number of items buffered processed.
    ///
    /// NOTE: It is this function that goes on to call the virtual Client::connectionUpdate
@@ -172,7 +172,7 @@ public:
    ///
    static void poll (const int maximum = 800);
 
-   /// Under the covers, this function just calls ca_flush_io.
+   /// Under the covers, this fuction just calls ca_flush_io.
    //
    static void flush ();
 
@@ -186,6 +186,12 @@ public:
    ///
    static NotificationHandlers getNotificationHandler ();
 
+   /// Attempt to caste void* to Client*.
+   /// Checks internal magic number
+   /// Returns NULL if cast fails, similar to dynamic_cast
+   ///
+   static ACAI::Client* cast (void* item);
+
    /// Set internal debug level. Larger the number more detail is provided.
    ///
    static void setDebugLevel (const int level);
@@ -193,6 +199,7 @@ public:
    /// Get internal debug level.
    ///
    static int getDebugLevel ();
+
 
    // object functions ---------------------------------------------------------
    //
@@ -208,8 +215,8 @@ public:
    ///
    explicit Client (const ACAI::ClientString& pvName);
 
-   /// Class constructor with plain c string.
-   ///
+   /// Class constructor with plain c string
+   //
    explicit Client (const char* pvName);
 
    /// Class destructor. The destructor calls unsubscribeChannel and closeChannel.
@@ -227,7 +234,7 @@ public:
    ///
    void setPvName (const ACAI::ClientString& pvName, const bool doImmediateReopen = false);
 
-   /// Overloaded function of setPvName using plain c string.
+   /// Overloaded fuction of setPvName using plain c string.
    ///
    void setPvName (const char* pvName, const bool doImmediateReopen = false);
 
@@ -293,10 +300,9 @@ public:
    ///
    unsigned int priority () const;
 
-   /// When set, arrays of DBF_CHAR interpretted as string by getString. 
-   /// The default is false
+   /// When set, arrays of DBF_CHAR interpretted as string by getString.
    /// Note: Since base 3.14.11, this is implicit for certain field types
-   /// when '$' appended to the field name.
+   /// when '$' appended to the field name. The default is false.
    //
    void setLongString (const bool isLongString);
 
@@ -421,67 +427,67 @@ public:
    // dataIsAvailable function should be used in order to determine the veracity
    // of the returned values.
    //
-   /// For a connected channel, this function returns the precision typically
+   /// For a connected channel, this fuction returns the precision typically
    /// specified in a record's PREC field. When the channel is not connected,
    /// the function returns 0.
    ///
    int precision () const;
 
-   /// For a connected channel, this function returns the associated engineering
+   /// For a connected channel, this fuction returns the associated engineering
    /// units typically specified in a record's EGU field. When the channel is not
    /// connected, the function returns "".
    ///
    ACAI::ClientString units () const;
 
-   /// For a connected channel, this function returns the channel's lower operating
+   /// For a connected channel, this fuction returns the channel's lower operating
    /// range typically specified in a record's LOPR field. When the channel is
    /// not connected, the function returns 0.0
    ///
    double lowerDisplayLimit () const;
 
-   /// For a connected channel, this function returns the channel's upper operating
+   /// For a connected channel, this fuction returns the channel's upper operating
    /// range typically specified in a record's HOPR field. When the channel is
    /// not connected, the function returns 0.0
    ///
    double upperDisplayLimit () const;
 
-   /// For a connected channel, this function returns the channel's lower control
+   /// For a connected channel, this fuction returns the channel's lower control
    /// limit typically specified in a record's DRVL field. When the channel is
    /// not connected, the function returns 0.0
    ///
    double lowerControlLimit () const;
 
-   /// For a connected channel, this function returns the channel's upper control
+   /// For a connected channel, this fuction returns the channel's upper control
    /// limit typically specified in a record's DRVH field. When the channel is
    /// not connected, the function returns 0.0
    ///
    double upperControlLimit () const;
 
-   /// For a connected channel, this function returns the channel's lower warning
+   /// For a connected channel, this fuction returns the channel's lower warning
    /// limit typically specified in a record's LOW field. When the channel is
    /// not connected, the function returns 0.0
    ///
    double lowerWarningLimit () const;
 
-   /// For a connected channel, this function returns the channel's upper warning
+   /// For a connected channel, this fuction returns the channel's upper warning
    /// limit typically specified in a record's HIGH field. When the channel is
    /// not connected, the function returns 0.0
    ///
    double upperWarningLimit () const;
 
-   /// For a connected channel, this function returns the channel's lower alarm
+   /// For a connected channel, this fuction returns the channel's lower alarm
    /// limit typically specified in a record's LOLO field. When the channel is
    /// not connected, the function returns 0.0
    ///
    double lowerAlarmLimit () const;
 
-   /// For a connected channel, this function returns the channel's upper alarm
+   /// For a connected channel, this fuction returns the channel's upper alarm
    /// limit typically specified in a record's HIHI field. When the channel is
    /// not connected, the function returns 0.0
    ///
    double upperAlarmLimit () const;
 
-   /// For a connected channel, this function returns the channel's hostname or IP address.
+   /// For a connected channel, this fuction returns the channel's hostname or IP address.
    /// When the channel is not connected, the function returns "".
    ///
    /// Note: if the PV is accessed via an EPICS gateway, then this function will
@@ -845,7 +851,7 @@ private:
    static void callNotificationHandler (const char* notification);
    static void reportErrorFunc (const int line, const char* function, const char* format, ...);
 
-   // common constructor setup function
+   // common constructor setup fuction
    //
    void commonConstruct();
 

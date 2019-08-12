@@ -2152,6 +2152,22 @@ void ACAI::Client::flush ()
 
 //------------------------------------------------------------------------------
 // static
+ACAI::Client* ACAI::Client::cast (void* item)
+{
+   ACAI::Client* result = static_cast<ACAI::Client*> (item);
+   if (result) {
+      if (result->magic_number != MAGIC_NUMBER_C) {
+         result = NULL;
+      }
+      if (! result->pd || (result->pd->magic_number != MAGIC_NUMBER_P)) {
+         result = NULL;
+      }
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// static
 void ACAI::Client::setDebugLevel (const int level)
 {
    debugLevel = level;
@@ -2260,26 +2276,13 @@ ACAI::Client* ACAI::Client::validateChannelId (const void* channel_idx)
       return NULL;
    }
 
-   result = (Client *) user_data;
-   if (result->magic_number != MAGIC_NUMBER_C) {
+   result = Client::cast (user_data);
+   if (!result) {
       // Although a sensible check, no need to report this - it is not
       // unexpected to get an update for a channel that has just recently
       // been deleted (magic_number fields are cleared when client deleted).
       //
       // reportError ("User data does not reference a ACAI::Client object (magic number check)");
-      //
-      return NULL;
-   }
-
-   if (result->pd == NULL) {
-      reportError ("validateChannelId: client has no associated private data");
-      return NULL;
-   }
-
-   if (result->pd->magic_number != MAGIC_NUMBER_P)  {
-      // Although a sensible check, no need to report this - it is not
-      // unexpected to get an update for a channel that has just recently
-      // been deleted.
       //
       return NULL;
    }

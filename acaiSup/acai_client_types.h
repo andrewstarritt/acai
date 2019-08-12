@@ -183,7 +183,7 @@ enum ClientFieldType {
    ClientFieldDOUBLE    = 6,
    ClientFieldNO_ACCESS = 7,
    // Additional pseudo field type used for requests.
-   // Mixing control and data here, but this is pragmatic.
+   // Mixing control and data here, but it is pragmatic.
    ClientFieldDefault   = 8
 };
 

@@ -1,5 +1,6 @@
 # Makefile
 #
+
 TOP=..
 
 include $(TOP)/configure/CONFIG
@@ -11,7 +12,7 @@ include $(TOP)/configure/CONFIG
 # build a support library.
 
 LIBRARY_IOC += acai
-SHRLIB_VERSION = 1.5.3
+SHRLIB_VERSION = 1.5.4
 
 # specify that we are building the library.
 #

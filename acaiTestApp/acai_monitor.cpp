@@ -37,6 +37,8 @@
 #include <epicsThread.h>
 #include <epicsVersion.h>
 
+static volatile bool outputMeta = false;
+
 //------------------------------------------------------------------------------
 //
 static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdate)
@@ -46,23 +48,47 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
       // followed by first subscription update (firstupdate false).
       // Don't need do a double output.
       //
-      if (firstupdate) {
-         std::cout << std::left << std::setw (40) << client->pvName ();
+      if (firstupdate && outputMeta) {
+         int n = 0;
+         std::cout << client->pvName () << ":" << std::endl;
+         std::cout << "   type: " << ACAI::clientFieldTypeImage (client->hostFieldType()) << std::endl;
+         std::cout << "   nelm: " << client->hostElementCount() << std::endl;
 
-         const int n = client->enumerationStatesCount ();
-         if (n > 0) {
-            std::cout << " info: type: " << ACAI::clientFieldTypeImage (client->dataFieldType())
-                      << ", values:" << std::endl;
-            for (int j = 0; j < n; j++) {
-               std::cout << " [" << j << "/" << n << "] " << client->getEnumeration (j) <<  std::endl;
-            }
-         } else {
-            std::cout << " info: type: " << ACAI::clientFieldTypeImage (client->dataFieldType())
-                      << ", nelm: " << client->hostElementCount()
-                      << ", egu: "  << client->units()
-                      << ", prec: " << client->precision ()
-                      << std::endl;
+         switch (client->dataFieldType()) {
+            case ACAI::ClientFieldSTRING:
+               break;
+
+            case ACAI::ClientFieldENUM:
+               n = client->enumerationStatesCount ();
+               for (int j = 0; j < n; j++) {
+                  std::cout << "   [" << j << "/" << n << "] "
+                            << client->getEnumeration (j) << std::endl;
+               }
+               break;
+
+            case ACAI::ClientFieldFLOAT:
+            case ACAI::ClientFieldDOUBLE:
+               std::cout << "   prec: "  << client->precision() << std::endl;
+               // fall through
+            case ACAI::ClientFieldCHAR:
+            case ACAI::ClientFieldSHORT:
+            case ACAI::ClientFieldLONG:
+               std::cout << "   egu:  "  << client->units() << std::endl;
+               std::cout << "   lopr: "  << client->lowerDisplayLimit() << std::endl;
+               std::cout << "   hopr: "  << client->upperDisplayLimit() << std::endl;
+               std::cout << "   drvl: "  << client->lowerControlLimit() << std::endl;
+               std::cout << "   drvh: "  << client->upperControlLimit() << std::endl;
+               std::cout << "   low:  "  << client->lowerWarningLimit() << std::endl;
+               std::cout << "   high: "  << client->upperWarningLimit() << std::endl;
+               std::cout << "   lolo: "  << client->lowerAlarmLimit() << std::endl;
+               std::cout << "   hihi: "  << client->upperAlarmLimit() << std::endl;
+               break;
+
+            default:
+               break;
          }
+
+         std::cout << std::endl;
       }
 
       if (!firstupdate || (client->readMode() != ACAI::Subscribe)) {
@@ -157,7 +183,7 @@ int main (int argc, char* argv [])
       << "intended as an example and test of the ACAI library rather than as a "<<  std::endl
       << "replacement for the afore mentioned camonitor program."<< std::endl
       << "" << std::endl
-      << "usage: acai_monitor PV_NAMES..." << std::endl
+      << "usage: acai_monitor [-m|--meta] PV_NAMES..." << std::endl
       << "       acai_monitor -h | --help" << std::endl
       << "       acai_monitor -v | --version" << std::endl
       << std::endl;
@@ -185,6 +211,13 @@ int main (int argc, char* argv [])
    }
 
    signalSetup ();
+
+   if (argc >= 2 && (strcmp (argv[1], "--meta") == 0 || strcmp (argv[1], "-m") == 0)) {
+      outputMeta = true;
+      argc--;
+      argv++;
+   }
+
 
    ACAI::Client_Set* clientSet = new ACAI::Client_Set (true);
 
