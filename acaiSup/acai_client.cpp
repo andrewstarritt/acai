@@ -2156,10 +2156,9 @@ ACAI::Client* ACAI::Client::cast (void* item)
 {
    ACAI::Client* result = static_cast<ACAI::Client*> (item);
    if (result) {
-      if (result->magic_number != MAGIC_NUMBER_C) {
-         result = NULL;
-      }
-      if (! result->pd || (result->pd->magic_number != MAGIC_NUMBER_P)) {
+      if ((result->magic_number != MAGIC_NUMBER_C) ||
+          (!result->pd) ||
+          (result->pd->magic_number != MAGIC_NUMBER_P))  {
          result = NULL;
       }
    }

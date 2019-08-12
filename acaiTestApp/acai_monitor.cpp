@@ -51,6 +51,7 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
       if (firstupdate && outputMeta) {
          int n = 0;
          std::cout << client->pvName () << ":" << std::endl;
+         std::cout << "   host: " << client->hostName() << std::endl;
          std::cout << "   type: " << ACAI::clientFieldTypeImage (client->hostFieldType()) << std::endl;
          std::cout << "   nelm: " << client->hostElementCount() << std::endl;
 
