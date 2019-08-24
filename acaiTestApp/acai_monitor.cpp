@@ -1,7 +1,7 @@
 // acai_monitor.cpp
 //
 // This is a simple command line programs that uses the ACAI library.
-// This programs mimics some of the features of the EPICS base program camonitor.
+// This program mimics some of the features of the EPICS base program camonitor.
 // This program is intended as example and test of the ACAI library rather
 // than as a replacement for the afore mentioned camonitor program.
 //
@@ -38,6 +38,8 @@
 #include <epicsVersion.h>
 
 static volatile bool outputMeta = false;
+static volatile bool onlyDoGets = false;
+static ACAI::Client_Set* clientSet = NULL;
 
 //------------------------------------------------------------------------------
 //
@@ -111,6 +113,14 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
          std::cout << " " << client->alarmSeverityImage ()
                    << " " << client->alarmStatusImage ();
          std::cout << std::endl;
+
+         if (onlyDoGets) {
+            client->closeChannel ();
+
+            if (clientSet)
+               clientSet->remove (client);
+         }
+
       }
    } else {
       std::cerr << "acai_monitor: null client" <<  std::endl;
@@ -180,13 +190,24 @@ int main (int argc, char* argv [])
    if (argc >= 2 && (strcmp (argv[1], "--help") == 0 || strcmp (argv[1], "-h") == 0)) {
       std::cout
       << "acai_monitor is a simple command line programs that uses the ACAI library."<<  std::endl
-      << "This program mimics the EPICS base program camonitor. This program is"<<  std::endl
-      << "intended as an example and test of the ACAI library rather than as a "<<  std::endl
+      << "This program mimics some of the features of the EPICS base camonitor program,"<<  std::endl
+      << "and is intended as an example and test of the ACAI library rather than as a"<<  std::endl
       << "replacement for the afore mentioned camonitor program."<< std::endl
       << "" << std::endl
-      << "usage: acai_monitor [-m|--meta] PV_NAMES..." << std::endl
+      << "usage: acai_monitor [-m|--meta] [-g|--get] PV_NAMES..." << std::endl
       << "       acai_monitor -h | --help" << std::endl
       << "       acai_monitor -v | --version" << std::endl
+      << "" << std::endl
+      << "Options:" << std::endl
+      << "" << std::endl
+      << "-m,--meta     show meta information, e.g precision, egu, enum values." << std::endl
+      << "" << std::endl
+      << "-g,--get      only do gets, as opposed to monitoring." << std::endl
+      << "              note: must follow meta option if both options are defined." << std::endl
+      << "" << std::endl
+      << "-v,--version  show version information and exit." << std::endl
+      << "" << std::endl
+      << "-g,--get      shiw this help message and exit." << std::endl
       << std::endl;
 
       return 0;
@@ -199,6 +220,20 @@ int main (int argc, char* argv [])
 
       return 0;
    }
+
+
+   if (argc >= 2 && (strcmp (argv[1], "--meta") == 0 || strcmp (argv[1], "-m") == 0)) {
+      outputMeta = true;
+      argc--;
+      argv++;
+   }
+
+   if (argc >= 2 && (strcmp (argv[1], "--get") == 0 || strcmp (argv[1], "-g") == 0)) {
+      onlyDoGets = true;
+      argc--;
+      argv++;
+   }
+
 
    if (argc < 2) {
       std::cerr << "acai_monitor: No PV name(s) specified" <<  std::endl;
@@ -213,19 +248,13 @@ int main (int argc, char* argv [])
 
    signalSetup ();
 
-   if (argc >= 2 && (strcmp (argv[1], "--meta") == 0 || strcmp (argv[1], "-m") == 0)) {
-      outputMeta = true;
-      argc--;
-      argv++;
-   }
 
-
-   ACAI::Client_Set* clientSet = new ACAI::Client_Set (true);
+   clientSet = new ACAI::Client_Set (true);
 
    for (int j = 1; j < argc; j++) {
       ACAI::Client* client;
       client = new ACAI::Client (argv [j]);
-      client->setReadMode (ACAI::Subscribe);   // default
+      client->setReadMode (onlyDoGets ? ACAI::SingleRead : ACAI::Subscribe);
       client->setIncludeUnits (true);
       client->setUpdateHandler (dataUpdateEventHandlers);
       clientSet->insert (client);
@@ -246,9 +275,9 @@ int main (int argc, char* argv [])
       clientSet->iterateChannels (reportConnectionFailures, NULL);
    }
 
-   // Resume event loop.
+   // Resume event loop if in monitor mode.
    //
-   while (!shutDownIsRequired ()) {
+   while (!shutDownIsRequired () && !onlyDoGets) {
       epicsThreadSleep (0.02);   // 20mSec
       ACAI::Client::poll ();     // call back function invoked from here
    }

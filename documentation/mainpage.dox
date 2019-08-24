@@ -1,4 +1,4 @@
-/**
+/** mainpage.docx
  */
 
 /** \mainpage
@@ -12,8 +12,9 @@ ACAI provides a thin-ish C++ EPICS Channel Access abstraction around the
 basic Channel Access API. By default ACAI monitors each channel and caches
 the data locally.
 
-It has been developed and tested on and for CentOS Linux. It has also been compiled,
-but not tested on Windows 7 (mingw 32 bit).
+It has been developed and tested on and for CentOS Linux, and compiled and 
+tested on Windows 7 using mingw 32 bit compiler.
+It has also be compiled but not tested using the mingw 64 bit and MSVC compilers.
 
 The main ACAI::Client class was developed from the struct sCA_Client type
 and associated functions defined in pv_client.h/pv_client.c out of the kryten
@@ -39,14 +40,17 @@ with the ACAI library.
 If not, see <a href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>
 
 <h2>Building/Linking ACAI</h2>
-ACAI is provided as a standard EPICS module. In order to build it first locate and/or
+ACAI is provided as a standard EPICS module. In order to build it first, locate and/or
 build EPICS base. Next update the configure/RELEASE in the ACAI top directory to point
 to your local epics base, e.g.
 <pre>
 EPICS_BASE=/epics/base
+</pre> or <pre>
+EPICS_BASE=/opt/foo/bar/epics/base-7.0.3
 </pre>
 
-Define the required host architecture, e.g.
+
+Define the required host architecture environment variable, e.g.
 <pre>
 export EPICS_HOST_ARCH=linux-x86_64
 </pre>
@@ -94,10 +98,12 @@ Next, create a client object using your favorite process variable, and open the 
 
 The openChannel function creates a channel and when the connection event occurs
 (provided the connection is a successful) it then requests a channel read
-(with all meta data) and also subscribes for time-based channel data updates.
+(with all meta data, e.g. DBR_CTRL_DOUBLE) and also subscribes for time-based
+(e.g. DBR_TIME_DOUBLE) channel data updates.
 
 Although ACAI uses EPICS callbacks internally, the callbacks are buffered and must
-be processed by calling <i>ACAI::Client::poll</i> on a regular basis from the nominated thread.
+be processed by calling <i>ACAI::Client::poll</i> on a regular basis from the
+nominated thread.
 When a buffered call back is processed, it updates the status/data/meta data of
 the associated client object, and then triggers the ACAI updates and callbacks.
 These all occur within the user's own thread.
@@ -105,8 +111,9 @@ These all occur within the user's own thread.
 This avoids the need for any mutex locking when dealing with ACAI objects and/or data.
 It also means that if ACAI used by another language other than C/C++, then the callbacks
 are executed in the a thread created by that language environment. Some environements,
-e.g. MatLab, Ada 95 and Lazarus get very annoyed if Ada/Lazarus code is executed within
-the context of an "alien" thread.
+e.g. MatLab, Ada 95 and Lazarus get very annoyed if MatLab/Ada/Lazarus code is executed
+within the context of an "alien" thread. Other environments, such as QT, only allow
+widgets to be updated by the main thread.
 
 If data is passed on to any third party threads, then you will need to manage that.
 See notes on multiple threads below.
@@ -114,7 +121,7 @@ See notes on multiple threads below.
 The ACAI library has been designed to be intrinsically asynchronous, and all ACAI
 applications <b>must have some kind of event loop</b>.
 The event loop should must contain a small delay, which very much application
-dependent, but typically 20mS to 50mS, e.g.:
+dependent, but typically 20mS to 50mS, between calls to the poll function e.g.:
 <pre>
   <b>while</b> (true) {
      epicsThreadSleep (0.02);  // 20mSec
@@ -152,7 +159,8 @@ first PV data has been received.
 b) define and setup a connection and/or data update handler, e.g.
 <pre>
 
-  <b>static void</b> dataUpdateEventHandler (ACAI::Client* client, <b>const</b> bool firstupdate)
+  <b>static void</b> dataUpdateEventHandler (ACAI::Client* client,
+                                      <b>const</b> bool firstupdate)
   {
      double x = client->getFloating ();
      // do something with latest client data
