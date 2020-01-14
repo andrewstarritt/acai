@@ -3,7 +3,7 @@
  * This file is part of the ACAI library. The class was based on the pv_client
  * module developed for the kryten application.
  *
- * Copyright (c) 2013-2019  Andrew C. Starritt
+ * Copyright (c) 2013-2020  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by the
@@ -1026,6 +1026,7 @@ bool ACAI::Client::putString (const ACAI::ClientString& value)
       snprintf (dbr_value, sizeof (dbr_value), "%s", c_str_val);
       result = this->putData (DBF_STRING, 1, dbr_value);
    }
+
    return result;
 }
 
@@ -1265,14 +1266,14 @@ bool ACAI::Client::hasValidSeverity () const
 //
 bool ACAI::Client::readAccess () const
 {
-   return ca_read_access (this->pd->channel_id);
+   return ca_read_access (this->pd->channel_id) != 0;
 }
 
 //------------------------------------------------------------------------------
 //
 bool ACAI::Client::writeAccess () const
 {
-   return ca_write_access (this->pd->channel_id);
+   return ca_write_access (this->pd->channel_id) != 0;
 }
 
 //------------------------------------------------------------------------------

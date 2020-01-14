@@ -2,7 +2,7 @@
  *
  * This file is part of the ACAI library.
  *
- * Copyright (C) 2013-2019  Andrew C. Starritt
+ * Copyright (C) 2013-2020  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by the
@@ -223,7 +223,7 @@ static ACAI::ClientString commonTimeImage (GetBrokenDownTime break_time_r,
    // and January is month 0.
    //
    char text [40];
-   snprintf (text, 40, "%04d-%02d-%02d %02d:%02d:%02d",
+   snprintf (text, sizeof (text), "%04d-%02d-%02d %02d:%02d:%02d",
              1900 + bt.tm_year, 1 + bt.tm_mon, bt.tm_mday,
              bt.tm_hour, bt.tm_min, bt.tm_sec);
 
@@ -236,9 +236,9 @@ static ACAI::ClientString commonTimeImage (GetBrokenDownTime break_time_r,
       char fraction[16];
 
       const int p = MIN (precision, 9);
-      sprintf (format, ".%%0%dd", p);
+      snprintf (format, sizeof (format), ".%%0%dd", p);
       const int f =  nanoSec / scale[p];
-      sprintf (fraction, format, f);
+      snprintf (fraction, sizeof (fraction), format, f);
       result.append (fraction);
    }
 

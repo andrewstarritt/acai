@@ -3,7 +3,7 @@
  * This file is part of the ACAI library. It provides utilities considered
  * private to the library.
  *
- * Copyright (C) 2015-2019  Andrew C. Starritt
+ * Copyright (C) 2015-2020  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by the
@@ -67,5 +67,15 @@ catch (...) {                                                      \
              << "unknown exception.\n";                            \
 }
 
+// Compiler specific code.
+//
+#if defined (_MSC_VER)
+// Code specific to Visual Studio compiler
+#  if (_MSC_VER < 1900)
+// snprintf does not exist for earlier versions of MSVC, however _snprintf
+// exists and will do.
+#    define snprintf   _snprintf
+#  endif
+#endif
 
 #endif   // ACAI__PRIVATE_COMMON_H_
