@@ -67,6 +67,7 @@ catch (...) {                                                      \
              << "unknown exception.\n";                            \
 }
 
+
 // Compiler specific code.
 //
 #if defined (_MSC_VER)
