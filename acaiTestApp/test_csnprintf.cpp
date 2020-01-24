@@ -2,9 +2,11 @@
 //
 
 #include <stdio.h>
+#include <iomanip>
 #include <iostream>
 #include <acai_client_types.h>
 #include <acai_version.h>
+#include <acai_private_common.h>
 #include <string.h>
 
 //------------------------------------------------------------------------------
@@ -34,7 +36,9 @@ int main () {
       const char* cdest;
       cdest = dest.c_str();
       reqLen = ACAI::csnprintf  (dest, j < 8 ? 512 : 800, "%s%s", cdest, cdest);
-      std::cout << "req len " << reqLen << "  actual len " << dest.length() << std::endl;
+      std::cout << "req len " << std::setw (4) << reqLen
+                << "  actual len " << std::setw (4) << dest.length()
+                << std::endl;
    }
    std::cout << std::endl;
 

@@ -47,7 +47,7 @@
 // Defines the patch version number, this increments for bug fixes and/or
 // backward compatible API enhancements.
 //
-#define ACAI_PATCH              5
+#define ACAI_PATCH              6
 
 // NOTE: Don't forget to update documentation/acai.cfg and acaiSup/Makefile
 
@@ -69,7 +69,7 @@
 #define ACAI_STRINGIFY_INNER(s) #s
 #define ACAI_STRINGIFY(s)       ACAI_STRINGIFY_INNER(s)
 
-// Define the string version of ACAI, e.g. "ACAI 1.5.5"
+// Define the string version of ACAI, e.g. "ACAI 1.5.6"
 //
 #define ACAI_VERSION_STRING     "ACAI " ACAI_STRINGIFY(ACAI_MAJOR) \
                                 "."     ACAI_STRINGIFY(ACAI_MINOR) \

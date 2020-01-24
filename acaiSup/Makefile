@@ -12,7 +12,7 @@ include $(TOP)/configure/CONFIG
 # build a support library.
 
 LIBRARY_IOC += acai
-SHRLIB_VERSION = 1.5.5
+SHRLIB_VERSION = 1.5.6
 
 # specify that we are building the library.
 #
@@ -26,6 +26,7 @@ INC += acai_client_set.h
 INC += acai_client_types.h
 INC += acai_shared.h
 INC += acai_version.h
+INC += acai_private_common.h
 
 # specify all source files to be compiled and added to the library.
 #
