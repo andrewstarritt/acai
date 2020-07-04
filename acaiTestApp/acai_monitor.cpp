@@ -5,7 +5,7 @@
 // This program is intended as example and test of the ACAI library rather
 // than as a replacement for the afore mentioned camonitor program.
 //
-// Copyright (C) 2015-2019  Andrew C. Starritt
+// Copyright (C) 2015-2020  Andrew C. Starritt
 //
 // The acai_monitor program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by the
@@ -99,7 +99,7 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
          std::cout << client->localTimeImage (3) << " ";
 
          if (client->processingAsLongString ()) {
-             std::cout << " " << client->getString ();
+            std::cout << " " << client->getString ();
          } else {
             const unsigned int n = client->dataElementCount ();
             if (n > 1) {
@@ -136,10 +136,10 @@ static void reportConnectionFailures (ACAI::Client* client, void* /* context */ 
          std::cerr << "Channel connect timed out: " << client->pvName ()
                    << " PV not found" <<  std::endl;
       } else
-      if (!client->dataIsAvailable ()) {
-         std::cerr << "Channel read failure: " << client->pvName ()
-                   << " PV data not available" <<  std::endl;
-      }
+         if (!client->dataIsAvailable ()) {
+            std::cerr << "Channel read failure: " << client->pvName ()
+                      << " PV data not available" <<  std::endl;
+         }
    } else {
       std::cerr << "acai_monitor: null client" <<  std::endl;
    }
@@ -182,58 +182,83 @@ static bool shutDownIsRequired ()
    return sigIntReceived || sigTermReceived;
 }
 
+//------------------------------------------------------------------------------
+// Output help information.
+//
+static void help ()
+{
+   std::cout
+         << "acai_monitor is a simple command line programs that uses the ACAI library."<<  std::endl
+         << "This program mimics some of the features of the EPICS base camonitor program,"<<  std::endl
+         << "and is intended as an example and test of the ACAI library rather than as a"<<  std::endl
+         << "replacement for the afore mentioned camonitor program."<< std::endl
+         << "" << std::endl
+         << "usage: acai_monitor [-m|--meta] [-g|--get] PV_NAMES..." << std::endl
+         << "       acai_monitor -h | --help" << std::endl
+         << "       acai_monitor -v | --version" << std::endl
+         << "" << std::endl
+         << "Options:" << std::endl
+         << "" << std::endl
+         << "-m,--meta     show meta information, e.g precision, egu, enum values." << std::endl
+         << "" << std::endl
+         << "-g,--get      only do gets, as opposed to monitoring." << std::endl
+         << "              note: must follow meta option if both options are defined." << std::endl
+         << "" << std::endl
+         << "-v,--version  show version information and exit." << std::endl
+         << "" << std::endl
+         << "-h,--help     show this help message and exit." << std::endl
+         << std::endl;
+}
+
+//------------------------------------------------------------------------------
+// Output version information.
+//
+static void version ()
+{
+   std::cout
+         << ACAI_VERSION_STRING << " using " EPICS_VERSION_STRING << std::endl
+         << std::endl;
+}
 
 //------------------------------------------------------------------------------
 //
 int main (int argc, char* argv [])
 {
-   if (argc >= 2 && (strcmp (argv[1], "--help") == 0 || strcmp (argv[1], "-h") == 0)) {
-      std::cout
-      << "acai_monitor is a simple command line programs that uses the ACAI library."<<  std::endl
-      << "This program mimics some of the features of the EPICS base camonitor program,"<<  std::endl
-      << "and is intended as an example and test of the ACAI library rather than as a"<<  std::endl
-      << "replacement for the afore mentioned camonitor program."<< std::endl
-      << "" << std::endl
-      << "usage: acai_monitor [-m|--meta] [-g|--get] PV_NAMES..." << std::endl
-      << "       acai_monitor -h | --help" << std::endl
-      << "       acai_monitor -v | --version" << std::endl
-      << "" << std::endl
-      << "Options:" << std::endl
-      << "" << std::endl
-      << "-m,--meta     show meta information, e.g precision, egu, enum values." << std::endl
-      << "" << std::endl
-      << "-g,--get      only do gets, as opposed to monitoring." << std::endl
-      << "              note: must follow meta option if both options are defined." << std::endl
-      << "" << std::endl
-      << "-v,--version  show version information and exit." << std::endl
-      << "" << std::endl
-      << "-g,--get      shiw this help message and exit." << std::endl
-      << std::endl;
+   // Process options
+   //
+   while (argc >= 2) {
+      char* p1 = argv[1];
 
-      return 0;
+      if ((strcmp (p1, "--help") == 0) || (strcmp (p1, "-h") == 0)) {
+         help ();
+         return 0;
+
+      } else if ((strcmp (p1, "--version") == 0) || (strcmp (p1, "-v") == 0)) {
+         version ();
+         return 0;
+
+      } else if ((strcmp (p1, "--meta") == 0) || (strcmp (p1, "-m") == 0)) {
+         outputMeta = true;
+         argc--;
+         argv++;
+
+      } else if ((strcmp (p1, "--get") == 0) || (strcmp (p1, "-g") == 0)) {
+         onlyDoGets = true;
+         argc--;
+         argv++;
+
+      } else if (p1[0] == '-') {
+         // No sensible PV name starts with a hyphen, so assume a bad option.
+         //
+         std::cerr << "acai_monitor: error: no such option: " << p1 << std::endl;
+         return 1;
+
+      } else {
+         // not an option, so must be 1st parameter
+         //
+         break;
+      }
    }
-
-   if (argc >= 2 && (strcmp (argv[1], "--version") == 0 || strcmp (argv[1], "-v") == 0)) {
-      std::cout
-      << ACAI_VERSION_STRING << " using " EPICS_VERSION_STRING << std::endl
-      << std::endl;
-
-      return 0;
-   }
-
-
-   if (argc >= 2 && (strcmp (argv[1], "--meta") == 0 || strcmp (argv[1], "-m") == 0)) {
-      outputMeta = true;
-      argc--;
-      argv++;
-   }
-
-   if (argc >= 2 && (strcmp (argv[1], "--get") == 0 || strcmp (argv[1], "-g") == 0)) {
-      onlyDoGets = true;
-      argc--;
-      argv++;
-   }
-
 
    if (argc < 2) {
       std::cerr << "acai_monitor: No PV name(s) specified" <<  std::endl;
