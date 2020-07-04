@@ -202,7 +202,6 @@ static void help ()
          << "-m,--meta     show meta information, e.g precision, egu, enum values." << std::endl
          << "" << std::endl
          << "-g,--get      only do gets, as opposed to monitoring." << std::endl
-         << "              note: must follow meta option if both options are defined." << std::endl
          << "" << std::endl
          << "-v,--version  show version information and exit." << std::endl
          << "" << std::endl
