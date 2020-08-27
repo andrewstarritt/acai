@@ -1,4 +1,4 @@
-test csnprintf functions (ACAI 1.5.7)
+test csnprintf functions (ACAI 1.5.8)
 
 req len 40  actual len 20
 req len 40  actual len 19
