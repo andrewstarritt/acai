@@ -3,7 +3,7 @@
  * This file is part of the ACAI library.
  * The class derived from pv_client developed for the kryten application.
  *
- * Copyright (C) 2013-2019  Andrew C. Starritt
+ * Copyright (C) 2013-2020  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by the
@@ -661,6 +661,10 @@ public:
 
    /// Write a traditional string array value to the channel.
    bool putStringArray   (const ACAI::ClientString*   valueArray, const unsigned int count);
+
+   /// Write a traditional byte array value to the channel.
+   /// Under the covers, this uses DBF_CHAR.
+   bool putByteArray (void* valueArray, const unsigned int count);
 
    /// Extract the channel enumeration state strings if they exist, else returns
    /// the string "#<state>", e.g. "#27".

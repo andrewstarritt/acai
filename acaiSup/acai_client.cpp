@@ -1104,6 +1104,13 @@ bool ACAI::Client::putStringArray (const ACAI::ClientStringArray& valueArray)
 
 //------------------------------------------------------------------------------
 //
+bool ACAI::Client::putByteArray (void* valueArray, const unsigned int count)
+{
+   return this->putData (DBF_CHAR, count, valueArray);
+}
+
+//------------------------------------------------------------------------------
+//
 int ACAI::Client::enumerationStatesCount () const
 {
    int result;
