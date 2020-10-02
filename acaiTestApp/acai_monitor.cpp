@@ -203,6 +203,8 @@ static void help ()
          << "" << std::endl
          << "-g,--get      only do gets, as opposed to monitoring." << std::endl
          << "" << std::endl
+         << "-mg,-gm       combines -m and -g options." << std::endl
+         << "" << std::endl
          << "-v,--version  show version information and exit." << std::endl
          << "" << std::endl
          << "-h,--help     show this help message and exit." << std::endl
@@ -242,6 +244,12 @@ int main (int argc, char* argv [])
          argv++;
 
       } else if ((strcmp (p1, "--get") == 0) || (strcmp (p1, "-g") == 0)) {
+         onlyDoGets = true;
+         argc--;
+         argv++;
+
+      } else if ((strcmp (p1, "-mg") == 0) || (strcmp (p1, "-gm") == 0)) {
+         outputMeta = true;
          onlyDoGets = true;
          argc--;
          argv++;
