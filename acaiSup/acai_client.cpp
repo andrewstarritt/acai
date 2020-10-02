@@ -55,7 +55,7 @@
 #include <acai_private_common.h>
 
 // Magic numbers embedded within each ACAI::Client and ACAI::Client::PrivateData object.
-// Used as a sainity check when we convert an anonymous pointer to a ACAI::Client
+// Used as a sanity check when we convert an anonymous pointer to a ACAI::Client
 // or ACAI::Client::PrivateData class object.
 //
 #define MAGIC_NUMBER_C  0x3579ACA1
@@ -691,7 +691,8 @@ bool ACAI::Client::reopenChannel ()
 
 //------------------------------------------------------------------------------
 //
-bool ACAI::Client::reReadChannel () {
+bool ACAI::Client::reReadChannel ()
+{
    bool result = false;
 
    if (this->isConnected ()) {
@@ -2450,7 +2451,7 @@ void application_printf_handler (const char* formated_text);
 //
 void application_connection_handler (struct connection_handler_args* args)
 {
-   // Apply sainity check and deferance.
+   // Apply sanity check and deferance.
    //
    if (args) ACAI::Client_Private::connectionHandler (*args);
 }
@@ -2460,7 +2461,7 @@ void application_connection_handler (struct connection_handler_args* args)
 //
 void application_event_handler (struct event_handler_args* args)
 {
-   // Apply sainity check and deferance.
+   // Apply sanity check and deferance.
    //
    if (args) ACAI::Client_Private::eventHandler (*args);
 }
@@ -2470,6 +2471,8 @@ void application_event_handler (struct event_handler_args* args)
 //
 void application_printf_handler (const char* formated_text)
 {
+   // Apply sanity check.
+   //
    if (formated_text) ACAI::Client_Private::printfHandler (formated_text);
 }
 
