@@ -1,4 +1,9 @@
 
+## 1.5
+
+The introduction of the 1.5 series was due to a change in the behavour of
+the putString function.
+
 ### 1.5.8
 
 Released: 27-08-2020
@@ -82,6 +87,11 @@ type if DBF_CHAR irrespective of the isLongString setting and/or PV name ending
 with a '$'.
 The isLongString setting now just applies to getString.
 
+## 1.4
+
+The introduction of the 1.4 series was due to re-factoring the acai version
+macros into a separate acai_version.h file
+
 ### 1.4.8
 
 Released: 20-03-2019
@@ -126,10 +136,45 @@ Released: 28-02-2018
 
 Released: 18-02-2018
 
-Re-factored acai version macros into a separate acai_version.h file
-
-### 1.3
+## 1.3
 Re-organised directory structure
+
+
+### 1.3.9
+
+Released: 14-01-2018
+
+### 1.3.8
+
+Released: 22-10-2017
+
+### 1.3.7
+
+Released: 21-10-2017
+
+### 1.3.6
+
+Released: 22-10-2017
+
+### 1.3.5
+
+Released: 16-08-2017
+
+### 1.3.4
+
+Released: 27-07-2017
+
+### 1.3.3
+
+Released: 23-07-2017
+
+### 1.3.2
+
+Released: 09-07-2017
+
+### 1.3.1
+
+Released: 08-07-2017
 
 
 ### 1.2.3

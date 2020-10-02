@@ -45,9 +45,3 @@ Stable API.
 Fully doxygenated code. Doxygen invoked as part of make if available.
 
 Apart from EPICS itself there are no external library dependencies.
-
-## Release Notes
-
-Follow this link for the 
-[Release Notes](https://github.com/andrewstarritt/acai/blob/master/documentation/release_notes.md)
-
