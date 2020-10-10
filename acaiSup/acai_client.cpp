@@ -801,7 +801,7 @@ ACAI::ClientInteger ACAI::Client::getInteger (unsigned int index) const
 ACAI::ClientString ACAI::Client::getString (unsigned int index) const
 {
    char append_units [MAX_UNITS_SIZE + 2];
-   char format[20];
+   char format[28];
    int enum_state;
    int p;
    ACAI::ClientString result;
@@ -859,7 +859,11 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
             // Set up the format string.
             p = this->precision ();
             p = LIMIT (p, 0, 15);
-            snprintf (format, sizeof (format), "%%.%df%%s", p);
+
+            // For the g format we need to add one to get required precsion
+            // after the decimal point.
+            //
+            snprintf (format, sizeof (format), "%%.%dg%%s", p + 1);
             result = ACAI::csnprintf (50, format, this->getFloating (index), append_units);
             break;
 
