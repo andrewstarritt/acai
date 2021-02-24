@@ -42,12 +42,12 @@
 
 // Defines the minor version number, this increments when there is a non compatibile API change.
 //
-#define ACAI_MINOR              5
+#define ACAI_MINOR              6
 
 // Defines the patch version number, this increments for bug fixes and/or
 // backward compatible API enhancements.
 //
-#define ACAI_PATCH              8
+#define ACAI_PATCH              1
 
 // NOTE: Don't forget to update documentation/acai.cfg and acaiSup/Makefile
 
