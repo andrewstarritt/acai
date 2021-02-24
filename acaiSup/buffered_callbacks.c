@@ -3,7 +3,7 @@
  * EPICS buffered callback module for use with Ada, Lazarus and other
  * runtime environments which don't like alien threads.
  *
- * Copyright (C) 2005-2019  Andrew C. Starritt
+ * Copyright (C) 2005-2021  Andrew C. Starritt
  *
  * This module is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,6 +98,8 @@ typedef struct Callback_Items {
 static epicsMutexId linked_list_mutex = NULL;
 static ELLLIST linked_list = ELLLIST_INIT;
 static unsigned int allocate_fail_count = 0;
+static unsigned int multiple_check_limit = 1000;
+static unsigned int discard_count = 0;
 
 
 /*------------------------------------------------------------------------------
@@ -162,11 +164,37 @@ static void free_element (Callback_Items * pci)
 
 /*------------------------------------------------------------------------------
  */
-static void load_element (Callback_Items * pci)
+static void load_element (Callback_Items* pci)
 {
    /* Gain exclusive access to linked list
     */
    epicsMutexLock (linked_list_mutex);
+
+   /* Search list for existing update for same channel and remove if found.
+    */
+   if ((pci->kind == EVENT) && (ellCount (&linked_list) > multiple_check_limit)) {
+      /* Search item must match kind, chid, usr, and type
+       */
+      struct ELLNODE* check = ellFirst (&linked_list);
+      while (check) {
+         Callback_Items* ci = (Callback_Items *) check;
+
+         if ((ci->kind == EVENT) &&
+             (ci->eargs.chid == pci->eargs.chid) &&
+             (ci->eargs.type == pci->eargs.type) &&
+             (ci->eargs.usr == pci->eargs.usr))
+         {
+            /* we have a match - remove the earliest previous update
+             */
+            ellDelete (&linked_list, check);
+            free_element (ci);
+            discard_count++;
+
+            break;  /* we need only search for one. */
+         }
+         check = ellNext (check);
+      }
+   }
 
    ellAdd (&linked_list, (ELLNODE *) pci);
 
@@ -305,6 +333,33 @@ int number_of_buffered_callbacks ()
    return n;
 }                               /* number_of_buffered_callbacks */
 
+/*------------------------------------------------------------------------------
+ */
+void set_multiple_check_limit (const int d)
+{
+   multiple_check_limit = (d >= 100) ? d : 100;
+}                               /* set_multiple_check_limit */
+
+/*------------------------------------------------------------------------------
+ */
+int  get_multiple_check_limit ()
+{
+   return multiple_check_limit;
+}                               /* get_multiple_check_limit */
+
+/*------------------------------------------------------------------------------
+ */
+int number_of_discarded_updates ()
+{
+   int n;
+
+   /* Essentially a diagnostic, so no mutex here.
+    */
+   n = discard_count;
+   discard_count = 0;
+   return n;
+}                               /* number_of_discarded_updates */
+
 
 /*------------------------------------------------------------------------------
  * Process callbacks - called from application thread.
@@ -367,7 +422,6 @@ int process_buffered_callbacks (const int max)
 
    return n;
 }                               /* process_buffered_callbacks */
-
 
 /*------------------------------------------------------------------------------
  * Discard all outstanding callbacks - called from application thread.
