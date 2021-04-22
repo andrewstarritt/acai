@@ -3,7 +3,7 @@
  * This file is part of the ACAI library. The class was based on the pv_client
  * module developed for the kryten application.
  *
- * Copyright (c) 2013-2020  Andrew C. Starritt
+ * Copyright (c) 2013-2021  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by the
@@ -37,6 +37,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include <alarm.h>
 #include <cadef.h>
@@ -801,9 +802,7 @@ ACAI::ClientInteger ACAI::Client::getInteger (unsigned int index) const
 ACAI::ClientString ACAI::Client::getString (unsigned int index) const
 {
    char append_units [MAX_UNITS_SIZE + 2];
-   char format[28];
    int enum_state;
-   int p;
    ACAI::ClientString result;
 
    result = ClientString ("");     // set default
@@ -856,15 +855,36 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
 
          case ACAI::ClientFieldFLOAT:
          case ACAI::ClientFieldDOUBLE:
-            // Set up the format string.
-            p = this->precision ();
-            p = LIMIT (p, 0, 15);
+            {
+               const ACAI::ClientFloating value = this->getFloating (index);
+               const ACAI::ClientFloating absValue = ABS (value);
 
-            // For the g format we need to add one to get required precsion
-            // after the decimal point.
-            //
-            snprintf (format, sizeof (format), "%%.%dg%%s", p + 1);
-            result = ACAI::csnprintf (50, format, this->getFloating (index), append_units);
+               // Set up the format string.
+               //
+               int  p = this->precision ();
+               p = LIMIT (p, 0, 15);
+
+               // Example, if prec = 3, when low limit is 0.01
+               // Not all platforms provide exp10, so we use exp.
+               //
+               const ACAI::ClientFloating lowLimit  = exp (2.302585092994046 * (1 - p));
+               const ACAI::ClientFloating highLimit = 1.0E+05;
+
+               char format[28];
+               if ( (absValue == 0.0) || ((absValue >= lowLimit) && (absValue < highLimit)) ) {
+                  // Use fixed point formatting for "normal" range.
+                  //
+                  snprintf (format, sizeof (format), "%%.%df%%s", p);
+               } else {
+                  // Use scientific formatting.
+                  // For the g format we need to add one to get required precsion
+                  // after the decimal point.
+                  //
+                  snprintf (format, sizeof (format), "%%.%dg%%s", p + 1);
+               }
+
+               result = ACAI::csnprintf (50, format, value, append_units);
+            }
             break;
 
          default:
