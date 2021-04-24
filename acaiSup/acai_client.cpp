@@ -37,7 +37,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include <alarm.h>
 #include <cadef.h>
@@ -856,6 +855,18 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
          case ACAI::ClientFieldFLOAT:
          case ACAI::ClientFieldDOUBLE:
             {
+               // This may still require fine tuning.
+               //
+               static const ACAI::ClientFloating lowLimits [16] = {
+                  1.0E+0, 1.0E+0, 1.0E-1, 1.0E-1, 1.0E-2, 1.0E-2, 1.0E-3, 1.0E-3,
+                  1.0E-4, 1.0E-4, 1.0E-5, 1.0E-5, 1.0E-6, 1.0E-6, 1.0E-7, 1.0E-7
+               };
+
+               static const ACAI::ClientFloating highLimits [16] = {
+                  1.0E+1, 1.0E+2, 1.0E+2, 1.0E+3, 1.0E+3, 1.0E+4, 1.0E+4, 1.0E+5,
+                  1.0E+5, 1.0E+6, 1.0E+6, 1.0E+7, 1.0E+7, 1.0E+8, 1.0E+8, 1.0E+9
+               };
+
                const ACAI::ClientFloating value = this->getFloating (index);
                const ACAI::ClientFloating absValue = ABS (value);
 
@@ -863,24 +874,17 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
                //
                int  p = this->precision ();
                p = LIMIT (p, 0, 15);
-
-               // Example, if prec = 3, when low limit is 0.01
-               // Not all platforms provide exp10, so we use exp.
-               //
-               const ACAI::ClientFloating lowLimit  = exp (2.302585092994046 * (1 - p));
-               const ACAI::ClientFloating highLimit = 1.0E+05;
+               const bool inFixedRange = ((absValue >= lowLimits[p]) && (absValue < highLimits[p]));
 
                char format[28];
-               if ( (absValue == 0.0) || ((absValue >= lowLimit) && (absValue < highLimit)) ) {
+               if ( (absValue == 0.0) || inFixedRange) {
                   // Use fixed point formatting for "normal" range.
                   //
                   snprintf (format, sizeof (format), "%%.%df%%s", p);
                } else {
-                  // Use scientific formatting.
-                  // For the g format we need to add one to get required precsion
-                  // after the decimal point.
+                  // Use scientific formatting for really small or really large,
                   //
-                  snprintf (format, sizeof (format), "%%.%dg%%s", p + 1);
+                  snprintf (format, sizeof (format), "%%.%de%%s", p);
                }
 
                result = ACAI::csnprintf (50, format, value, append_units);
