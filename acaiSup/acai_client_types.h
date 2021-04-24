@@ -2,7 +2,7 @@
  *
  * This file is part of the ACAI library.
  *
- * Copyright (C) 2013-2019  Andrew C. Starritt
+ * Copyright (C) 2013-2021  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by the
@@ -170,8 +170,8 @@ struct ClientTimeStamp {
 
 
 // MUST be kept consistent with db_access.h
-/// \brief Field type. Essentially a copy of db_access.h with addtion of a default
-/// type used for requests only.
+/// \brief Field type. Essentially a copy of db_access.h with the addition of
+/// a default type used for requests only.
 ///
 enum ClientFieldType {
    ClientFieldSTRING    = 0,

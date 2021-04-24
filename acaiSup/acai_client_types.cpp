@@ -2,7 +2,7 @@
  *
  * This file is part of the ACAI library.
  *
- * Copyright (C) 2013-2020  Andrew C. Starritt
+ * Copyright (C) 2013-2021  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by the
@@ -58,7 +58,10 @@ static const char* ownAlarmConditionStrings[ACAI::CLIENT_ALARM_NSTATUS] = {
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC int ACAI::csnprintf (ACAI::ClientString& target, size_t size, const char* format, ...)
+ACAI_SHARED_FUNC int ACAI::csnprintf (ACAI::ClientString& target,
+                                      size_t size,
+                                      const char* format,
+                                      ...)
 {
    int result;
    va_list args;
@@ -85,7 +88,9 @@ ACAI_SHARED_FUNC int ACAI::csnprintf (ACAI::ClientString& target, size_t size, c
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC ACAI::ClientString ACAI::csnprintf (size_t size, const char* format, ...)
+ACAI_SHARED_FUNC ACAI::ClientString ACAI::csnprintf (size_t size,
+                                                     const char* format,
+                                                     ...)
 {
    ACAI::ClientString result;
    va_list args;
@@ -112,7 +117,8 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::csnprintf (size_t size, const char* fo
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC ACAI::ClientString ACAI::limitedAssign (const char* source, const size_t maxSize)
+ACAI_SHARED_FUNC ACAI::ClientString ACAI::limitedAssign (const char* source,
+                                                         const size_t maxSize)
 {
    ACAI::ClientString result;
 
@@ -172,7 +178,8 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::alarmStatusImage (const ACAI::ClientAl
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC time_t ACAI::utcTimeOf (const ACAI::ClientTimeStamp& ts, int* nanoSecOut)
+ACAI_SHARED_FUNC time_t ACAI::utcTimeOf (const ACAI::ClientTimeStamp& ts,
+                                         int* nanoSecOut)
 {
    // EPICS timestamp epoch: This is Mon Jan  1 00:00:00 1990 UTC.
    //
@@ -267,16 +274,18 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::clientFieldTypeImage (const ACAI::Clie
 {
    ClientString result;
 
+   // From base/modules/ca/src/client/access.cpp
+   //
    switch (cft) {
-      case ACAI::ClientFieldSTRING:    result = "STRING";    break;
-      case ACAI::ClientFieldSHORT:     result = "SHORT";     break;
-      case ACAI::ClientFieldFLOAT:     result = "FLOAT";     break;
-      case ACAI::ClientFieldENUM:      result = "ENUM";      break;
-      case ACAI::ClientFieldCHAR:      result = "CHAR";      break;
-      case ACAI::ClientFieldLONG:      result = "LONG";      break;
-      case ACAI::ClientFieldDOUBLE:    result = "DOUBLE";    break;
-      case ACAI::ClientFieldNO_ACCESS: result = "NO_ACCESS"; break;
-      case ACAI::ClientFieldDefault:   result = "Default";   break;
+      case ACAI::ClientFieldSTRING:    result = "DBF_STRING";    break;
+      case ACAI::ClientFieldSHORT:     result = "DBF_SHORT";     break;
+      case ACAI::ClientFieldFLOAT:     result = "DBF_FLOAT";     break;
+      case ACAI::ClientFieldENUM:      result = "DBF_ENUM";      break;
+      case ACAI::ClientFieldCHAR:      result = "DBF_CHAR";      break;
+      case ACAI::ClientFieldLONG:      result = "DBF_LONG";      break;
+      case ACAI::ClientFieldDOUBLE:    result = "DBF_DOUBLE";    break;
+      case ACAI::ClientFieldNO_ACCESS: result = "DBF_NO_ACCESS"; break;
+      case ACAI::ClientFieldDefault:   result = "Default";       break;
       default:
          csnprintf (result, 40, "Unknown field type (%d)", (int) cft);
          break;

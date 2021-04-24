@@ -882,7 +882,7 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
                   //
                   snprintf (format, sizeof (format), "%%.%df%%s", p);
                } else {
-                  // Use scientific formatting for really small or really large,
+                  // Use scientific formatting for really small or really large.
                   //
                   snprintf (format, sizeof (format), "%%.%de%%s", p);
                }
