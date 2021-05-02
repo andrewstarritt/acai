@@ -1,4 +1,4 @@
-# Makefile
+# Makefile for the acai linrary.
 #
 
 TOP=..
@@ -12,9 +12,9 @@ include $(TOP)/configure/CONFIG
 # build a support library.
 
 LIBRARY_IOC += acai
-SHRLIB_VERSION = 1.6.1
+SHRLIB_VERSION = 1.6.2
 
-# specify that we are building the library.
+# indicate that we are building the library.
 #
 USR_CPPFLAGS += -DACAI_LIBRARY
 

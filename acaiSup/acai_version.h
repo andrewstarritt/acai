@@ -2,7 +2,7 @@
  *
  * This file is part of the ACAI library.
  *
- * Copyright (C) 2017-2020  Andrew C. Starritt
+ * Copyright (C) 2017-2021  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by the
@@ -47,7 +47,7 @@
 // Defines the patch version number, this increments for bug fixes and/or
 // backward compatible API enhancements.
 //
-#define ACAI_PATCH              1
+#define ACAI_PATCH              2
 
 // NOTE: Don't forget to update documentation/acai.cfg and acaiSup/Makefile
 
