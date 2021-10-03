@@ -16,7 +16,7 @@ SHRLIB_VERSION = 1.6.2
 
 # indicate that we are building the library.
 #
-USR_CPPFLAGS += -DACAI_LIBRARY
+USR_CPPFLAGS += -DBUILDING_ACAI_LIBRARY
 
 # specify header files to be visible to library users.
 #

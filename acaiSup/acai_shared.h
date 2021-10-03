@@ -37,7 +37,7 @@
 // Not really important for Linux but Windows needs help.
 //
 #if defined(_WIN32)
-#   if defined(ACAI_LIBRARY)
+#   if defined(BUILDING_ACAI_LIBRARY)
 #      define ACAI_SHARED_CLASS __declspec(dllexport)
 #      define ACAI_SHARED_FUNC  __declspec(dllexport)
 #   else
