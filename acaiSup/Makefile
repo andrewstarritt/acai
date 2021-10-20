@@ -12,7 +12,7 @@ include $(TOP)/configure/CONFIG
 # build a support library.
 
 LIBRARY_IOC += acai
-SHRLIB_VERSION = 1.6.2
+SHRLIB_VERSION = 1.6.3
 
 # indicate that we are building the library.
 #

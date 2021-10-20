@@ -1109,10 +1109,11 @@ bool ACAI::Client::putStringArray (const ACAI::ClientString* valueArray, const u
    if (buffer) {
       for (unsigned int j = 0; j < count; j++) {
          // Convert and truncate ClientString to basic c string.
+         // snprintf ensures zero terminated.
          //
-         snprintf (buffer [j * sizeof (dbr_string_t)], sizeof (dbr_string_t), "%s",
-                   valueArray [j].c_str ());
+         snprintf (buffer [j], sizeof (dbr_string_t), "%s", valueArray [j].c_str ());
       }
+
       result = this->putData (DBF_STRING, count, buffer);
       free ((void *) buffer);
    } else {
