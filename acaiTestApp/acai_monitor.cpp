@@ -1,11 +1,12 @@
 // acai_monitor.cpp
 //
 // This is a simple command line programs that uses the ACAI library.
-// This program mimics some of the features of the EPICS base program camonitor.
+// This program mimics some of the features of the EPICS base programs
+// camonitor, caget and cainfo.
 // This program is intended as example and test of the ACAI library rather
-// than as a replacement for the afore mentioned camonitor program.
+// than as a replacement for the afore mentioned programs.
 //
-// Copyright (C) 2015-2020  Andrew C. Starritt
+// Copyright (C) 2015-2022  Andrew C. Starritt
 //
 // The acai_monitor program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by the
@@ -217,7 +218,9 @@ static void help ()
 static void version ()
 {
    std::cout
-         << ACAI_VERSION_STRING << " using " EPICS_VERSION_STRING << std::endl
+         << ACAI_VERSION_STRING << " using " EPICS_VERSION_STRING
+         << ", CA Protocol version " << ACAI::Client::protocolVersion()
+         << std::endl
          << std::endl;
 }
 
