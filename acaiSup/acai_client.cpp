@@ -214,7 +214,7 @@ public:
       const dbr_short_t*  shortRef;
       const dbr_float_t*  floatRef;
       const dbr_enum_t*   enumRef;
-      const char*         charRef;   // was dbr_char_t*
+      const dbr_char_t*   charRef;   // revert
       const dbr_long_t*   longRef;
       const dbr_double_t* doubleRef;
       const void*         genericRef;
