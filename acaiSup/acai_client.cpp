@@ -3,7 +3,7 @@
  * This file is part of the ACAI library. The class was based on the pv_client
  * module developed for the kryten application.
  *
- * Copyright (c) 2013-2021  Andrew C. Starritt
+ * Copyright (c) 2013-2022  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by the
@@ -37,6 +37,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits>
 
 #include <alarm.h>
 #include <cadef.h>
@@ -213,7 +214,7 @@ public:
       const dbr_short_t*  shortRef;
       const dbr_float_t*  floatRef;
       const dbr_enum_t*   enumRef;
-      const dbr_char_t*   charRef;
+      const char*         charRef;   // was dbr_char_t*
       const dbr_long_t*   longRef;
       const dbr_double_t* doubleRef;
       const void*         genericRef;
@@ -2190,6 +2191,14 @@ void ACAI::Client::flush ()
 
 //------------------------------------------------------------------------------
 // static
+ACAI::ClientString ACAI::Client::protocolVersion ()
+{
+   ACAI::ClientString result (ca_version ());
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// static
 ACAI::Client* ACAI::Client::cast (void* item)
 {
    ACAI::Client* result = static_cast<ACAI::Client*> (item);
@@ -2266,6 +2275,95 @@ GET_META_DATA (ACAI::ClientFieldType,      dataFieldType,      data_field_type, 
 GET_META_DATA (unsigned int,               dataElementCount,   data_element_count,                     0)
 
 #undef GET_META_DATA
+
+//------------------------------------------------------------------------------
+//
+double ACAI::Client::minFieldValue () const
+{
+   // Returns ClientFieldNO_ACCESS when not connected.
+   //
+   const ACAI::ClientFieldType fieldType = this->hostFieldType ();
+
+   double result = 0.0;
+   switch (fieldType) {
+      case ACAI::ClientFieldSHORT:
+         result = std::numeric_limits<epicsInt16>::min();
+         break;
+
+      case ACAI::ClientFieldENUM:
+         result = std::numeric_limits<epicsEnum16>::min();
+         break;
+
+      case ACAI::ClientFieldCHAR:
+         result = std::numeric_limits<epicsInt8>::min();
+         break;
+
+      case ACAI::ClientFieldLONG:
+         result = std::numeric_limits<epicsInt32>::min();
+         break;
+
+      // Note: for floating point numbers numeric_limits min returns the
+      // smallest non zero positive number, and not the most negative number
+      // which we want here.
+      //
+      case ACAI::ClientFieldFLOAT:
+         result = -std::numeric_limits<epicsFloat32>::max();
+         break;
+
+      case ACAI::ClientFieldDOUBLE:
+         result = -std::numeric_limits<epicsFloat64>::max();
+         break;
+
+      default:  // stop warning
+         break;
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+double ACAI::Client::maxFieldValue () const
+{
+   // Returns ClientFieldNO_ACCESS when not connected.
+   //
+   const ACAI::ClientFieldType fieldType = this->hostFieldType ();
+
+   double result = 0.0;
+   switch (fieldType) {
+      case ACAI::ClientFieldSHORT:
+         result = std::numeric_limits<epicsInt16>::max();
+         break;
+
+      case ACAI::ClientFieldENUM:
+         result = std::numeric_limits<epicsEnum16>::max();
+         break;
+
+      case ACAI::ClientFieldCHAR:
+         // Unlike other unsigned integer types, the DBF_CHAR field type
+         // is used for both CHAR and UCHAR, so allow -128 to +255
+         //
+         result = std::numeric_limits<epicsUInt8>::max();
+         break;
+
+      case ACAI::ClientFieldLONG:
+         result = std::numeric_limits<epicsInt32>::max();
+         break;
+
+      case ACAI::ClientFieldFLOAT:
+         result = std::numeric_limits<epicsFloat32>::max();
+         break;
+
+      case ACAI::ClientFieldDOUBLE:
+         result = std::numeric_limits<epicsFloat64>::max();
+         break;
+
+      default:  // stop warning
+         break;
+   }
+
+   return result;
+}
 
 //------------------------------------------------------------------------------
 //
