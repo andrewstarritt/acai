@@ -65,7 +65,7 @@ class Abstract_Client_User;    // differed declaration.
 /// occurs (when ca_array_get_callback and ca_create_subscription are then called).
 ///
 /// When a channel disconnects any subscription is cancelled. If/when the channel
-/// reconnects, the channels meta data is re-read and the subscription re-established.
+/// reconnects, the channel's meta data is re-read and the subscription re-established.
 /// Rationale: the underlying meta data may haved changed (e.g. precision, engineering
 /// units, enumeration state values etc.), or even the field type and/or number of
 /// elements may have changed.
@@ -99,7 +99,7 @@ class Abstract_Client_User;    // differed declaration.
 ///    Client::getString,
 ///    Client::connectionUpdate,
 ///    Client::dataUpdate, and
-///    Client::putCallbackNotifcation,
+///    Client::putCallbackNotifcation
 ///
 class ACAI_SHARED_CLASS Client {
 public:

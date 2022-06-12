@@ -2033,7 +2033,7 @@ void ACAI::Client::callDataUpdate (const bool isFirstUpdateIn)
    try {
 
       // First update: This is done FIRST in order to ensure that the object performs
-      // any self necessary updates prior to notifiying other users of the change.
+      // any necessary self updates prior to notifiying other users of the change.
       //
       // Call hook function - this is a dispatching call.
       //
@@ -2063,7 +2063,7 @@ void ACAI::Client::callPutCallbackNotifcation (const bool isSuccessfulIn)
    try {
 
       // First update: This is done FIRST in order to ensure that the object performs
-      // any self necessary updates prior to notifiying other users of the change.
+      // any necessary self updates prior to notifiying other users of the change.
       //
       // Call hook function - this is a dispatching call.
       //

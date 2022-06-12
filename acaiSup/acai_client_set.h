@@ -55,11 +55,11 @@ typedef void (*IteratorFunction) (ACAI::Client* client, void* context);
 /// The class also provides a number of pre-configured interations.
 ///
 /// NOTE: The class provides no mechanism to ensure that when an ACAI::Client class
-/// object is deleted that it is removed from any or all containers which contain
-/// a reference to the object. It is responsibilty of the application to ensure that
-/// the class set objects contains no dangling references, or to be more precise
-/// ensure no operation is performed on a container that would result in the
-/// attempt to reference a deleted class object.
+/// object is deleted that it is removed from any or all ACAI::Client_Set containers
+/// which contain a reference to the object. It is responsibilty of the application
+/// to ensure that the client set objects contain no dangling references, or to be
+/// more precise ensure no operation is performed on a container that would result
+/// in the attempt to reference a deleted class object.
 ///
 class ACAI_SHARED_CLASS Client_Set {
 public:
@@ -130,8 +130,8 @@ public:
 
    /// \brief Iterates over all clients in the container and invokes the specified function.
    ///
-   /// Note: The iteration order is currently arbitary, and depends upon the underlying
-   /// container class which may change.
+   /// Note: The iteration order is currently arbitary, and depends upon the
+   /// underlying container class which may change.
    ///
    /// Note: The iterateChannels function creates and iterates over a copy of the
    /// client container, therefore the iterator function may safely insert and/or
@@ -178,8 +178,8 @@ private:
    Client_Set(const Client_Set&) {}
    Client_Set& operator=(const Client_Set&) { return *this; }
 
-   // The underlying container is a set. This is un ordered, but may contain only
-   // one instance of a particul;ar client.
+   // The underlying container is a set. This is un ordered, but may contain
+   // only one instance of a particular client.
    //
    typedef std::set<ACAI::Client*> ClientSets;
    ClientSets clientList;

@@ -1,11 +1,12 @@
 /* acai_private_common.h
  *
  * This file is part of the ACAI library. It provides utilities considered
- * private to the library. While installed into <top>/include, and hence
- * visible to ACAI library users, there is no guarentee re API backward
- * compatibilty between releases, even patch releases.
+ * private to the library. While this might get installed into <top>/include,
+ * and hence visible to ACAI library users, there is no guarentee re it's
+ * continued existance nor it's API backward compatibilty between releases,
+ * even patch releases. Use at own risk.
  *
- * Copyright (C) 2015-2020  Andrew C. Starritt
+ * Copyright (C) 2015-2022  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by the
