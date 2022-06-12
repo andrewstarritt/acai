@@ -6,7 +6,6 @@
 #include <iostream>
 #include <acai_client_types.h>
 #include <acai_version.h>
-#include <acai_private_common.h>
 #include <string.h>
 
 //------------------------------------------------------------------------------
