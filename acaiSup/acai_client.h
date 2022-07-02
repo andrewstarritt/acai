@@ -242,7 +242,7 @@ public:
    ///
    void setPvName (const char* pvName, const bool doImmediateReopen = false);
 
-   /// Returns the current channel name as a ClientString.
+   /// Returns the current channel name as a ACAI::ClientString.
    ///
    ACAI::ClientString pvName () const;
 
@@ -682,7 +682,7 @@ public:
 
    /// Write a traditional byte array value to the channel.
    /// Under the covers, this uses DBF_CHAR.
-   bool putByteArray (void* valueArray, const unsigned int count);
+   bool putByteArray (const void* valueArray, const unsigned int count);
 
    /// Extract the channel enumeration state strings if they exist, else returns
    /// the string "#<state>", e.g. "#27".

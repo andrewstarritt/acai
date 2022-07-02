@@ -40,6 +40,8 @@
 
 static volatile bool outputMeta = false;
 static volatile bool onlyDoGets = false;
+static volatile bool longString = false;
+
 static ACAI::Client_Set* clientSet = NULL;
 
 //------------------------------------------------------------------------------
@@ -206,6 +208,8 @@ static void help ()
          << "" << std::endl
          << "-mg,-gm       combines -m and -g options." << std::endl
          << "" << std::endl
+         << "-l,--longstr  process PV as a long string (if we can)." << std::endl
+         << "" << std::endl
          << "-v,--version  show version information and exit." << std::endl
          << "" << std::endl
          << "-h,--help     show this help message and exit." << std::endl
@@ -257,6 +261,11 @@ int main (int argc, char* argv [])
          argc--;
          argv++;
 
+      } else if ((strcmp (p1, "--longstr") == 0) || (strcmp (p1, "-l") == 0)) {
+         longString = true;
+         argc--;
+         argv++;
+
       } else if (p1[0] == '-') {
          // No sensible PV name starts with a hyphen, so assume a bad option.
          //
@@ -292,6 +301,7 @@ int main (int argc, char* argv [])
       client->setReadMode (onlyDoGets ? ACAI::SingleRead : ACAI::Subscribe);
       client->setIncludeUnits (true);
       client->setUpdateHandler (dataUpdateEventHandlers);
+      client->setLongString (longString);
       clientSet->insert (client);
    }
 

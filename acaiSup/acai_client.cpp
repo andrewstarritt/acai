@@ -103,7 +103,8 @@ void ACAI::Client::callNotificationHandler (const char* notification)
 
 //------------------------------------------------------------------------------
 // static
-void ACAI::Client::reportErrorFunc (const int line, const char* function, const char* format, ...)
+void ACAI::Client::reportErrorFunc (const int line, const char* function,
+                                    const char* format, ...)
 {
    va_list args;
    char buffer [200];
@@ -113,7 +114,8 @@ void ACAI::Client::reportErrorFunc (const int line, const char* function, const 
    va_end (args);
 
    char notification [240];
-   snprintf (notification, sizeof (notification), "ACAI::Client:%d %s: %s\n", line, function, buffer);
+   snprintf (notification, sizeof (notification), "ACAI::Client:%d %s: %s\n",
+             line, function, buffer);
    ACAI::Client::callNotificationHandler (notification);
 }
 
@@ -133,6 +135,9 @@ public:
    explicit PrivateData (ACAI::Client* owner);
    ~PrivateData ();
 
+   inline
+   const char* cPvName () const { return this->pv_name.c_str(); }
+
    void clearBuffer ();     // clears buffer
    const union db_access_val*  updateBuffer (struct event_handler_args& args);
 
@@ -145,7 +150,7 @@ public:
 
    int magic_number;        // used to verify void* to PrivateData* conversions.
 
-   // Channel Access passes back one of these to callbach functions as user data.
+   // Channel Access passes back one of these to callback functions as user data.
    // Note: We always get a ref to the client using the args' chanId chid.
    //
    void* getFuncArg;
@@ -154,10 +159,10 @@ public:
 
    // Channel Access connection info
    //
-   char pv_name [PVNAME_STRINGSZ];
-   chid channel_id;             // chid is a pointer
-   evid event_id;               // evid is a pointer
-   ConnectionStatus connectionStatus;  // do we need this??
+   ACAI::ClientString pv_name;
+   chid channel_id;             // chid is a pointer type
+   evid event_id;               // evid is a pointer type
+   ConnectionStatus connectionStatus;  //
    bool lastIsConnected;        // previous value - allows calls to Connection_Bu to be filtered
    ACAI::ReadModes readMode;    // subscription v. single read. v. no read at all
    ACAI::EventMasks eventMask;  // event update tigger specification
@@ -256,13 +261,20 @@ ACAI::Client::PrivateData::PrivateData (ACAI::Client* ownerIn)
 {
    size_t size;
 
-   // Zeroise all members.
-   //
-   size = size_t (&this->lastMember) - size_t (&this->firstMember);
+   // Zeroise all members, except pv_name - it's now a standard string
+   // and does not like getting zapped !!!
+   //   
+   size = size_t (&this->pv_name) - size_t (&this->firstMember);
    memset (&this->firstMember, 0, size);
+
+   void* postPVN = &this->pv_name + sizeof (this->pv_name);
+
+   size = size_t (&this->lastMember) - size_t (postPVN);
+   memset (postPVN, 0, size);
 
    this->owner = ownerIn;
 
+   this->pv_name.clear();
    this->getFuncArg = NULL;
    this->subFuncArg = NULL;
    this->putFuncArg = NULL;
@@ -451,22 +463,25 @@ ACAI::Client::~Client ()
 
 //------------------------------------------------------------------------------
 //
-void ACAI::Client::setPvName (const ClientString& pvName, const bool doImmediateReopen)
+void ACAI::Client::setPvName (const ACAI::ClientString& pvName,
+                              const bool doImmediateReopen)
 {
-   // Convert to plain old traditional C string and call over-loaded function.
-   //
-   this->setPvName (pvName.c_str (), doImmediateReopen);
+   this->pd->pv_name = pvName;
+
+   if (doImmediateReopen) {
+      this->reopenChannel ();
+   }
 }
 
 //------------------------------------------------------------------------------
 //
-void ACAI::Client::setPvName (const char* pvName, const bool doImmediateReopen)
+void ACAI::Client::setPvName (const char* cPvName, const bool doImmediateReopen)
 {
-   // We store the PV name as a traditional C string, as this is the format
-   // required by the Channel Access API.
-   // snprintf ensures pv_name is null terminated.
+   // Convert from plain old traditional C string to ACAI::ClientString.
    //
-   snprintf (this->pd->pv_name, sizeof (this->pd->pv_name), "%s", pvName);
+   ACAI::ClientString pvName = cPvName;
+
+   this->pd->pv_name = pvName;
 
    if (doImmediateReopen) {
       this->reopenChannel ();
@@ -477,14 +492,14 @@ void ACAI::Client::setPvName (const char* pvName, const bool doImmediateReopen)
 //
 ACAI::ClientString ACAI::Client::pvName () const
 {
-   return ClientString (this->pd->pv_name);
+   return this->pd->pv_name;
 }
 
 //------------------------------------------------------------------------------
 //
 const char* ACAI::Client::cPvName () const
 {
-   return this->pd->pv_name;
+   return this->pd->cPvName();
 }
 
 //------------------------------------------------------------------------------
@@ -627,11 +642,13 @@ bool ACAI::Client::openChannel ()
    bool result = false;
    int status;
 
+   ClientString x;
+
    // TO DECIDE: close if already open ?? or dis-allow ??
 
-   if (strlen (this->pd->pv_name) > 0) {
+   if (!this->pd->pv_name.empty()) {
 
-      status = ca_create_channel (this->pd->pv_name,
+      status = ca_create_channel (this->pd->cPvName(),
                                   buffered_connection_handler,
                                   this,     // user private
                                   this->pd->priority,
@@ -641,7 +658,7 @@ bool ACAI::Client::openChannel ()
          this->pd->connectionStatus = PrivateData::csPending;
          result = true;
       } else {
-         reportError ("ca_create_channel (%s) failed (%s, %d)", this->pd->pv_name,
+         reportError ("ca_create_channel (%s) failed (%s, %d)", this->pd->cPvName(),
                       ca_message (status), status);
          result = false;
       }
@@ -667,7 +684,7 @@ void ACAI::Client::closeChannel ()
       status = ca_clear_channel (this->pd->channel_id);
       if (status != ECA_NORMAL) {
          reportError ("ca_clear_channel (%s) failed (%s)",
-                      this->pd->pv_name, ca_message (status));
+                      this->pd->cPvName(), ca_message (status));
       }
 
       this->pd->channel_id = NULL;
@@ -974,7 +991,8 @@ bool ACAI::Client::putData (const int dbf_type, const unsigned long count, const
       // Yes - are we already waiting for a callback ?
       //
       if (this->pd->pending_put_callback) {
-         reportError ("putData (%s) write inhibited - pending put callback", this->pd->pv_name);
+         reportError ("putData (%s) write inhibited - pending put callback",
+                      this->pd->cPvName());
          return false;
       }
 
@@ -1135,7 +1153,7 @@ bool ACAI::Client::putStringArray (const ACAI::ClientStringArray& valueArray)
 
 //------------------------------------------------------------------------------
 //
-bool ACAI::Client::putByteArray (void* valueArray, const unsigned int count)
+bool ACAI::Client::putByteArray (const void* valueArray, const unsigned int count)
 {
    return this->putData (DBF_CHAR, count, valueArray);
 }
@@ -1453,7 +1471,7 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
          break;
 
       default:
-         reportError ("field type (%s) is invalid (%d)", this->pd->pv_name,
+         reportError ("field type (%s) is invalid (%d)", this->pd->cPvName(),
                       (int) actualRequestType);
          return false;
    }
@@ -1486,7 +1504,7 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
       truncated = (max_array_size - meta_data_size) / elementSize;
 
       reportError ("PV (%s) request count truncated from %ld to %ld elements",
-                   this->pd->pv_name, count, truncated);
+                   this->pd->cPvName(), count, truncated);
       reportError ("Effective EPICS_CA_MAX_ARRAY_BYTES = %ld",
                    max_array_size);
 
@@ -1498,14 +1516,14 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
    if ((readMode == ACAI::SingleRead) || (readMode == ACAI::Subscribe)) {
 
       if (debugLevel >= 4) {
-         reportError ("ca_array_get_callback  %s", this->pd->pv_name);
+         reportError ("ca_array_get_callback  %s", this->pd->cPvName());
       }
 
       status = ca_array_get_callback (initial_type, count, this->pd->channel_id,
                                       buffered_event_handler, this->pd->getFuncArg);
 
       if (status != ECA_NORMAL) {
-         reportError ("ca_array_get_callback (%s) failed (%s)", this->pd->pv_name,
+         reportError ("ca_array_get_callback (%s) failed (%s)", this->pd->cPvName(),
                       ca_message (status));
          return false;
       }
@@ -1517,7 +1535,7 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
       // ... and now subscribe for time stamped data updates as well.
       //
       if (debugLevel >= 4) {
-         reportError ("ca_create_subscription %s", this->pd->pv_name);
+         reportError ("ca_create_subscription %s", this->pd->cPvName());
       }
 
       // Allocate the unique subscription call back function argument.
@@ -1529,7 +1547,7 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
 
       if (status != ECA_NORMAL) {
          reportError ("ca_create_subscription (%s) failed (%s)",
-                      this->pd->pv_name, ca_message (status));
+                      this->pd->cPvName(), ca_message (status));
          return false;
       }
    }
@@ -1548,13 +1566,13 @@ void ACAI::Client::unsubscribeChannel ()
    if (this->pd->event_id) {
 
       if (debugLevel >= 4) {
-         reportError ("ca_clear_subscription  %s", this->pd->pv_name);
+         reportError ("ca_clear_subscription  %s", this->pd->cPvName());
       }
 
       status = ca_clear_subscription (this->pd->event_id);
       if (status != ECA_NORMAL) {
          reportError ("ca_clear_subscription (%s) failed (%s)",
-                      this->pd->pv_name, ca_message (status));
+                      this->pd->cPvName(), ca_message (status));
       }
 
       this->pd->event_id = NULL;
@@ -1642,17 +1660,18 @@ void ACAI::Client::updateHandler (struct event_handler_args& args)
    tpd->upper_ctrl_limit    = 0.0;                                         \
    tpd->lower_ctrl_limit    = 0.0;
 
+
    size_t length;
 
    if (tpd->connectionStatus != PrivateData::csConnected) {
       reportError  ("%s: connection status is not csConnected (%d), type=%s (%ld)",
-                    tpd->pv_name, (int) tpd->connectionStatus,
+                    tpd->cPvName(), (int) tpd->connectionStatus,
                     ACAI::Client::dbRequestTypeImage (args.type), args.type);
       return;
    }
 
    if (!dbr_type_is_valid (args.type)) {
-      reportError ("%s: invalid dbr type %s (%ld)", tpd->pv_name,
+      reportError ("%s: invalid dbr type %s (%ld)", tpd->cPvName(),
                    ACAI::Client::dbRequestTypeImage (args.type), args.type);
       return;
    }
@@ -1781,7 +1800,7 @@ void ACAI::Client::updateHandler (struct event_handler_args& args)
 
       default:
          tpd->data_field_type = ClientFieldNO_ACCESS;
-         reportError ("(%s): unexpected buffer type %ld", tpd->pv_name, args.type);
+         reportError ("(%s): unexpected buffer type %ld", tpd->cPvName(), args.type);
          return;
    }
 
@@ -1802,7 +1821,7 @@ void ACAI::Client::connectionHandler (struct connection_handler_args& args)
 
       case CA_OP_CONN_UP:
          if (debugLevel >= 4) {
-            reportError ("PV connected %s", this->pd->pv_name);
+            reportError ("PV connected %s", this->pd->cPvName());
          }
 
          this->pd->connectionStatus = PrivateData::csConnected;
@@ -1829,7 +1848,7 @@ void ACAI::Client::connectionHandler (struct connection_handler_args& args)
 
       case CA_OP_CONN_DOWN:
          if (debugLevel >= 4) {
-            reportError ("PV disconnected %s", this->pd->pv_name);
+            reportError ("PV disconnected %s", this->pd->cPvName());
          }
 
          this->pd->pending_put_callback = false;          // clear
@@ -1875,12 +1894,12 @@ void ACAI::Client::eventHandler (struct event_handler_args& args)
             this->updateHandler (args);
          } else {
             reportError ("event_handler (%s) args.dbr is null",
-                         this->pd->pv_name);
+                         this->pd->cPvName());
          }
 
       } else {
          reportError ("event_handler Get/Sub (%s) error (%s)",
-                       this->pd->pv_name, ca_message (args.status));
+                       this->pd->cPvName(), ca_message (args.status));
       }
 
    } else if (args.usr == this->pd->putFuncArg) {
@@ -1892,7 +1911,7 @@ void ACAI::Client::eventHandler (struct event_handler_args& args)
 
       } else {
          reportError ("event_handler (%s) unexpected put call back",
-                      this->pd->pv_name);
+                      this->pd->cPvName());
       }
 
    } else {
@@ -1901,7 +1920,7 @@ void ACAI::Client::eventHandler (struct event_handler_args& args)
       //
       if (debugLevel >= 2) {
          reportError ("event_handler (%s) unexpected args.usr %lu",
-                      this->pd->pv_name, size_t (args.usr));
+                      this->pd->cPvName(), size_t (args.usr));
       }
    }
 }
