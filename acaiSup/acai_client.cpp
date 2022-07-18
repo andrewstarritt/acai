@@ -130,7 +130,6 @@ void ACAI::Client::reportErrorFunc (const int line, const char* function,
 //==============================================================================
 //
 class ACAI::Client::PrivateData {
-   int firstMember;         // this together with lastMember define effective size
 public:
    explicit PrivateData (ACAI::Client* owner);
    ~PrivateData ();
@@ -148,6 +147,10 @@ public:
       csDisconnected        // virtual circuit disconnect.
    } ConnectionStatus;
 
+   ACAI::ClientString pv_name;
+   ACAI::ClientString channel_host_name;
+
+   int firstMember;         // this together with lastMember define effective class size.
    int magic_number;        // used to verify void* to PrivateData* conversions.
 
    // Channel Access passes back one of these to callback functions as user data.
@@ -159,7 +162,6 @@ public:
 
    // Channel Access connection info
    //
-   ACAI::ClientString pv_name;
    chid channel_id;             // chid is a pointer type
    evid event_id;               // evid is a pointer type
    ConnectionStatus connectionStatus;  //
@@ -178,7 +180,6 @@ public:
 
    // Cached channel values
    //
-   char channel_host_name [256];
    ACAI::ClientFieldType host_field_type;   // as on host IOC
    unsigned int channel_element_count;      // as on host IOC
 
@@ -261,20 +262,17 @@ ACAI::Client::PrivateData::PrivateData (ACAI::Client* ownerIn)
 {
    size_t size;
 
-   // Zeroise all members, except pv_name - it's now a standard string
-   // and does not like getting zapped !!!
+   // Zeroise all members, except pv_name and channel_host_name.
+   // They are now a standard strings and do not like getting zapped !!!
    //   
-   size = size_t (&this->pv_name) - size_t (&this->firstMember);
+   size = size_t (&this->lastMember) - size_t (&this->firstMember);
    memset (&this->firstMember, 0, size);
-
-   void* postPVN = &this->pv_name + sizeof (this->pv_name);
-
-   size = size_t (&this->lastMember) - size_t (postPVN);
-   memset (postPVN, 0, size);
 
    this->owner = ownerIn;
 
    this->pv_name.clear();
+   this->channel_host_name.clear();
+
    this->getFuncArg = NULL;
    this->subFuncArg = NULL;
    this->putFuncArg = NULL;
@@ -1013,7 +1011,6 @@ bool ACAI::Client::putData (const int dbf_type, const unsigned long count, const
    //
    return (status == ECA_NORMAL);
 }
-
 //------------------------------------------------------------------------------
 //
 bool ACAI::Client::putFloating (const ACAI::ClientFloating value)
@@ -1817,6 +1814,8 @@ void ACAI::Client::updateHandler (struct event_handler_args& args)
 //
 void ACAI::Client::connectionHandler (struct connection_handler_args& args)
 {
+   char temp [200];
+
    switch (args.op) {
 
       case CA_OP_CONN_UP:
@@ -1831,13 +1830,14 @@ void ACAI::Client::connectionHandler (struct connection_handler_args& args)
 
          // Copy host name.
          //
-         ca_get_host_name (this->pd->channel_id, this->pd->channel_host_name,
-                           sizeof (this->pd->channel_host_name));
+         ca_get_host_name (this->pd->channel_id, temp, sizeof (temp));
+         temp [sizeof (temp) - 1] = '\0';                 // belts 'n' braces
+         this->pd->channel_host_name = temp;
 
          this->pd->data_element_count = 0;                // no data yet
          this->pd->is_first_update = true;                // initial request.
 
-         // Allocate the unique get/put call back function arguments per connection.
+         // Allocate the unique per connection get/put function callback arguments.
          //
          this->pd->getFuncArg = this->uniqueFunctionArg ();
          this->pd->putFuncArg = this->uniqueFunctionArg ();
@@ -2252,7 +2252,7 @@ void* ACAI::Client::uniqueFunctionArg ()
    static size_t id = 0;
 
    id++;
-   if ((void*) id == NULL) id++;
+   if ((void*) id == NULL) id++;  // Ensure not NULL
 
    return (void*) id;
 }
@@ -2597,7 +2597,7 @@ void application_printf_handler (const char* formated_text);
 //
 void application_connection_handler (struct connection_handler_args* args)
 {
-   // Apply sanity check and deferance.
+   // Apply sanity check and dereferance.
    //
    if (args) ACAI::Client_Private::connectionHandler (*args);
 }
@@ -2607,7 +2607,7 @@ void application_connection_handler (struct connection_handler_args* args)
 //
 void application_event_handler (struct event_handler_args* args)
 {
-   // Apply sanity check and deferance.
+   // Apply sanity check and dereferance.
    //
    if (args) ACAI::Client_Private::eventHandler (*args);
 }
