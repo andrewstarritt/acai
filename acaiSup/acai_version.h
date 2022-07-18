@@ -47,7 +47,7 @@
 // Defines the patch version number, this increments for bug fixes and/or
 // backward compatible API enhancements.
 //
-#define ACAI_PATCH              1
+#define ACAI_PATCH              2
 
 // NOTE: Don't forget to update documentation/acai.cfg and acaiSup/Makefile
 
