@@ -894,6 +894,8 @@ private:
    bool readSubscribeChannel (const ACAI::ReadModes readMode);
    void unsubscribeChannel ();
 
+   // These are essentially the point of entry of the call backs.
+   //
    void connectionHandler (struct connection_handler_args& args);
    void updateHandler (struct event_handler_args& args);
    void eventHandler (struct event_handler_args& args);

@@ -115,11 +115,6 @@ typedef std::vector<ClientString>     ClientStringArray;
 // But as the EPICS Channel Access types are really really stable so this is not a hassle.
 //
 
-// MUST be consistent with PVNAME_STRINGSZ out of dbDefs.h
-// Includes the nil terminator
-///
-#define ACAI_MAX_PVNAME_LENGTH    61
-
 // MUST be kept consistent with alarm.h
 /// \brief Extends standard EPICS severity to include a disconnected state.
 //
