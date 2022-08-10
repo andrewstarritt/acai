@@ -702,6 +702,13 @@ public:
    ///
    ACAI::ClientString getEnumeration (int state) const;
 
+   /// Given a state enumeration string, this function returns the state
+   /// value s such that: 0 <= s < state count
+   /// and returns -1 if state is not found.
+   /// The comparison _is_ strict wrt case and and any white space.
+   ///
+   int getEnumerationIndex (const ACAI::ClientString enumeration) const;
+
    /// Get all state strings.
    /// Returns an empty array if native type is not enumeration.
    ///

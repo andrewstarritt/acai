@@ -1011,6 +1011,7 @@ bool ACAI::Client::putData (const int dbf_type, const unsigned long count, const
    //
    return (status == ECA_NORMAL);
 }
+
 //------------------------------------------------------------------------------
 //
 bool ACAI::Client::putFloating (const ACAI::ClientFloating value)
@@ -1226,15 +1227,31 @@ ACAI::ClientString ACAI::Client::getEnumeration (int state) const
 
 //------------------------------------------------------------------------------
 //
+int ACAI::Client::getEnumerationIndex (const ACAI::ClientString enumeration) const
+{
+   int result = -1;
+   const int n = this->enumerationStatesCount ();
+   for (int j = 0; j < n; j++) {
+      if (this->getEnumeration (j) == enumeration) {
+         // Found it.
+         //
+         result = j;
+         break;
+      }
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
 ACAI::ClientStringArray ACAI::Client::getEnumerationStates () const
 {
    ACAI::ClientStringArray result;
-   int j;
-   int n;
 
    result.clear ();
-   n = this->enumerationStatesCount ();
-   for (j = 0; j < n; j++) {
+   const int n = this->enumerationStatesCount ();
+   for (int j = 0; j < n; j++) {
       result.push_back (this->getEnumeration (j));
    }
    return result;
@@ -2310,7 +2327,7 @@ double ACAI::Client::minFieldValue () const
          break;
 
       case ACAI::ClientFieldENUM:
-         result = std::numeric_limits<epicsEnum16>::min();
+         result = 0.0;
          break;
 
       case ACAI::ClientFieldCHAR:
@@ -2355,7 +2372,7 @@ double ACAI::Client::maxFieldValue () const
          break;
 
       case ACAI::ClientFieldENUM:
-         result = std::numeric_limits<epicsEnum16>::max();
+         result = double (this->enumerationStatesCount() - 1);
          break;
 
       case ACAI::ClientFieldCHAR:
