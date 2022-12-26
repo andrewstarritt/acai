@@ -6,27 +6,20 @@
  * continued existance nor it's API backward compatibilty between releases,
  * even patch releases. Use at own risk.
  *
- * Copyright (C) 2015-2022  Andrew C. Starritt
+ * Copyright (C) 2013-2023  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the
- * Free Software Foundation, either version 3 of the License, or (at your
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or (at your
  * option) any later version.
- *
- * You can also redistribute the ACAI library and/or modify it under the
- * terms of the Lesser GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option)
- * any later version when this library is disributed with and as part of the
- * EPICS QT Framework (https://github.com/qtepics).
  *
  * The ACAI library is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+ * License for more details.
  *
- * You should have received a copy of the GNU General Public License and
- * the Lesser GNU General Public License along with the ACAI library.
- * If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with the ACAI library.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contact details:
  * andrew.starritt@gmail.com

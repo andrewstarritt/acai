@@ -5,27 +5,20 @@
  * party libraries.  It also provides a buffering mechanism that can be
  * useful even in native C/C++ applications.
  *
- * Copyright (C) 2005-2021  Andrew C. Starritt
+ * Copyright (C) 2013-2023  Andrew C. Starritt
  *
- * This module is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the
- * Free Software Foundation, either version 3 of the License, or (at your
+ * The ACAI library is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or (at your
  * option) any later version.
  *
- * You can also redistribute this module and/or modify it under the
- * terms of the Lesser GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option)
- * any later version when this library is disributed with and as part of the
- * EPICS QT Framework (https://github.com/qtepics).
- *
- * This module is distributed in the hope that it will be useful, but
+ * The ACAI library is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+ * License for more details.
  *
- * You should have received a copy of the GNU General Public License and
- * the Lesser GNU General Public License along with the ACAI library.
- * If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with the ACAI library.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contact details:
  * andrew.starritt@gmail.com
