@@ -13,7 +13,7 @@ basic Channel Access API. By default ACAI monitors each channel and caches
 the data locally.
 
 It has been developed and tested on and for CentOS Linux, and compiled and 
-tested on Windows 7 using mingw 32 bit compiler.
+tested on Windows 7 and 10 using mingw 32 bit compiler.
 It has also be compiled but not tested using the mingw 64 bit and MSVC compilers.
 
 The main ACAI::Client class was developed from the struct sCA_Client type
@@ -24,26 +24,25 @@ The Acai (Euterpe oleracea) berry is known to originate from Amazon rainforest
 in Brazil.
 
 <h2>License</h2>
-ACAI is distributed under the GNU General Lesser Public License version 3.
+ACAI is distributed under the GNU General Public License version 3.
 
-The ACAI library is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or (at your
-option) any later version.
+The ACAI library is free software: you can redistribute it and/or modify it under
+the terms of the GNU Lesser General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
 
-The ACAI library is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-License for more details.
+The ACAI library is distributed in the hope that it will be useful, however it is
+distributed  "AS IS" and WITHOUT ANY WARRANTY;  without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public License
-along with the ACAI library.
+You should have received a copy of the GNU Lesser General Public License along
+with the ACAI library.
 If not, see <a href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>
 
 <h2>Building/Linking ACAI</h2>
 ACAI is provided as a standard EPICS module. In order to build it first, locate and/or
-build EPICS base. Next update the configure/RELEASE in the ACAI top directory to point
-to your local epics base, e.g.
+build EPICS base. Next update the configure/RELEASE file in the ACAI top directory to
+point to your local epics base, e.g.
 <pre>
 EPICS_BASE=/epics/base
 </pre> or <pre>
@@ -79,11 +78,11 @@ thread or any other thread. Within that thread call:
 </pre>
 
 This function's main purpose is to call <i>ca_context_create</i>, but also performs
-other functions necessary to use the ACAI module.
+other functions necessary to setup use if the ACAI module.
 ACAI does not expose the under-lying EPICS context, but does it provide a means
 for other threads to attach to the ACAI context.
 
-NOTE: This version of ACAI does not support multiple contexts is any way
+NOTE: This version of ACAI does not support multiple contexts in any way
 what-so-ever. The initialise, attach, poll and finalise functions are static
 functions that apply to <i>the one and only</i> ACAI context, as opposed to be
 some kind of context object related methods.
@@ -94,7 +93,7 @@ Next, create a client object using your favorite process variable, and open the 
   pv.openChannel ();
 </pre> or <pre>
   ACAI::Client* pv = new ACAI::Client ("SR11MCM01:CURRENT_MONITOR");
-  pv->openChannel ();   // remember to delete the pv client object
+  pv->openChannel ();   // remember to delete the pv client object when no longer needed
 </pre>
 
 The openChannel function creates a channel and when the connection event occurs
@@ -105,16 +104,16 @@ The openChannel function creates a channel and when the connection event occurs
 Although ACAI uses EPICS callbacks internally, the callbacks are buffered and must
 be processed by calling <i>ACAI::Client::poll</i> on a regular basis from the
 nominated thread.
-When a buffered call back is processed, it updates the status/data/meta data of
+When a buffered callback is processed, it updates the status/data/meta data of
 the associated client object, and then triggers the ACAI updates and callbacks.
 These all occur within the user's own thread.
 
 This avoids the need for any mutex locking when dealing with ACAI objects and/or data.
-It also means that if ACAI used by another language other than C/C++, then the callbacks
-are executed in the a thread created by that language environment. Some environements,
-e.g. MatLab, Ada 95 and Lazarus get very annoyed if MatLab/Ada/Lazarus code is executed
-within the context of an "alien" thread. Other environments, such as QT, only allow
-widgets to be updated by the main thread.
+It also means that if the ACAI library is used by another language other than C/C++, 
+then the callbacks are executed in the a thread created by that language environment. 
+Some environements, e.g. MatLab, Ada 95 and Lazarus get very annoyed if MatLab/Ada/Lazarus 
+code is executed within the context of an "alien" thread. Other environments, such as QT, 
+only allow widgets to be updated by the main thread.
 
 If data is passed on to any third party threads, then you will need to manage that.
 See notes on multiple threads below.
@@ -142,7 +141,7 @@ loop does not occur immediately before the application itself terminates.
 </pre>
 
 The above is fine, but we need to gain access the PV's data for this program to do
-anything useful. ACAI provides a number of ways to access to PV data.
+anything useful. ACAI provides a number of ways to access the PV data.
 These are, using scalar float value as example:
 
 a) within the event loop, just read the data, if available, out of the client object;
