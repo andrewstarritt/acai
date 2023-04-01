@@ -605,6 +605,11 @@ public:
    ///
    ACAI::ClientInteger getInteger  (unsigned int index = 0) const;
 
+   /// Returns the index-th element of the channel data store in the client as a boolean value
+   /// Returns false if value is 0, true if value is non-zero and is undefined if non-numeric.
+   ///
+   bool getBoolean (unsigned int index = 0) const;
+
    /// Returns the index-th element of the channel data stored within in the client as a
    /// string value. If deemed a long string, see ACAI::Client::processingAsLongString, then
    /// requesting the zeroth/default element returns the whole char array as a string.
@@ -626,11 +631,15 @@ public:
 
    /// Get client array (waveform) data as an array of integer values.
    ///
-   ACAI::ClientIntegerArray getIntegerArray  () const;
+   ACAI::ClientIntegerArray getIntegerArray () const;
+
+   /// Get client array (waveform) data as an array of boolean values.
+   ///
+   ACAI::ClientBooleanArray getBooleanArray () const;
 
    /// Get client array (waveform) data as an array of string values.
    ///
-   ACAI::ClientStringArray getStringArray   () const;
+   ACAI::ClientStringArray getStringArray () const;
 
    /// Write scaler value to channel.
    /// On the wire (via CA protocol) we use DBF_DOUBLE format, not the PV's native field format.
@@ -641,6 +650,12 @@ public:
    /// On the wire (via CA protocol) we use DBF_LONG format, not the PV's native field format.
    ///
    bool putInteger (const ACAI::ClientInteger value);
+
+   /// Write scaler boolean value to channel.
+   /// On the wire (via CA protocol) we use DBF_LONG format, not the PV's native field format.
+   /// false maps to 0, true maps to 1.
+   ///
+   bool putBoolean (const bool value);
 
    /// Write scaler value to channel.
    /// On the wire (via CA protocol) we use DBF_STRING format, not the PV's native
@@ -656,8 +671,11 @@ public:
    /// Write a floating vector array value to the channel.
    bool putFloatingArray (const ACAI::ClientFloatingArray& valueArray);
 
-   /// Write a integer vector array value to the channel.
+   /// Write an integer vector array value to the channel.
    bool putIntegerArray  (const ACAI::ClientIntegerArray&  valueArray);
+
+   /// Write a boolean vector array value to the channel.
+   bool putBooleanArray  (const ACAI::ClientBooleanArray&  valueArray);
 
    /// Write a string vector array value to the channel.
    bool putStringArray   (const ACAI::ClientStringArray&   valueArray);
@@ -669,6 +687,9 @@ public:
 
    /// Write a traditional integer array value to the channel.
    bool putIntegerArray  (const ACAI::ClientInteger*  valueArray, const unsigned int count);
+
+   /// Write a traditional bool array value to the channel.
+   bool putBooleanArray  (const bool* valueArray, const unsigned int count);
 
    /// Write a traditional string array value to the channel.
    bool putStringArray   (const ACAI::ClientString*   valueArray, const unsigned int count);

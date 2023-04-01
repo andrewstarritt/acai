@@ -809,6 +809,14 @@ ACAI::ClientInteger ACAI::Client::getInteger (unsigned int index) const
 
 //------------------------------------------------------------------------------
 //
+bool ACAI::Client::getBoolean (unsigned int index) const
+{
+   double d = this->getFloating (index);
+   return (d != 0.0);
+}
+
+//------------------------------------------------------------------------------
+//
 ACAI::ClientString ACAI::Client::getString (unsigned int index) const
 {
    char append_units [MAX_UNITS_SIZE + 2];
@@ -866,39 +874,37 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
          case ACAI::ClientFieldFLOAT:
          case ACAI::ClientFieldDOUBLE:
             {
-               // This may still require fine tuning.
-               //
-               static const ACAI::ClientFloating lowLimits [16] = {
-                  1.0E+0, 1.0E+0, 1.0E-1, 1.0E-1, 1.0E-2, 1.0E-2, 1.0E-3, 1.0E-3,
-                  1.0E-4, 1.0E-4, 1.0E-5, 1.0E-5, 1.0E-6, 1.0E-6, 1.0E-7, 1.0E-7
-               };
-
-               static const ACAI::ClientFloating highLimits [16] = {
-                  1.0E+1, 1.0E+2, 1.0E+2, 1.0E+3, 1.0E+3, 1.0E+4, 1.0E+4, 1.0E+5,
-                  1.0E+5, 1.0E+6, 1.0E+6, 1.0E+7, 1.0E+7, 1.0E+8, 1.0E+8, 1.0E+9
-               };
-
                const ACAI::ClientFloating value = this->getFloating (index);
                const ACAI::ClientFloating absValue = ABS (value);
 
                // Set up the format string.
+               // Constrain p, the precision, to be in a sensible range.
                //
-               int  p = this->precision ();
-               p = LIMIT (p, 0, 15);
-               const bool inFixedRange = ((absValue >= lowLimits[p]) && (absValue < highLimits[p]));
+               int p = this->precision ();
+               p = LIMIT (p, 0, 18);
 
-               char format[28];
-               if ( (absValue == 0.0) || inFixedRange) {
-                  // Use fixed point formatting for "normal" range.
-                  //
-                  snprintf (format, sizeof (format), "%%.%df%%s", p);
+               static const size_t maxSize = 40;
+               char format [maxSize];  // for format, we could get away with less.
+               char fixedPoint [maxSize];
+               char scientific [maxSize];
+
+               // Fixed point formatting.
+               //
+               snprintf (format, sizeof (format), "%%.%df%%s", p);
+               const int fpl = snprintf (fixedPoint, sizeof (fixedPoint), format, value, append_units);
+
+               // Scientific formatting.
+               //
+               snprintf (format, sizeof (format), "%%.%de%%s", p);
+               const int scl = snprintf (scientific, sizeof (scientific), format, value, append_units);
+
+               // Choose the shorter, or fixed point if the same length or a few specials.
+               //
+               if ( (absValue == 0.0) || ((absValue >= 0.1) && (fpl <= scl)) ) {
+                  result = ACAI::ClientString (fixedPoint);
                } else {
-                  // Use scientific formatting for really small or really large.
-                  //
-                  snprintf (format, sizeof (format), "%%.%de%%s", p);
+                  result = ACAI::ClientString (scientific);
                }
-
-               result = ACAI::csnprintf (50, format, value, append_units);
             }
             break;
 
@@ -941,6 +947,23 @@ ACAI::ClientIntegerArray ACAI::Client::getIntegerArray () const
       result.reserve ((int) number);
       for (unsigned int j = 0; j < number; j++) {
          result.push_back (this->getInteger (j));
+      }
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+ACAI::ClientBooleanArray ACAI::Client::getBooleanArray () const
+{
+   ACAI::ClientBooleanArray result;
+
+   if (this->dataIsAvailable ()) {
+      const unsigned int number = this->dataElementCount ();
+
+      result.reserve ((int) number);
+      for (unsigned int j = 0; j < number; j++) {
+         result.push_back (this->getBoolean (j));
       }
    }
    return result;
@@ -1020,6 +1043,14 @@ bool ACAI::Client::putFloating (const ACAI::ClientFloating value)
 bool ACAI::Client::putInteger (const ACAI::ClientInteger value)
 {
    const dbr_long_t dbr_value = (dbr_long_t) value;
+   return this->putData (DBF_LONG, 1, &dbr_value);
+}
+
+//------------------------------------------------------------------------------
+//
+bool ACAI::Client::putBoolean (const bool value)
+{
+   const dbr_long_t dbr_value = value ? 1 : 0;
    return this->putData (DBF_LONG, 1, &dbr_value);
 }
 
@@ -1106,6 +1137,39 @@ bool ACAI::Client::putIntegerArray (const ACAI::ClientIntegerArray& valueArray)
    const ACAI::ClientInteger* podPtr = &valueArray [0];
 
    return this->putIntegerArray (podPtr, count);
+}
+
+//------------------------------------------------------------------------------
+//
+bool ACAI::Client::putBooleanArray (const bool* valueArray, const unsigned int count)
+{
+   ACAI::ClientIntegerArray intermediate;
+
+   intermediate.reserve ((int) count);
+   for (unsigned int j = 0; j < count; j++) {
+      intermediate.push_back (valueArray[j] ? 1 : 0);
+   }
+
+   return this->putIntegerArray(intermediate);
+}
+
+//------------------------------------------------------------------------------
+//
+bool ACAI::Client::putBooleanArray (const ACAI::ClientBooleanArray& valueArray)
+{
+   const unsigned int count = (unsigned int) valueArray.size ();
+
+   // const bool* podPtr = &valueArray [0]; // does not compile
+   // lvalue required as unary '&' operand
+
+   ACAI::ClientIntegerArray intermediate;
+
+   intermediate.reserve ((int) count);
+   for (unsigned int j = 0; j < count; j++) {
+      intermediate.push_back (valueArray[j] ? 1 : 0);
+   }
+
+   return this->putIntegerArray(intermediate);
 }
 
 //------------------------------------------------------------------------------
