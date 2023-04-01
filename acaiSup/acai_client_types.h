@@ -98,6 +98,9 @@ typedef std::vector<ClientFloating>   ClientFloatingArray;
 /// Provides the array type used to read/write channel data as string values.
 typedef std::vector<ClientString>     ClientStringArray;
 
+/// Provides the array type used to read/write channel data as boolean values.
+typedef std::vector<bool>             ClientBooleanArray;
+
 
 //------------------------------------------------------------------------------
 // Pseudo CA macros/types.
