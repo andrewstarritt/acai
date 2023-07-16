@@ -12,7 +12,7 @@ include $(TOP)/configure/CONFIG
 # Define target
 #
 T1 = $(TOP)/html/index.html
-T2 = $(TOP)/doc/acai.pdf
+T2 = $(TOP)/doc/acai_manual.pdf
 I2 = $(TOP)/latex/refman.pdf
 
 .PHONY: all install clean
