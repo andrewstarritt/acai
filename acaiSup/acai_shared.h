@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef ACAI__SHARED_H
-#define ACAI__SHARED_H
+#ifndef ACAI_SHARED_H
+#define ACAI_SHARED_H
 
 // Deal with shared stuff.
 // Not really important for Linux but Windows needs help.
@@ -44,4 +44,4 @@
 #warning "Unknown compiler environment - proceeding cautiously"
 #endif
 
-#endif // ACAI__SHARED_H
+#endif // ACAI_SHARED_H

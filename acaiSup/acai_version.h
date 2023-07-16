@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef ACAI__VERSION_H
-#define ACAI__VERSION_H
+#ifndef ACAI_VERSION_H
+#define ACAI_VERSION_H
 
 #include <acai_client_types.h>
 #include <acai_shared.h>
@@ -40,7 +40,7 @@
 // Defines the patch version number, this increments for bug fixes and/or
 // backward compatible API enhancements.
 //
-#define ACAI_PATCH              4
+#define ACAI_PATCH              5
 
 // NOTE: Don't forget to update documentation/acai.cfg and acaiSup/Makefile
 
@@ -62,7 +62,7 @@
 #define ACAI_STRINGIFY_INNER(s) #s
 #define ACAI_STRINGIFY(s)       ACAI_STRINGIFY_INNER(s)
 
-// Define the string version of ACAI, e.g. "ACAI 1.7.1"
+// Define the string version of ACAI, e.g. "ACAI 1.7.5"
 //
 #define ACAI_VERSION_STRING     "ACAI " ACAI_STRINGIFY(ACAI_MAJOR) \
                                 "."     ACAI_STRINGIFY(ACAI_MINOR) \
@@ -81,4 +81,4 @@ ACAI_SHARED_FUNC ACAI::ClientString versionString ();
 } // ACAI namespace
 
 
-#endif // ACAI__VERSION_H
+#endif // ACAI_VERSION_H

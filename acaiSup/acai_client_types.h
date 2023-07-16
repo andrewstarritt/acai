@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef ACAI__CLIENT_TYPES_H
-#define ACAI__CLIENT_TYPES_H
+#ifndef ACAI_CLIENT_TYPES_H
+#define ACAI_CLIENT_TYPES_H
 
 #include <time.h>
 #include <string>
@@ -259,4 +259,4 @@ ACAI_SHARED_FUNC ACAI::ClientString limitedAssign (const char* source, const siz
 
 } // ACAI namespace
 
-#endif // ACAI__CLIENT_TYPES_H
+#endif // ACAI_CLIENT_TYPES_H

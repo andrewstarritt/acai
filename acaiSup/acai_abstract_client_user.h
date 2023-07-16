@@ -24,8 +24,8 @@
  *
  */
 
-#ifndef ACAI__ABSTRACT_CLIENT_USER_H_
-#define ACAI__ABSTRACT_CLIENT_USER_H_
+#ifndef ACAI_ABSTRACT_CLIENT_USER_H_
+#define ACAI_ABSTRACT_CLIENT_USER_H_
 
 #include <acai_client_types.h>
 #include <acai_client_set.h>
@@ -179,4 +179,4 @@ private:
 
 }
 
-#endif   // ACAI__ABSTRACT_CLIENT_USER_H_
+#endif   // ACAI_ABSTRACT_CLIENT_USER_H_

@@ -24,8 +24,8 @@
  *
  */
 
-#ifndef ACAI__CLIENT_H_
-#define ACAI__CLIENT_H_
+#ifndef ACAI_CLIENT_H_
+#define ACAI_CLIENT_H_
 
 #include <time.h>
 #include <set>
@@ -414,8 +414,8 @@ public:
    bool isConnected () const;
 
    /// Returns whether channel data is currently available, accessable via the get
-   /// data functions. Data available implies the channel is connected, but connected
-   /// does not imply data available.
+   /// data functions. Data available implies the channel is connected and at least
+   /// one data update has been received (note: connected does not imply data available).
    //
    bool dataIsAvailable () const;
 
@@ -502,8 +502,8 @@ public:
    /// When the channel is not connected, the function returns "".
    ///
    /// Note: if the PV is accessed via an EPICS gateway, then this function will
-   /// return the EPICS gateway's hostname or IP address as opposed to the IOC's
-   /// hostname or IP address.
+   /// return the EPICS gateway's hostname or IP address as opposed to the source
+   /// PV server (IOC)'s hostname or IP address.
    ///
    ACAI::ClientString hostName () const;
 
@@ -945,4 +945,4 @@ private:
 
 }
 
-#endif   // ACAI__CLIENT_H_
+#endif   // ACAI_CLIENT_H_

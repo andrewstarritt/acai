@@ -27,8 +27,8 @@
  *
  */
 
-#ifndef ACAI__PRIVATE_COMMON_H_
-#define ACAI__PRIVATE_COMMON_H_
+#ifndef ACAI_PRIVATE_COMMON_H_
+#define ACAI_PRIVATE_COMMON_H_
 
 #include <iostream>
 #include <exception>
@@ -75,4 +75,4 @@ catch (...) {                                                      \
 #  endif
 #endif
 
-#endif   // ACAI__PRIVATE_COMMON_H_
+#endif   // ACAI_PRIVATE_COMMON_H_

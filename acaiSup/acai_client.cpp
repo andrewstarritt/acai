@@ -843,6 +843,8 @@ ACAI::ClientString ACAI::Client::getString (unsigned int index) const
    }
 
    if ((this->pd->includeUnits) && (strlen (this->pd->units) > 0)) {
+      // Separate the value of and units by a space.
+      //
       snprintf (append_units, sizeof (append_units), " %s",
                 this->pd->units);
    } else {

@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef ACAI__CLIENT_SET_H_
-#define ACAI__CLIENT_SET_H_
+#ifndef ACAI_CLIENT_SET_H_
+#define ACAI_CLIENT_SET_H_
 
 #include <set>
 #include <acai_client.h>
@@ -183,4 +183,4 @@ private:
 
 }
 
-#endif  // ACAI__CLIENT_SET_H_
+#endif  // ACAI_CLIENT_SET_H_
