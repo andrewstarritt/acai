@@ -25,15 +25,18 @@ install:  all
 #
 
 $(T1): acai.cfg ../acaiSup/*h ../acaiSup/*cpp
-	@doxygen  acai.cfg && cd ../latex/ && make || echo "doxygen not available"
+	@doxygen  acai.cfg  || echo "doxygen not available"
 
+# Note: the Makefile in ../latex sometimes asks for prompts from user.
+# We must ensure oberall make does not stall awaiting input.
+#
 $(I2) : $(T1)
 	cd ../latex/        && \
-	make                || echo "refman.pdf not generated"
+	echo -e "\n\n\n\n" | make  || echo "refman.pdf not generated"
 
 $(T2) : $(I2)
 	mkdir -p $(TOP)/doc && \
-	cp $(I2) $(T2)      || echo "refman.pdf not available"
+	cp $(I2) $(T2)  || echo "refman.pdf not available"
 
 clean:
 	rm -rf ../latex
