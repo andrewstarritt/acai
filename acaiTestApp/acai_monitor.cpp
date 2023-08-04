@@ -45,6 +45,21 @@ static ACAI::Client_Set* clientSet = NULL;
 
 //------------------------------------------------------------------------------
 //
+static void showLimits (ACAI::Client* client)
+{
+   // All numerical values display high (top) to low (bottom)
+   std::cout << "   hopr: "  << client->upperDisplayLimit() << std::endl;
+   std::cout << "   lopr: "  << client->lowerDisplayLimit() << std::endl;
+   std::cout << "   drvh: "  << client->upperControlLimit() << std::endl;
+   std::cout << "   drvl: "  << client->lowerControlLimit() << std::endl;
+   std::cout << "   hihi: "  << client->upperAlarmLimit() << std::endl;
+   std::cout << "   high: "  << client->upperWarningLimit() << std::endl;
+   std::cout << "   low:  "  << client->lowerWarningLimit() << std::endl;
+   std::cout << "   lolo: "  << client->lowerAlarmLimit() << std::endl;
+}
+
+//------------------------------------------------------------------------------
+//
 static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdate)
 {
    if (client) {
@@ -73,20 +88,16 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
 
             case ACAI::ClientFieldFLOAT:
             case ACAI::ClientFieldDOUBLE:
+               std::cout << "   egu:  "  << client->units() << std::endl;
                std::cout << "   prec: "  << client->precision() << std::endl;
-               // fall through
+               showLimits (client);
+               break;
+
             case ACAI::ClientFieldCHAR:
             case ACAI::ClientFieldSHORT:
             case ACAI::ClientFieldLONG:
                std::cout << "   egu:  "  << client->units() << std::endl;
-               std::cout << "   lopr: "  << client->lowerDisplayLimit() << std::endl;
-               std::cout << "   hopr: "  << client->upperDisplayLimit() << std::endl;
-               std::cout << "   drvl: "  << client->lowerControlLimit() << std::endl;
-               std::cout << "   drvh: "  << client->upperControlLimit() << std::endl;
-               std::cout << "   low:  "  << client->lowerWarningLimit() << std::endl;
-               std::cout << "   high: "  << client->upperWarningLimit() << std::endl;
-               std::cout << "   lolo: "  << client->lowerAlarmLimit() << std::endl;
-               std::cout << "   hihi: "  << client->upperAlarmLimit() << std::endl;
+               showLimits (client);
                break;
 
             default:
