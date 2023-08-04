@@ -9,10 +9,13 @@ include $(TOP)/configure/CONFIG
 #
 # Note: we do not include the rule $(TOP)/configure/RULES
 
-# Define target
+# Define targets
 #
 T1 = $(TOP)/html/index.html
 T2 = $(TOP)/doc/acai_manual.pdf
+
+# An intermediate file
+#
 I2 = $(TOP)/latex/refman.pdf
 
 .PHONY: all install clean
@@ -25,20 +28,24 @@ install:  all
 #
 
 $(T1): acai.cfg ../acaiSup/*h ../acaiSup/*cpp
-	@doxygen  acai.cfg  || echo "doxygen not available"
+	@doxygen  acai.cfg  || echo "*** doxygen not available or failed."
 
-# Note: the Makefile in ../latex sometimes asks for prompts from user.
-# We must ensure oberall make does not stall awaiting input.
+# Notes:
+# We do a dummy copy of the generated Makefile to force an immmediate error if doxygen failed.
+# The Makefile in ../latex sometimes prompts the user for input, so
+# ../documentation/empty provides a bunch of enters.
+# We must ensure overall make does not stall awaiting input.
 #
-$(I2) : $(T1)
-	cd ../latex/        && \
-	echo -e "\n\n\n\n" | make  || echo "refman.pdf not generated"
-
-$(T2) : $(I2)
-	mkdir -p $(TOP)/doc && \
-	cp $(I2) $(T2)  || echo "refman.pdf not available"
+$(T2) : $(T1)
+	@$(CP) $(TOP)/latex/Makefile z1    2>z2                     && \
+	echo gnerating $(I2)                                        && \
+	$(MAKE) -C $(TOP)/latex/ < $(TOP)/documentation/empty       && \
+	echo installing acai_manual.pdf into ../doc/                && \
+	$(MKDIR) $(TOP)/doc                                         && \
+	$(CP) $(I2) $(T2)  || echo "*** acai_manual.pdf not generated"
 
 clean:
-	rm -rf ../latex
+	@$(RM) z1 z2 z3
+	$(RM) -r ../latex
 
 # end
