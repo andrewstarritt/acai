@@ -25,6 +25,7 @@
 
 #include <acai_client_types.h>
 #include <acai_private_common.h>
+#include <epicsTime.h>
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -32,7 +33,7 @@
 #include <string.h>
 
 // Importing the severity and status strings from the EPICS libraries on windows
-// drives me crazy, so just going to roll my own.
+// drives me crazy, so just going to roll my own - includng own pseudo severity.
 //
 static const char* ownAlarmSeverityStrings[ACAI::CLIENT_ALARM_NSEV] = {
     "NO_ALARM",    "MINOR",       "MAJOR",       "INVALID",
@@ -51,10 +52,10 @@ static const char* ownAlarmConditionStrings[ACAI::CLIENT_ALARM_NSTATUS] = {
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC int ACAI::csnprintf (ACAI::ClientString& target,
-                                      size_t size,
-                                      const char* format,
-                                      ...)
+ACAI_SHARED_FUNC
+int ACAI::csnprintf (ACAI::ClientString& target,
+                     size_t size,
+                     const char* format, ...)
 {
    int result;
    va_list args;
@@ -81,9 +82,9 @@ ACAI_SHARED_FUNC int ACAI::csnprintf (ACAI::ClientString& target,
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC ACAI::ClientString ACAI::csnprintf (size_t size,
-                                                     const char* format,
-                                                     ...)
+ACAI_SHARED_FUNC
+ACAI::ClientString ACAI::csnprintf (size_t size,
+                                    const char* format, ...)
 {
    ACAI::ClientString result;
    va_list args;
@@ -110,8 +111,9 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::csnprintf (size_t size,
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC ACAI::ClientString ACAI::limitedAssign (const char* source,
-                                                         const size_t maxSize)
+ACAI_SHARED_FUNC
+ACAI::ClientString ACAI::limitedAssign (const char* source,
+                                        const size_t maxSize)
 {
    ACAI::ClientString result;
 
@@ -133,7 +135,8 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::limitedAssign (const char* source,
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC bool ACAI::alarmSeverityIsValid (const ACAI::ClientAlarmSeverity severity)
+ACAI_SHARED_FUNC
+bool ACAI::alarmSeverityIsValid (const ACAI::ClientAlarmSeverity severity)
 {
    return ((severity == ClientSevNone)  ||
            (severity == ClientSevMinor) ||
@@ -142,7 +145,8 @@ ACAI_SHARED_FUNC bool ACAI::alarmSeverityIsValid (const ACAI::ClientAlarmSeverit
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC ACAI::ClientString ACAI::alarmSeverityImage (const ACAI::ClientAlarmSeverity severity)
+ACAI_SHARED_FUNC
+ACAI::ClientString ACAI::alarmSeverityImage (const ACAI::ClientAlarmSeverity severity)
 {
    ClientString result;
    const int isevr = int (severity);
@@ -157,7 +161,8 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::alarmSeverityImage (const ACAI::Client
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC ACAI::ClientString ACAI::alarmStatusImage (const ACAI::ClientAlarmCondition status)
+ACAI_SHARED_FUNC
+ACAI::ClientString ACAI::alarmStatusImage (const ACAI::ClientAlarmCondition status)
 {
    ClientString result;
    const int istat = int (status);
@@ -171,53 +176,43 @@ ACAI_SHARED_FUNC ACAI::ClientString ACAI::alarmStatusImage (const ACAI::ClientAl
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC time_t ACAI::utcTimeOf (const ACAI::ClientTimeStamp& ts,
-                                         int* nanoSecOut)
+ACAI_SHARED_FUNC
+time_t ACAI::utcTimeOf (const ACAI::ClientTimeStamp& ts,
+                        int* nanoSecOut)
 {
-   // EPICS timestamp epoch: This is Mon Jan  1 00:00:00 1990 UTC.
-   //
-   // This itself is expressed as a system time which represents the number
-   // of seconds elapsed since 00:00:00 on January 1, 1970, UTC.
-   //
-   static const time_t epics_epoch = 631152000;
-
    if (nanoSecOut) {
       *nanoSecOut = ts.nsec;
    }
 
-   return ts.secPastEpoch + epics_epoch;
+   // EPICS timestamp epoch: This is Mon Jan  1 00:00:00 1990 UTC.
+   //
+   // This itself is expressed as a system time which represents the number
+   // of seconds elapsed since 00:00:00 on January 1, 1970, UTC.
+   // (from epicsTime.h)
+   //
+   return ts.secPastEpoch + POSIX_TIME_AT_EPICS_EPOCH;
 }
 
 
 //------------------------------------------------------------------------------
 //
-typedef tm* (*GetBrokenDownTime) (const time_t *timep);
+typedef tm* (*GetBrokenDownTime) (const time_t *timep, struct tm *result);
 
 static ACAI::ClientString commonTimeImage (GetBrokenDownTime break_time_r,
                                            const ACAI::ClientTimeStamp& ts,
                                            const int precision)
 {
-   static const int scale [10] = {
-      1000000000, 100000000, 10000000, 1000000,
-      100000, 10000, 1000, 100, 10, 1
-   };
-
    ACAI::ClientString result;
 
-   // Convert time
+   // Convert EPICS time to system time.
    //
    int nanoSec;
    const time_t utc = ACAI::utcTimeOf (ts, &nanoSec);
 
-   // Make maybe uninitialised warning go away.
+   // Form broken-down time bt
    //
    struct tm bt;
-   bt.tm_year = bt.tm_mon = bt.tm_mday = bt.tm_hour = bt.tm_min = bt.tm_sec = 0;
-
-   // Form broken-down time bt
-   // Deference the returned value.
-   //
-   bt = *break_time_r (&utc);
+   break_time_r (&utc, &bt);
 
    // In broken-down time, tm_year is the number of years since 1900,
    // and January is month 0.
@@ -232,6 +227,11 @@ static ACAI::ClientString commonTimeImage (GetBrokenDownTime break_time_r,
    // Add precision if required.
    //
    if (precision > 0) {
+      static const int scale [10] = {
+         1000000000, 100000000, 10000000, 1000000,
+         100000, 10000, 1000, 100, 10, 1
+      };
+
       char format[8];
       char fraction[16];
 
@@ -247,23 +247,26 @@ static ACAI::ClientString commonTimeImage (GetBrokenDownTime break_time_r,
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC ACAI::ClientString ACAI::utcTimeImage (const ACAI::ClientTimeStamp& ts,
-                                                        const int precision)
+ACAI_SHARED_FUNC
+ACAI::ClientString ACAI::utcTimeImage (const ACAI::ClientTimeStamp& ts,
+                                       const int precision)
 {
-   return commonTimeImage (gmtime, ts, precision);
+   return commonTimeImage (gmtime_r, ts, precision);
 }
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC ACAI::ClientString ACAI::localTimeImage (const ACAI::ClientTimeStamp& ts,
-                                                          const int precision)
+ACAI_SHARED_FUNC
+ACAI::ClientString ACAI::localTimeImage (const ACAI::ClientTimeStamp& ts,
+                                         const int precision)
 {
-   return commonTimeImage (localtime, ts, precision);
+   return commonTimeImage (localtime_r, ts, precision);
 }
 
 //------------------------------------------------------------------------------
 //
-ACAI_SHARED_FUNC ACAI::ClientString ACAI::clientFieldTypeImage (const ACAI::ClientFieldType cft)
+ACAI_SHARED_FUNC
+ACAI::ClientString ACAI::clientFieldTypeImage (const ACAI::ClientFieldType cft)
 {
    ClientString result;
 
