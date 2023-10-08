@@ -40,8 +40,10 @@
 static volatile bool outputMeta = false;
 static volatile bool onlyDoGets = false;
 static volatile bool longString = false;
+static int maxPvNameLength = 0;
 
 static ACAI::Client_Set* clientSet = NULL;
+
 
 //------------------------------------------------------------------------------
 //
@@ -108,7 +110,7 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
       }
 
       if (!firstupdate || (client->readMode() != ACAI::Subscribe)) {
-         std::cout << std::left << std::setw (40) << client->pvName () << " ";
+         std::cout << std::left << std::setw (maxPvNameLength) << client->pvName () << "  ";
          std::cout << client->localTimeImage (3) << " ";
 
          if (client->processingAsLongString ()) {
@@ -313,6 +315,10 @@ int main (int argc, char* argv [])
       client->setUpdateHandler (dataUpdateEventHandlers);
       client->setLongString (longString);
       clientSet->insert (client);
+      int len = strnlen(argv [j], 80);
+      if (maxPvNameLength < len) {
+         maxPvNameLength = len;
+      }
    }
 
    clientSet->openAllChannels ();
