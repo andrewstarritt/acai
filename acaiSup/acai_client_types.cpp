@@ -196,7 +196,7 @@ time_t ACAI::utcTimeOf (const ACAI::ClientTimeStamp& ts,
 
 //------------------------------------------------------------------------------
 //
-typedef tm* (*GetBrokenDownTime) (const time_t *timep, struct tm *result);
+typedef tm* (*GetBrokenDownTime) (const time_t *timep);
 
 static ACAI::ClientString commonTimeImage (GetBrokenDownTime break_time_r,
                                            const ACAI::ClientTimeStamp& ts,
@@ -212,7 +212,17 @@ static ACAI::ClientString commonTimeImage (GetBrokenDownTime break_time_r,
    // Form broken-down time bt
    //
    struct tm bt;
-   break_time_r (&utc, &bt);
+
+   // Make maybe uninitialised warnings go away.
+   //
+   bt.tm_year = bt.tm_mon = bt.tm_mday = bt.tm_hour = bt.tm_min = bt.tm_sec = 0;
+   {
+      struct tm *btPtr;
+      btPtr = break_time_r (&utc);
+      if (btPtr) {  // check success
+         bt = *btPtr;
+      }
+   }
 
    // In broken-down time, tm_year is the number of years since 1900,
    // and January is month 0.
@@ -251,7 +261,7 @@ ACAI_SHARED_FUNC
 ACAI::ClientString ACAI::utcTimeImage (const ACAI::ClientTimeStamp& ts,
                                        const int precision)
 {
-   return commonTimeImage (gmtime_r, ts, precision);
+   return commonTimeImage (gmtime, ts, precision);
 }
 
 //------------------------------------------------------------------------------
@@ -260,7 +270,7 @@ ACAI_SHARED_FUNC
 ACAI::ClientString ACAI::localTimeImage (const ACAI::ClientTimeStamp& ts,
                                          const int precision)
 {
-   return commonTimeImage (localtime_r, ts, precision);
+   return commonTimeImage (localtime, ts, precision);
 }
 
 //------------------------------------------------------------------------------
