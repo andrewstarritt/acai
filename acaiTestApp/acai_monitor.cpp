@@ -1,12 +1,12 @@
 // acai_monitor.cpp
 //
-// This is a simple command line programs that uses the ACAI library.
+// This is a simple command line program that uses the ACAI library.
 // This program mimics some of the features of the EPICS base programs
 // camonitor, caget and cainfo.
 // This program is intended as example and test of the ACAI library rather
 // than as a replacement for the afore mentioned programs.
 //
-// Copyright (C) 2013-2023  Andrew C. Starritt
+// Copyright (C) 2013-2024  Andrew C. Starritt
 //
 // The ACAI library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by 
@@ -43,6 +43,47 @@ static volatile bool longString = false;
 static int maxPvNameLength = 0;
 
 static ACAI::Client_Set* clientSet = NULL;
+
+
+//------------------------------------------------------------------------------
+//
+static bool getEventMask (const char* mask, ACAI::EventMasks& eventMask)
+{
+    bool result = true;   // hypothesize all okay
+
+    unsigned uintMask = eventMask = ACAI::EventNone;
+
+    for (int j = 0; mask[j] != '\0'; j++) {
+       char c = mask[j];
+       switch (c) {
+          case 'v':
+             uintMask |= ACAI::EventValue;
+             break;
+
+          case 'l':
+             uintMask |= ACAI::EventArchive;
+             break;
+
+          case 'a':
+             uintMask |= ACAI::EventAlarm;
+             break;
+
+          case 'p':
+             uintMask |= ACAI::EventProperty;
+             break;
+
+          default:
+             std::cerr << "acai_monitor: invalid event mask character '" << c
+                       << "' out of \"" << mask << '"' << std::endl;
+             result = false;
+             break;
+       }
+       if (!result) break;  // C++ could do with Ada style loop breaks
+    }
+
+    eventMask = static_cast<ACAI::EventMasks>(uintMask);
+    return result;
+}
 
 
 //------------------------------------------------------------------------------
@@ -203,28 +244,33 @@ static bool shutDownIsRequired ()
 static void help ()
 {
    std::cout
-         << "acai_monitor is a simple command line programs that uses the ACAI library."<<  std::endl
-         << "This program mimics some of the features of the EPICS base camonitor program,"<<  std::endl
+         << "acai_monitor is a simple command line program that uses the ACAI library."<<  std::endl
+         << "The program mimics some of the features of the EPICS base camonitor program,"<<  std::endl
          << "and is intended as an example and test of the ACAI library rather than as a"<<  std::endl
          << "replacement for the afore mentioned camonitor program."<< std::endl
          << "" << std::endl
-         << "usage: acai_monitor [-m|--meta] [-g|--get] PV_NAMES..." << std::endl
+         << "usage: acai_monitor [OPTIONS] PV_NAMES..." << std::endl
          << "       acai_monitor -h | --help" << std::endl
          << "       acai_monitor -v | --version" << std::endl
          << "" << std::endl
          << "Options:" << std::endl
          << "" << std::endl
-         << "-m,--meta     show meta information, e.g precision, egu, enum values." << std::endl
+         << "-m,--meta        show meta information, e.g precision, egu, enum values." << std::endl
          << "" << std::endl
-         << "-g,--get      only do gets, as opposed to monitoring." << std::endl
+         << "-g,--get         only do gets, as opposed to monitoring." << std::endl
          << "" << std::endl
-         << "-mg,-gm       combines -m and -g options." << std::endl
+         << "-mg,-gm          combines -m and -g options." << std::endl
          << "" << std::endl
-         << "-l,--longstr  process PV as a long string (if we can)." << std::endl
+         // directly cribbed from camonitor -h
+         << "-e,--event mask  specify CA event mask to use. <mask> is any combination of" << std::endl
+         << "                 'v' (value), 'a' (alarm), 'l' (log/archive), 'p' (property)." << std::endl
+         << "                 The default event mask is 'va'." << std::endl
          << "" << std::endl
-         << "-v,--version  show version information and exit." << std::endl
+         << "-l,--longstr     process PV as a long string (if we can)." << std::endl
          << "" << std::endl
-         << "-h,--help     show this help message and exit." << std::endl
+         << "-v,--version     show version information and exit." << std::endl
+         << "" << std::endl
+         << "-h,--help        show this help message and exit." << std::endl
          << std::endl;
 }
 
@@ -244,6 +290,8 @@ static void version ()
 //
 int main (int argc, char* argv [])
 {
+   const char* mask = "va";    // set default
+
    // Process options
    //
    while (argc >= 2) {
@@ -273,6 +321,16 @@ int main (int argc, char* argv [])
          argc--;
          argv++;
 
+      } else if ((strcmp (p1, "--event") == 0) || (strcmp (p1, "-e") == 0)) {
+         if (argc >= 3) {
+            mask = argv[2];
+            argc -= 2;
+            argv += 2;
+         } else {
+            std::cerr << "acai_monitor: missing mask option " << std::endl;
+            return 1;
+         }
+
       } else if ((strcmp (p1, "--longstr") == 0) || (strcmp (p1, "-l") == 0)) {
          longString = true;
          argc--;
@@ -292,8 +350,17 @@ int main (int argc, char* argv [])
    }
 
    if (argc < 2) {
-      std::cerr << "acai_monitor: No PV name(s) specified" <<  std::endl;
+      std::cerr << "acai_monitor: No PV name(s) specified" << std::endl;
       return 2;
+   }
+
+   ACAI::EventMasks eventMask = ACAI::EventNone;
+   bool status = getEventMask (mask, eventMask);
+   if (!status) return 1;
+
+   if (eventMask == ACAI::EventNone) {
+      std::cerr << "acai_monitor: null event specified" <<  std::endl;
+      return 1;
    }
 
    bool ok = ACAI::Client::initialise ();
@@ -304,7 +371,6 @@ int main (int argc, char* argv [])
 
    signalSetup ();
 
-
    clientSet = new ACAI::Client_Set (true);
 
    for (int j = 1; j < argc; j++) {
@@ -312,6 +378,7 @@ int main (int argc, char* argv [])
       client = new ACAI::Client (argv [j]);
       client->setReadMode (onlyDoGets ? ACAI::SingleRead : ACAI::Subscribe);
       client->setIncludeUnits (true);
+      client->setEventMask (eventMask);
       client->setUpdateHandler (dataUpdateEventHandlers);
       client->setLongString (longString);
       clientSet->insert (client);
@@ -340,7 +407,7 @@ int main (int argc, char* argv [])
    //
    while (!shutDownIsRequired () && !onlyDoGets) {
       epicsThreadSleep (0.02);   // 20mSec
-      ACAI::Client::poll ();     // call back function invoked from here
+      ACAI::Client::poll ();     // call back functions invoked from here
    }
 
    clientSet->closeAllChannels ();

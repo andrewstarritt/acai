@@ -9,6 +9,17 @@
 #include <string.h>
 
 //------------------------------------------------------------------------------
+// anonymise size value to avoid the pesky warning.
+//
+static size_t anon (size_t n)
+{
+   long temp = (long)(&anon);
+   temp = temp % 7;
+   if ((temp & 1) == 0) temp = 1; // is now def none zero
+   return (temp * n) / temp;
+}
+
+//------------------------------------------------------------------------------
 //
 int main () {
    std::cout << "test csnprintf functions ("
@@ -19,14 +30,15 @@ int main () {
    ACAI::ClientString target;
    char buffer [512];
    int reqLen;
+   size_t n = anon(20);
 
-   reqLen = ACAI::csnprintf (dest, 20, "0123456789%s0123456789%s0123456789", "ABCDE", "FGHIJ");
+   reqLen = ACAI::csnprintf (dest, n, "0123456789%s0123456789%s0123456789", "ABCDE", "FGHIJ");
    std::cout << "req len " << reqLen << "  actual len " << dest.length() << std::endl;
 
-   reqLen = snprintf (buffer, 20, "0123456789%s0123456789%s0123456789", "ABCDE", "FGHIJ");
+   reqLen = snprintf (buffer, n, "0123456789%s0123456789%s0123456789", "ABCDE", "FGHIJ");
    std::cout << "req len " << reqLen << "  actual len " << strnlen (buffer, 512) << std::endl;
 
-   target = ACAI::csnprintf (20, "0123456789%s0123456789%s0123456789", "ABCDE", "FGHIJ");
+   target = ACAI::csnprintf (n, "0123456789%s0123456789%s0123456789", "ABCDE", "FGHIJ");
    std::cout << "target: " << target << "  target len " <<  target.length() << std::endl;
    std::cout << std::endl;
 
