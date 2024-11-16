@@ -40,6 +40,7 @@
 static volatile bool outputMeta = false;
 static volatile bool onlyDoGets = false;
 static volatile bool longString = false;
+static volatile bool fullArray = false;
 static int maxPvNameLength = 0;
 
 static ACAI::Client_Set* clientSet = NULL;
@@ -116,6 +117,7 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
          std::cout << "   host: " << client->hostName() << std::endl;
          std::cout << "   type: " << ACAI::clientFieldTypeImage (client->hostFieldType()) << std::endl;
          std::cout << "   nelm: " << client->hostElementCount() << std::endl;
+         std::cout << "   data: " << client->dataElementCount() << std::endl;
 
          switch (client->dataFieldType()) {
             case ACAI::ClientFieldSTRING:
@@ -268,6 +270,10 @@ static void help ()
          << "" << std::endl
          << "-l,--longstr     process PV as a long string (if we can)." << std::endl
          << "" << std::endl
+         << "-f,--fullarray   specify acai_monitor request all the elements of an array," << std::endl
+         << "                 otherwise request only the defined elements. " << std::endl
+         << "                 For older versions of EPICS you should always specify this. " << std::endl
+         << "" << std::endl
          << "-v,--version     show version information and exit." << std::endl
          << "" << std::endl
          << "-h,--help        show this help message and exit." << std::endl
@@ -336,6 +342,11 @@ int main (int argc, char* argv [])
          argc--;
          argv++;
 
+      } else if ((strcmp (p1, "--fullarray") == 0) || (strcmp (p1, "-f") == 0)) {
+         fullArray = true;
+         argc--;
+         argv++;
+
       } else if (p1[0] == '-') {
          // No sensible PV name starts with a hyphen, so assume a bad option.
          //
@@ -381,6 +392,9 @@ int main (int argc, char* argv [])
       client->setEventMask (eventMask);
       client->setUpdateHandler (dataUpdateEventHandlers);
       client->setLongString (longString);
+      if (!fullArray) {
+         client->setRequestCount (0);   // for newer clients only !!
+      }
       clientSet->insert (client);
       int len = strnlen(argv [j], 80);
       if (maxPvNameLength < len) {
