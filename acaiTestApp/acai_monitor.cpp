@@ -86,6 +86,17 @@ static bool getEventMask (const char* mask, ACAI::EventMasks& eventMask)
     return result;
 }
 
+//------------------------------------------------------------------------------
+// Shows data available from the connections itself, as opposed to from the
+// first update which pripvied a lot to meta data.
+//
+static void showConnectionInfo (ACAI::Client* client)
+{
+   std::cout << "   host: " << client->hostName() << std::endl;
+   std::cout << "   type: " << ACAI::clientFieldTypeImage (client->hostFieldType()) << std::endl;
+   std::cout << "   nelm: " << client->hostElementCount() << std::endl;
+   std::cout << "   data: " << client->dataElementCount() << std::endl;
+}
 
 //------------------------------------------------------------------------------
 //
@@ -114,10 +125,7 @@ static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdat
       if (firstupdate && outputMeta) {
          int n = 0;
          std::cout << client->pvName () << ":" << std::endl;
-         std::cout << "   host: " << client->hostName() << std::endl;
-         std::cout << "   type: " << ACAI::clientFieldTypeImage (client->hostFieldType()) << std::endl;
-         std::cout << "   nelm: " << client->hostElementCount() << std::endl;
-         std::cout << "   data: " << client->dataElementCount() << std::endl;
+         showConnectionInfo (client);
 
          switch (client->dataFieldType()) {
             case ACAI::ClientFieldSTRING:
@@ -197,6 +205,7 @@ static void reportConnectionFailures (ACAI::Client* client, void* /* context */ 
          if (!client->dataIsAvailable ()) {
             std::cerr << "Channel read failure: " << client->pvName ()
                       << " PV data not available" <<  std::endl;
+            showConnectionInfo (client);
          }
    } else {
       std::cerr << "acai_monitor: null client" <<  std::endl;
