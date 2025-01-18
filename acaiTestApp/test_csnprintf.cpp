@@ -10,12 +10,13 @@
 
 //------------------------------------------------------------------------------
 // anonymise size value to avoid the pesky warning.
+// The compiler, well g++ at least, is being too clever for own good.
 //
 static size_t anon (size_t n)
 {
    long temp = (long)(&anon);
    temp = temp % 7;
-   if ((temp & 1) == 0) temp = 1; // is now def none zero
+   if ((temp & 1) == 0) temp = 1;  // is now def none zero
    return (temp * n) / temp;
 }
 
@@ -30,7 +31,7 @@ int main () {
    ACAI::ClientString target;
    char buffer [512];
    int reqLen;
-   size_t n = anon(20);
+   const size_t n = anon(20);
 
    reqLen = ACAI::csnprintf (dest, n, "0123456789%s0123456789%s0123456789", "ABCDE", "FGHIJ");
    std::cout << "req len " << reqLen << "  actual len " << dest.length() << std::endl;

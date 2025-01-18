@@ -3,7 +3,7 @@
  * This file is part of the ACAI library.
  * The class derived from pv_client developed for the kryten application.
  *
- * Copyright (C) 2013-2023  Andrew C. Starritt
+ * Copyright (C) 2013-2025  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by 
@@ -486,14 +486,14 @@ public:
 
    /// For a connected channel, this function returns the minumum value that
    /// can be be sent to the host based on the channel's host field type.
-   /// For example DBF_SHORT field, this yeilds -32768.
+   /// For example DBF_SHORT field, this yields -32768.
    /// When the channel is not connected or non numeric, the function returns 0.0
    ///
    double minFieldValue () const;
 
    /// For a connected channel, this function returns the maxumum value that
    /// can be be sent to the host based on the channel's host field type.
-   /// For example DBF_SHORT field, this yeilds +32767.
+   /// For example DBF_SHORT field, this yields +32767.
    /// When the channel is not connected or non numeric, the function returns 0.0
    ///
    double maxFieldValue () const;
