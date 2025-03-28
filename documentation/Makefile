@@ -37,7 +37,7 @@ $(T1): acai.cfg ../acaiSup/*h ../acaiSup/*cpp
 # We must ensure overall make does not stall awaiting input.
 #
 $(T2) : $(T1)
-	@$(CP) $(TOP)/latex/Makefile z1    2>z2                     && \
+	@$(CP) $(TOP)/latex/Makefile z1.local    2>z2.local         && \
 	echo gnerating $(I2)                                        && \
 	$(MAKE) -C $(TOP)/latex/ < $(TOP)/documentation/empty       && \
 	echo installing acai_manual.pdf into ../doc/                && \
@@ -45,7 +45,9 @@ $(T2) : $(T1)
 	$(CP) $(I2) $(T2)  || echo "*** acai_manual.pdf not generated"
 
 clean:
-	@$(RM) z1 z2 z3
+	@$(RM) z1.local z2.local
 	$(RM) -r ../latex
+
+uninstall:
 
 # end
