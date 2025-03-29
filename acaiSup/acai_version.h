@@ -2,7 +2,7 @@
  *
  * This file is part of the ACAI library.
  *
- * Copyright (C) 2013-2023  Andrew C. Starritt
+ * Copyright (C) 2013-2025  Andrew C. Starritt
  *
  * The ACAI library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by 
@@ -40,7 +40,7 @@
 // Defines the patch version number, this increments for bug fixes and/or
 // backward compatible API enhancements.
 //
-#define ACAI_PATCH              5
+#define ACAI_PATCH              6
 
 // NOTE: Don't forget to update documentation/acai.cfg and acaiSup/Makefile
 
@@ -62,7 +62,7 @@
 #define ACAI_STRINGIFY_INNER(s) #s
 #define ACAI_STRINGIFY(s)       ACAI_STRINGIFY_INNER(s)
 
-// Define the string version of ACAI, e.g. "ACAI 1.7.5"
+// Define the string version of ACAI, e.g. "ACAI 1.7.6"
 //
 #define ACAI_VERSION_STRING     "ACAI " ACAI_STRINGIFY(ACAI_MAJOR) \
                                 "."     ACAI_STRINGIFY(ACAI_MINOR) \
