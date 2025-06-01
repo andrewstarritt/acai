@@ -5,24 +5,8 @@
  * party libraries.  It also provides a buffering mechanism that can be
  * useful even in native C/C++ applications.
  *
- * Copyright (C) 2013-2023  Andrew C. Starritt
- *
- * The ACAI library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
- *
- * The ACAI library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with the ACAI library.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Contact details:
- * andrew.starritt@gmail.com
- * PO Box 3118, Prahran East, Victoria 3181, Australia.
+ * SPDX-FileCopyrightText: 2005-2025  Andrew C. Starritt
+ * SPDX-License-Identifier: LGPL-3.0-only
  */
 
 /* ---------------------------------------------------------------------------

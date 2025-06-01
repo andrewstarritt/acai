@@ -46,7 +46,15 @@ Fully doxygenated code. Doxygen invoked as part of make if available.
 
 Apart from EPICS itself there are no external library dependencies.
 
+## License
+Updated to use SPDX
+
+SPDX-FileCopyrightText: 2013-2025  Andrew C. Starritt
+SPDX-License-Identifier: LGPL-3.0-only
+
 
 ## Release Notes
 https://andrewstarritt.github.io/acai_release_notes.html
+
+
 

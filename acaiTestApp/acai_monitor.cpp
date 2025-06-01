@@ -6,7 +6,7 @@
 // This program is intended as example and test of the ACAI library rather
 // than as a replacement for the afore mentioned programs.
 //
-// Copyright (C) 2013-2024  Andrew C. Starritt
+// Copyright (C) 2013-2025  Andrew C. Starritt
 //
 // The ACAI library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by 
@@ -50,40 +50,40 @@ static ACAI::Client_Set* clientSet = NULL;
 //
 static bool getEventMask (const char* mask, ACAI::EventMasks& eventMask)
 {
-    bool result = true;   // hypothesize all okay
+   bool result = true;   // hypothesize all okay
 
-    unsigned uintMask = eventMask = ACAI::EventNone;
+   unsigned uintMask = eventMask = ACAI::EventNone;
 
-    for (int j = 0; mask[j] != '\0'; j++) {
-       char c = mask[j];
-       switch (c) {
-          case 'v':
-             uintMask |= ACAI::EventValue;
-             break;
+   for (int j = 0; mask[j] != '\0'; j++) {
+      char c = mask[j];
+      switch (c) {
+         case 'v':
+            uintMask |= ACAI::EventValue;
+            break;
 
-          case 'l':
-             uintMask |= ACAI::EventArchive;
-             break;
+         case 'l':
+            uintMask |= ACAI::EventArchive;
+            break;
 
-          case 'a':
-             uintMask |= ACAI::EventAlarm;
-             break;
+         case 'a':
+            uintMask |= ACAI::EventAlarm;
+            break;
 
-          case 'p':
-             uintMask |= ACAI::EventProperty;
-             break;
+         case 'p':
+            uintMask |= ACAI::EventProperty;
+            break;
 
-          default:
-             std::cerr << "acai_monitor: invalid event mask character '" << c
-                       << "' out of \"" << mask << '"' << std::endl;
-             result = false;
-             break;
-       }
-       if (!result) break;  // C++ could do with Ada style loop breaks
-    }
+         default:
+            std::cerr << "acai_monitor: invalid event mask character '" << c
+                      << "' out of \"" << mask << '"' << std::endl;
+            result = false;
+            break;
+      }
+      if (!result) break;  // C++ could do with Ada style loop breaks
+   }
 
-    eventMask = static_cast<ACAI::EventMasks>(uintMask);
-    return result;
+   eventMask = static_cast<ACAI::EventMasks>(uintMask);
+   return result;
 }
 
 //------------------------------------------------------------------------------
@@ -115,81 +115,80 @@ static void showLimits (ACAI::Client* client)
 
 //------------------------------------------------------------------------------
 //
-static void dataUpdateEventHandlers (ACAI::Client* client, const bool firstupdate)
+static void dataUpdateEventHandlers (ACAI::Client* client, const bool isMetaUpdate)
 {
-   if (client) {
-      // On connection, we get the read response (firstupdate true) immediately
-      // followed by first subscription update (firstupdate false).
-      // Don't need do a double output.
-      //
-      if (firstupdate && outputMeta) {
-         int n = 0;
-         std::cout << client->pvName () << ":" << std::endl;
-         showConnectionInfo (client);
-
-         switch (client->dataFieldType()) {
-            case ACAI::ClientFieldSTRING:
-               break;
-
-            case ACAI::ClientFieldENUM:
-               n = client->enumerationStatesCount ();
-               for (int j = 0; j < n; j++) {
-                  std::cout << "   [" << j << "/" << n << "] "
-                            << client->getEnumeration (j) << std::endl;
-               }
-               break;
-
-            case ACAI::ClientFieldFLOAT:
-            case ACAI::ClientFieldDOUBLE:
-               std::cout << "   egu:  "  << client->units() << std::endl;
-               std::cout << "   prec: "  << client->precision() << std::endl;
-               showLimits (client);
-               break;
-
-            case ACAI::ClientFieldCHAR:
-            case ACAI::ClientFieldSHORT:
-            case ACAI::ClientFieldLONG:
-               std::cout << "   egu:  "  << client->units() << std::endl;
-               showLimits (client);
-               break;
-
-            default:
-               break;
-         }
-
-         std::cout << std::endl;
-      }
-
-      if (!firstupdate || (client->readMode() != ACAI::Subscribe)) {
-         std::cout << std::left << std::setw (maxPvNameLength) << client->pvName () << "  ";
-         std::cout << client->localTimeImage (3) << " ";
-
-         if (client->processingAsLongString ()) {
-            std::cout << " " << client->getString ();
-         } else {
-            const unsigned int n = client->dataElementCount ();
-            if (n > 1) {
-               std::cout << "[" << n << "]";
-            }
-            for (unsigned int j = 0; j < n; j++) {
-               client->setIncludeUnits (j == (n-1));
-               std::cout << " " << client->getString (j);
-            }
-         }
-         std::cout << " " << client->alarmSeverityImage ()
-                   << " " << client->alarmStatusImage ();
-         std::cout << std::endl;
-
-         if (onlyDoGets) {
-            client->closeChannel ();
-
-            if (clientSet)
-               clientSet->remove (client);
-         }
-
-      }
-   } else {
+   if (!client) {
       std::cerr << "acai_monitor: null client" <<  std::endl;
+   }
+
+   // On connection, we get the read response (isMetaUpdate true) immediately
+   // followed by first subscription update (isMetaUpdate false).
+   // Don't need do a double output.
+   //
+   if (isMetaUpdate && outputMeta) {
+      int n = 0;
+      std::cout << client->pvName () << ":" << std::endl;
+      showConnectionInfo (client);
+
+      switch (client->dataFieldType()) {
+         case ACAI::ClientFieldSTRING:
+            break;
+
+         case ACAI::ClientFieldENUM:
+            n = client->enumerationStatesCount ();
+            for (int j = 0; j < n; j++) {
+               std::cout << "   [" << j << "/" << n << "] "
+                         << client->getEnumeration (j) << std::endl;
+            }
+            break;
+
+         case ACAI::ClientFieldFLOAT:
+         case ACAI::ClientFieldDOUBLE:
+            std::cout << "   egu:  "  << client->units() << std::endl;
+            std::cout << "   prec: "  << client->precision() << std::endl;
+            showLimits (client);
+            break;
+
+         case ACAI::ClientFieldCHAR:
+         case ACAI::ClientFieldSHORT:
+         case ACAI::ClientFieldLONG:
+            std::cout << "   egu:  "  << client->units() << std::endl;
+            showLimits (client);
+            break;
+
+         default:
+            break;
+      }
+
+      std::cout << std::endl;
+   }
+
+   if (!isMetaUpdate || (client->readMode() != ACAI::Subscribe)) {
+      std::cout << std::left << std::setw (maxPvNameLength) << client->pvName () << "  ";
+      std::cout << client->localTimeImage (3) << " ";
+
+      if (client->processingAsLongString ()) {
+         std::cout << " " << client->getString ();
+      } else {
+         const unsigned int n = client->dataElementCount ();
+         if (n > 1) {
+            std::cout << "[" << n << "]";
+         }
+         for (unsigned int j = 0; j < n; j++) {
+            client->setIncludeUnits (j == (n-1));
+            std::cout << " " << client->getString (j);
+         }
+      }
+      std::cout << " " << client->alarmSeverityImage ()
+                << " " << client->alarmStatusImage ();
+      std::cout << std::endl;
+
+      if (onlyDoGets) {
+         client->closeChannel ();
+
+         if (clientSet)
+            clientSet->remove (client);
+      }
    }
 }
 
@@ -272,7 +271,7 @@ static void help ()
          << "" << std::endl
          << "-mg,-gm          combines -m and -g options." << std::endl
          << "" << std::endl
-         // directly cribbed from camonitor -h
+            // directly cribbed from camonitor -h
          << "-e,--event mask  specify CA event mask to use. <mask> is any combination of" << std::endl
          << "                 'v' (value), 'a' (alarm), 'l' (log/archive), 'p' (property)." << std::endl
          << "                 The default event mask is 'va'." << std::endl

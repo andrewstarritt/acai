@@ -27,7 +27,7 @@ install:  all
 # NOTE: a failure of any of these doco build commands does NOT cause an overall make failure.
 #
 
-$(T1): acai.cfg ../acaiSup/*h ../acaiSup/*cpp
+$(T1): acai.cfg  mainpage.dox ../acaiSup/*h ../acaiSup/*cpp
 	@doxygen  acai.cfg  || echo "*** doxygen not available or failed."
 
 # Notes:

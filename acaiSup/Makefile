@@ -1,5 +1,8 @@
 # Makefile for the acai linrary.
 #
+# SPDX-FileCopyrightText: 2013-2025  Andrew C. Starritt
+# SPDX-License-Identifier: LGPL-3.0-only
+#
 
 TOP=..
 
@@ -12,7 +15,7 @@ include $(TOP)/configure/CONFIG
 # build a support library.
 
 LIBRARY_IOC += acai
-SHRLIB_VERSION = 1.7
+SHRLIB_VERSION = 1.8
 
 # indicate that we are building the library.
 #

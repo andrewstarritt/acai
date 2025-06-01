@@ -2,24 +2,8 @@
  *
  * This file is part of the ACAI library.
  *
- * Copyright (C) 2013-2023  Andrew C. Starritt
- *
- * The ACAI library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
- *
- * The ACAI library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with the ACAI library.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Contact details:
- * andrew.starritt@gmail.com
- * PO Box 3118, Prahran East, Victoria 3181, Australia.
+ * SPDX-FileCopyrightText: 2013-2025  Andrew C. Starritt
+ * SPDX-License-Identifier: LGPL-3.0-only
  *
  */
 
@@ -29,7 +13,7 @@
 #include <time.h>
 #include <string>
 #include <vector>
-#include <acai_shared.h>
+#include "acai_shared.h"
 
 /// \brief
 /// All ACAI classes, typedefs, functons and enumerations are declared within
@@ -194,44 +178,51 @@ enum EventMasks {
 /// This function returns true if the specified alarm severity is one of no alarm,
 /// minor alarm or major alarm otherwise false, i.e. when invalid or disconnected.
 ///
-ACAI_SHARED_FUNC bool alarmSeverityIsValid (const ACAI::ClientAlarmSeverity severity);
+ACAI_SHARED_FUNC
+bool alarmSeverityIsValid (const ACAI::ClientAlarmSeverity severity);
 
 //------------------------------------------------------------------------------
 /// This function returns a textual/displayable form of the specified alarm severity.
 ///
-ACAI_SHARED_FUNC ACAI::ClientString alarmSeverityImage (const ACAI::ClientAlarmSeverity severity);
+ACAI_SHARED_FUNC
+ACAI::ClientString alarmSeverityImage (const ACAI::ClientAlarmSeverity severity);
 
 //------------------------------------------------------------------------------
 /// This function returns a textual/displayable form of the specified alarm status.
 ///
-ACAI_SHARED_FUNC ACAI::ClientString alarmStatusImage (const ACAI::ClientAlarmCondition status);
+ACAI_SHARED_FUNC
+ACAI::ClientString alarmStatusImage (const ACAI::ClientAlarmCondition status);
 
 //------------------------------------------------------------------------------
 /// This function returns the time_t type of the given client time stamp.
 /// This take into account the EPICS epoch offet.
 ///
-ACAI_SHARED_FUNC time_t utcTimeOf (const ACAI::ClientTimeStamp& ts, int* nanoSecOut = NULL);
+ACAI_SHARED_FUNC
+time_t utcTimeOf (const ACAI::ClientTimeStamp& ts, int* nanoSecOut = NULL);
 
 //------------------------------------------------------------------------------
 /// This function returns a textual/displayable form of the time stamp.
 /// Format is: "yyyy-mm-dd hh:nn:ss[.ffff]"
 /// Without fractions, this is a suitable format for MySql.
 ///
-ACAI_SHARED_FUNC ACAI::ClientString utcTimeImage (const ACAI::ClientTimeStamp& ts,
-                                                  const int precision = 0);
+ACAI_SHARED_FUNC
+ACAI::ClientString utcTimeImage (const ACAI::ClientTimeStamp& ts,
+                                 const int precision = 0);
 
 //------------------------------------------------------------------------------
 /// This function returns a textual/displayable form of the time stamp.
 /// Format is: "yyyy-mm-dd hh:nn:ss[.ffff]"
 /// As above, but local time.
 ///
-ACAI_SHARED_FUNC ACAI::ClientString localTimeImage (const ACAI::ClientTimeStamp& ts,
-                                                    const int precision = 0);
+ACAI_SHARED_FUNC
+ACAI::ClientString localTimeImage (const ACAI::ClientTimeStamp& ts,
+                                   const int precision = 0);
 
 //------------------------------------------------------------------------------
 /// This function provides a textual/displayable image for the field type.
 ///
-ACAI_SHARED_FUNC ACAI::ClientString clientFieldTypeImage (const ACAI::ClientFieldType clientFieldType);
+ACAI_SHARED_FUNC
+ACAI::ClientString clientFieldTypeImage (const ACAI::ClientFieldType clientFieldType);
 
 //------------------------------------------------------------------------------
 // ClientString utility functions.
