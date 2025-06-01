@@ -10,10 +10,11 @@ doc/
 html/
 latex/
 include/
-creator/
+creator.d/
+_creator
 *.local
 *.o
 *.exe
-*.creator.user
 *.linux-x86_64
 *.linux-x86
+*~
