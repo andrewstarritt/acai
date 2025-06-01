@@ -3,30 +3,12 @@
  * This file is part of the ACAI library. The class was based on the pv_client
  * module developed for the kryten application.
  *
- * Copyright (c) 2013-2022  Andrew C. Starritt
- *
- * Copyright (C) 2013-2023  Andrew C. Starritt
- *
- * The ACAI library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
- *
- * The ACAI library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with the ACAI library.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Contact details:
- * andrew.starritt@gmail.com
- * PO Box 3118, Prahran East, Victoria 3181, Australia.
+ * SPDX-FileCopyrightText: 2013-2025  Andrew C. Starritt
+ * SPDX-License-Identifier: LGPL-3.0-only
  *
  */
 
-#include <acai_client.h>
+#include "acai_client.h"
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -46,9 +28,9 @@
 #include <epicsThread.h>
 #include <epicsTypes.h>
 
-#include <buffered_callbacks.h>
-#include <acai_abstract_client_user.h>
-#include <acai_private_common.h>
+#include "buffered_callbacks.h"
+#include "acai_abstract_client_user.h"
+#include "acai_private_common.h"
 
 // Magic numbers embedded within each ACAI::Client and ACAI::Client::PrivateData object.
 // Used as a sanity check when we convert an anonymous pointer to a ACAI::Client
@@ -152,13 +134,17 @@ public:
    // Note: We always get a ref to the client using the args' chanId chid.
    //
    void* getFuncArg;
-   void* subFuncArg;
+   void* timeSubscriptionFuncArg;
+   void* metaSubscriptionFuncArg;   // i.e. property
    void* putFuncArg;
 
    // Channel Access connection info
+   // chid and evid are pointer types
    //
-   chid channel_id;             // chid is a pointer type
-   evid event_id;               // evid is a pointer type
+   chid channel_id;             // for channel connection
+   evid time_event_id;          // for value, archive and alarm subscriptions
+   evid meta_event_id;          // for meta/property subscriptions
+
    ConnectionStatus connectionStatus;  //
    bool lastIsConnected;        // previous value - allows calls to Connection_Bu to be filtered
    ACAI::ReadModes readMode;    // subscription v. single read. v. no read at all
@@ -197,7 +183,6 @@ public:
 
    // Per update information.
    //
-   bool is_first_update;
    unsigned int data_field_size;           // element size  LONG = 4 etc.
    ACAI::ClientFieldType data_field_type;  // as per request - typically same as host_field_type
    unsigned int data_element_count;        // number of elements received (as opposed to
@@ -269,7 +254,8 @@ ACAI::Client::PrivateData::PrivateData (ACAI::Client* ownerIn)
    this->channel_host_name.clear();
 
    this->getFuncArg = NULL;
-   this->subFuncArg = NULL;
+   this->timeSubscriptionFuncArg = NULL;
+   this->metaSubscriptionFuncArg = NULL;
    this->putFuncArg = NULL;
 
    this->readMode = ACAI::Subscribe;
@@ -277,7 +263,8 @@ ACAI::Client::PrivateData::PrivateData (ACAI::Client* ownerIn)
 
    this->connectionStatus = csNull;
    this->channel_id = NULL;
-   this->event_id = NULL;
+   this->time_event_id = NULL;
+   this->meta_event_id = NULL;
 
    this->lastIsConnected = false;
    this->isLongString = false;
@@ -317,10 +304,12 @@ ACAI::Client::PrivateData::~PrivateData ()
    this->magic_number = 0;
    this->clearBuffer ();
    this->getFuncArg = NULL;
-   this->subFuncArg = NULL;
+   this->timeSubscriptionFuncArg = NULL;   // value, time, status and severity
+   this->metaSubscriptionFuncArg = NULL;
    this->putFuncArg = NULL;
    this->channel_id = NULL;
-   this->event_id = NULL;
+   this->time_event_id = NULL;
+   this->meta_event_id = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -1600,12 +1589,15 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
       if (status != ECA_NORMAL) {
          reportError ("ca_array_get_callback (%s) failed (%s)", this->pd->cPvName(),
                       ca_message (status));
+
+         // If read fails - so will subscribe.
+         //
          return false;
       }
    }
 
-   // If read fails - so will subscribe.
-   //
+   bool result = true;
+
    if (readMode == ACAI::Subscribe) {
       // ... and now subscribe for time stamped data updates as well.
       //
@@ -1613,50 +1605,89 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
          reportError ("ca_create_subscription %s", this->pd->cPvName());
       }
 
+      const ACAI::EventMasks timeMask =
+            ACAI::EventMasks (this->pd->eventMask & (ACAI::EventValue | ACAI::EventArchive | ACAI::EventAlarm));
+
       // Allocate the unique subscription call back function argument.
       //
-      this->pd->subFuncArg = this->uniqueFunctionArg ();
-      status = ca_create_subscription (update_type, count, this->pd->channel_id,
-                                       this->pd->eventMask, buffered_event_handler,
-                                       this->pd->subFuncArg, &this->pd->event_id);
+      if (timeMask != 0) {
+         this->pd->timeSubscriptionFuncArg = this->uniqueFunctionArg ();
+         status = ca_create_subscription (update_type, count, this->pd->channel_id,
+                                          timeMask, buffered_event_handler,
+                                          this->pd->timeSubscriptionFuncArg,
+                                          &this->pd->time_event_id);
 
-      if (status != ECA_NORMAL) {
-         reportError ("ca_create_subscription (%s) failed (%s)",
-                      this->pd->cPvName(), ca_message (status));
-         return false;
+         if (status != ECA_NORMAL) {
+            reportError ("ca_create_subscription [] (%s) failed (%s)",
+                         this->pd->cPvName(), ca_message (status));
+            result = false;
+         }
+      }
+
+      const ACAI::EventMasks metaMask =
+            ACAI::EventMasks (this->pd->eventMask & ACAI::EventProperty);
+      if (metaMask != 0) {
+         // For meta/property subscriptions, we need to request all the meta
+         // data just as we do on an initial read.
+         //
+         this->pd->metaSubscriptionFuncArg = this->uniqueFunctionArg ();
+         status = ca_create_subscription (initial_type, count, this->pd->channel_id,
+                                          metaMask, buffered_event_handler,
+                                          this->pd->metaSubscriptionFuncArg,
+                                          &this->pd->meta_event_id);
+
+         if (status != ECA_NORMAL) {
+            reportError ("ca_create_subscription [meta] (%s) failed (%s)",
+                         this->pd->cPvName(), ca_message (status));
+            result = false;
+         }
       }
    }
 
-   return true;
+   return result;
 }
 
 //------------------------------------------------------------------------------
 //
 void ACAI::Client::unsubscribeChannel ()
 {
-   int status;
-
    // Unsubscribe iff needs be.
    //
-   if (this->pd->event_id) {
+   if (this->pd->time_event_id) {
 
       if (debugLevel >= 4) {
-         reportError ("ca_clear_subscription  %s", this->pd->cPvName());
+         reportError ("ca_clear_subscription [time] %s", this->pd->cPvName());
       }
 
-      status = ca_clear_subscription (this->pd->event_id);
+      int status = ca_clear_subscription (this->pd->time_event_id);
       if (status != ECA_NORMAL) {
-         reportError ("ca_clear_subscription (%s) failed (%s)",
+         reportError ("ca_clear_subscription [time] (%s) failed (%s)",
                       this->pd->cPvName(), ca_message (status));
       }
 
-      this->pd->event_id = NULL;
-      this->pd->subFuncArg = NULL;
-
-      // Save disconnection time
-      //
-      time (&this->pd->disconnect_time);
+      this->pd->time_event_id = NULL;
+      this->pd->timeSubscriptionFuncArg = NULL;
    }
+
+   if (this->pd->meta_event_id) {
+
+      if (debugLevel >= 4) {
+         reportError ("ca_clear_subscription [meta] %s", this->pd->cPvName());
+      }
+
+      int status = ca_clear_subscription (this->pd->meta_event_id);
+      if (status != ECA_NORMAL) {
+         reportError ("ca_clear_subscription [meta] (%s) failed (%s)",
+                      this->pd->cPvName(), ca_message (status));
+      }
+
+      this->pd->meta_event_id = NULL;
+      this->pd->metaSubscriptionFuncArg = NULL;
+   }
+
+   // Save disconnection time
+   //
+   time (&this->pd->disconnect_time);
 }
 
 //------------------------------------------------------------------------------
@@ -1776,6 +1807,8 @@ void ACAI::Client::updateHandler (struct event_handler_args& args)
 
    // Maybe the following should move to updateBuffer as well.
    //
+   bool isMetaUpdate = false;
+
    switch (args.type) {
 
       /// Control updates set all meta data plus initial values
@@ -1784,18 +1817,21 @@ void ACAI::Client::updateHandler (struct event_handler_args& args)
          tpd->data_field_type = ClientFieldSTRING;
          ASSIGN_STATUS (pDbr->cstrval);
          CLEAR_META_DATA;
+         isMetaUpdate = true;
          break;
 
       case DBR_CTRL_SHORT:
          tpd->data_field_type = ClientFieldSHORT;
          ASSIGN_STATUS (pDbr->cshrtval);
          ASSIGN_META_DATA (pDbr->cshrtval, 0);
+         isMetaUpdate = true;
          break;
 
       case DBR_CTRL_FLOAT:
          tpd->data_field_type = ClientFieldFLOAT;
          ASSIGN_STATUS (pDbr->cfltval);
          ASSIGN_META_DATA (pDbr->cfltval, pDbr->cfltval.precision);
+         isMetaUpdate = true;
          break;
 
       case DBR_CTRL_ENUM:
@@ -1816,24 +1852,28 @@ void ACAI::Client::updateHandler (struct event_handler_args& args)
 
          memcpy (tpd->enum_strings, pDbr->cenmval.strs,
                  sizeof (tpd->enum_strings));
+         isMetaUpdate = true;
          break;
 
       case DBR_CTRL_CHAR:
          tpd->data_field_type = ClientFieldCHAR;
          ASSIGN_STATUS (pDbr->cchrval);
          ASSIGN_META_DATA (pDbr->cchrval, 0);
+         isMetaUpdate = true;
          break;
 
       case DBR_CTRL_LONG:
          tpd->data_field_type = ClientFieldLONG;
          ASSIGN_STATUS (pDbr->clngval);
          ASSIGN_META_DATA (pDbr->clngval, 0);
+         isMetaUpdate = true;
          break;
 
       case DBR_CTRL_DOUBLE:
          tpd->data_field_type = ClientFieldDOUBLE;
          ASSIGN_STATUS (pDbr->cdblval);
          ASSIGN_META_DATA (pDbr->cdblval, pDbr->cdblval.precision);
+         isMetaUpdate = true;
          break;
 
          /// Time updates values [count], time, severity and status
@@ -1884,8 +1924,7 @@ void ACAI::Client::updateHandler (struct event_handler_args& args)
 #undef ASSIGN_META_DATA
 #undef CLEAR_META_DATA
 
-   this->callDataUpdate (tpd->is_first_update);
-   tpd->is_first_update = false;
+   this->callDataUpdate (isMetaUpdate);
 }
 
 //------------------------------------------------------------------------------
@@ -1913,7 +1952,6 @@ void ACAI::Client::connectionHandler (struct connection_handler_args& args)
          this->pd->channel_host_name = temp;
 
          this->pd->data_element_count = 0;                // no data yet
-         this->pd->is_first_update = true;                // initial request.
 
          // Allocate the unique per connection get/put function callback arguments.
          //
@@ -1964,7 +2002,9 @@ void ACAI::Client::eventHandler (struct event_handler_args& args)
    //
    // Treat Get and Sub(scription) events the same.
    //
-   if ((args.usr == this->pd->getFuncArg) || (args.usr == this->pd->subFuncArg)) {
+   if ((args.usr == this->pd->getFuncArg) ||
+       (args.usr == this->pd->timeSubscriptionFuncArg) ||
+       (args.usr == this->pd->metaSubscriptionFuncArg)) {
 
       if (args.status == ECA_NORMAL) {
 
@@ -2123,29 +2163,28 @@ void ACAI::Client::callConnectionUpdate ()
 
 //------------------------------------------------------------------------------
 //
-void ACAI::Client::callDataUpdate (const bool isFirstUpdateIn)
+void ACAI::Client::callDataUpdate (const bool isMetaUpdate)
 {
    // Catch any exceptions here
    //
    try {
-
       // First update: This is done FIRST in order to ensure that the object performs
       // any necessary self updates prior to notifiying other users of the change.
       //
       // Call hook function - this is a dispatching call.
       //
-      this->dataUpdate (isFirstUpdateIn);
+      this->dataUpdate (isMetaUpdate);
 
       // Second update: Call registered users.
       //
       ACAI_ITERATE (RegisteredUsers, this->registeredUsers, user) {
-         (*user)->dataUpdate (this, isFirstUpdateIn);
+         (*user)->dataUpdate (this, isMetaUpdate);
       }
 
       // Third update: Call event handler.
       //
       if (this->dataUpdateEventHandler) {
-         this->dataUpdateEventHandler (this, isFirstUpdateIn);
+         this->dataUpdateEventHandler (this, isMetaUpdate);
       }
    }
    ACAI_CATCH_EXCEPTION

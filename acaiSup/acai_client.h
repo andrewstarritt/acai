@@ -3,24 +3,8 @@
  * This file is part of the ACAI library.
  * The class derived from pv_client developed for the kryten application.
  *
- * Copyright (C) 2013-2025  Andrew C. Starritt
- *
- * The ACAI library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
- *
- * The ACAI library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with the ACAI library.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Contact details:
- * andrew.starritt@gmail.com
- * PO Box 3118, Prahran East, Victoria 3181, Australia.
+ * SPDX-FileCopyrightText: 2013-2025  Andrew C. Starritt
+ * SPDX-License-Identifier: LGPL-3.0-only
  *
  */
 
@@ -29,8 +13,8 @@
 
 #include <time.h>
 #include <set>
-#include <acai_client_types.h>
-#include <acai_shared.h>
+#include "acai_client_types.h"
+#include "acai_shared.h"
 
 // Differed declaration - used in private part of this class.
 //
@@ -110,8 +94,9 @@ public:
    /// Defines the traditional event/data update handler function signature.
    /// This call back is set specified ACAI::Client::setUpdateHandler and
    /// obtained by ACAI::Client::updateHandler.
+   /// The first update is always a meta update.
    ///
-   typedef void (*UpdateHandlers)     (ACAI::Client* client, const bool firstUpdate);
+   typedef void (*UpdateHandlers)     (ACAI::Client* client, const bool isMetaUpdate);
 
    /// Defines the traditional put callback notification handler function signature.
    /// This call back is set specified ACAI::Client::setPutCallbackHandler and
@@ -849,7 +834,7 @@ protected:
    /// allow it to handle event updates.
    /// Note: This function is called prior to any event callback handlers.
    ///
-   virtual void dataUpdate (const bool firstUpdate);
+   virtual void dataUpdate (const bool isMataUpdate);
 
    /// This is a hook functions. It should not / can not be called from
    /// outside of the ACAI::Client, but may be overriden by a sub-classes to
@@ -903,7 +888,7 @@ private:
    // functions and call back event handlers.
    //
    void callConnectionUpdate ();
-   void callDataUpdate (const bool firstUpdate);
+   void callDataUpdate (const bool isMetaUpdate);
    void callPutCallbackNotifcation (const bool isSuccessful);
 
    // Manage Client/Abstract_Client_User associations.
