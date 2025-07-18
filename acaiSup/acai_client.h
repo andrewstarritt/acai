@@ -856,6 +856,9 @@ private:
 
    int magic_number;    // used to verify void* to Client* conversions.
 
+   ACAI::ClientString pv_name;
+   ACAI::ClientString channel_host_name;
+
    // Allows the private data to be truely private, which in turn means
    // that we need not include EPICS header files in this header file.
    //

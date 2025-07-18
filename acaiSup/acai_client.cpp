@@ -111,9 +111,6 @@ public:
    explicit PrivateData (ACAI::Client* owner);
    ~PrivateData ();
 
-   inline
-   const char* cPvName () const { return this->pv_name.c_str(); }
-
    void clearBuffer ();     // clears buffer
    const union db_access_val*  updateBuffer (struct event_handler_args& args);
 
@@ -123,9 +120,6 @@ public:
       csConnected,          // received connect notification
       csDisconnected        // virtual circuit disconnect.
    } ConnectionStatus;
-
-   ACAI::ClientString pv_name;
-   ACAI::ClientString channel_host_name;
 
    int firstMember;         // this together with lastMember define effective class size.
    int magic_number;        // used to verify void* to PrivateData* conversions.
@@ -249,9 +243,6 @@ ACAI::Client::PrivateData::PrivateData (ACAI::Client* ownerIn)
    memset (&this->firstMember, 0, size);
 
    this->owner = ownerIn;
-
-   this->pv_name.clear();
-   this->channel_host_name.clear();
 
    this->getFuncArg = NULL;
    this->timeSubscriptionFuncArg = NULL;
@@ -386,6 +377,11 @@ void ACAI::Client::commonConstruct()
    //
    this->pd = new PrivateData (this);
 
+   // Prob over kill.
+   //
+   this->pv_name.clear();
+   this->channel_host_name.clear();
+
    // Ensure callbacks are NULL.
    //
    this->connectionUpdateEventHandler = NULL;
@@ -448,7 +444,7 @@ ACAI::Client::~Client ()
 void ACAI::Client::setPvName (const ACAI::ClientString& pvName,
                               const bool doImmediateReopen)
 {
-   this->pd->pv_name = pvName;
+   this->pv_name = pvName;
 
    if (doImmediateReopen) {
       this->reopenChannel ();
@@ -463,7 +459,7 @@ void ACAI::Client::setPvName (const char* cPvName, const bool doImmediateReopen)
    //
    ACAI::ClientString pvName = cPvName;
 
-   this->pd->pv_name = pvName;
+   this->pv_name = pvName;
 
    if (doImmediateReopen) {
       this->reopenChannel ();
@@ -474,14 +470,14 @@ void ACAI::Client::setPvName (const char* cPvName, const bool doImmediateReopen)
 //
 ACAI::ClientString ACAI::Client::pvName () const
 {
-   return this->pd->pv_name;
+   return this->pv_name;
 }
 
 //------------------------------------------------------------------------------
 //
 const char* ACAI::Client::cPvName () const
 {
-   return this->pd->cPvName();
+   return this->pv_name.c_str();
 }
 
 //------------------------------------------------------------------------------
@@ -628,9 +624,9 @@ bool ACAI::Client::openChannel ()
 
    // TO DECIDE: close if already open ?? or dis-allow ??
 
-   if (!this->pd->pv_name.empty()) {
+   if (!this->pv_name.empty()) {
 
-      status = ca_create_channel (this->pd->cPvName(),
+      status = ca_create_channel (this->pv_name.c_str(),
                                   buffered_connection_handler,
                                   this,     // user private
                                   this->pd->priority,
@@ -640,7 +636,7 @@ bool ACAI::Client::openChannel ()
          this->pd->connectionStatus = PrivateData::csPending;
          result = true;
       } else {
-         reportError ("ca_create_channel (%s) failed (%s, %d)", this->pd->cPvName(),
+         reportError ("ca_create_channel (%s) failed (%s, %d)", this->pv_name.c_str(),
                       ca_message (status), status);
          result = false;
       }
@@ -666,7 +662,7 @@ void ACAI::Client::closeChannel ()
       status = ca_clear_channel (this->pd->channel_id);
       if (status != ECA_NORMAL) {
          reportError ("ca_clear_channel (%s) failed (%s)",
-                      this->pd->cPvName(), ca_message (status));
+                      this->pv_name.c_str(), ca_message (status));
       }
 
       this->pd->channel_id = NULL;
@@ -999,7 +995,7 @@ bool ACAI::Client::putData (const int dbf_type, const unsigned long count, const
       //
       if (this->pd->pending_put_callback) {
          reportError ("putData (%s) write inhibited - pending put callback",
-                      this->pd->cPvName());
+                      this->pv_name.c_str());
          return false;
       }
 
@@ -1470,7 +1466,7 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
       // Although a sensible check, do not report this - it is not unexpected
       // to get such an update for a channel that has just recently been deleted.
       //
-      // reportError ("element count (%s) is zero", this->pd->pv_name);
+      // reportError ("element count (%s) is zero", this->pv_name);
       return false;
    }
 
@@ -1535,7 +1531,7 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
          break;
 
       default:
-         reportError ("field type (%s) is invalid (%d)", this->pd->cPvName(),
+         reportError ("field type (%s) is invalid (%d)", this->pv_name.c_str(),
                       (int) actualRequestType);
          return false;
    }
@@ -1568,7 +1564,7 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
       truncated = (max_array_size - meta_data_size) / elementSize;
 
       reportError ("PV (%s) request count truncated from %ld to %ld elements",
-                   this->pd->cPvName(), count, truncated);
+                   this->pv_name.c_str(), count, truncated);
       reportError ("Effective EPICS_CA_MAX_ARRAY_BYTES = %ld",
                    max_array_size);
 
@@ -1580,14 +1576,14 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
    if ((readMode == ACAI::SingleRead) || (readMode == ACAI::Subscribe)) {
 
       if (debugLevel >= 4) {
-         reportError ("ca_array_get_callback  %s", this->pd->cPvName());
+         reportError ("ca_array_get_callback  %s", this->pv_name.c_str());
       }
 
       status = ca_array_get_callback (initial_type, count, this->pd->channel_id,
                                       buffered_event_handler, this->pd->getFuncArg);
 
       if (status != ECA_NORMAL) {
-         reportError ("ca_array_get_callback (%s) failed (%s)", this->pd->cPvName(),
+         reportError ("ca_array_get_callback (%s) failed (%s)", this->pv_name.c_str(),
                       ca_message (status));
 
          // If read fails - so will subscribe.
@@ -1602,7 +1598,7 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
       // ... and now subscribe for time stamped data updates as well.
       //
       if (debugLevel >= 4) {
-         reportError ("ca_create_subscription %s", this->pd->cPvName());
+         reportError ("ca_create_subscription %s", this->pv_name.c_str());
       }
 
       const ACAI::EventMasks timeMask =
@@ -1619,7 +1615,7 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
 
          if (status != ECA_NORMAL) {
             reportError ("ca_create_subscription [] (%s) failed (%s)",
-                         this->pd->cPvName(), ca_message (status));
+                         this->pv_name.c_str(), ca_message (status));
             result = false;
          }
       }
@@ -1638,7 +1634,7 @@ bool ACAI::Client::readSubscribeChannel (const ACAI::ReadModes readMode)
 
          if (status != ECA_NORMAL) {
             reportError ("ca_create_subscription [meta] (%s) failed (%s)",
-                         this->pd->cPvName(), ca_message (status));
+                         this->pv_name.c_str(), ca_message (status));
             result = false;
          }
       }
@@ -1656,13 +1652,13 @@ void ACAI::Client::unsubscribeChannel ()
    if (this->pd->time_event_id) {
 
       if (debugLevel >= 4) {
-         reportError ("ca_clear_subscription [time] %s", this->pd->cPvName());
+         reportError ("ca_clear_subscription [time] %s", this->pv_name.c_str());
       }
 
       int status = ca_clear_subscription (this->pd->time_event_id);
       if (status != ECA_NORMAL) {
          reportError ("ca_clear_subscription [time] (%s) failed (%s)",
-                      this->pd->cPvName(), ca_message (status));
+                      this->pv_name.c_str(), ca_message (status));
       }
 
       this->pd->time_event_id = NULL;
@@ -1672,13 +1668,13 @@ void ACAI::Client::unsubscribeChannel ()
    if (this->pd->meta_event_id) {
 
       if (debugLevel >= 4) {
-         reportError ("ca_clear_subscription [meta] %s", this->pd->cPvName());
+         reportError ("ca_clear_subscription [meta] %s", this->pv_name.c_str());
       }
 
       int status = ca_clear_subscription (this->pd->meta_event_id);
       if (status != ECA_NORMAL) {
          reportError ("ca_clear_subscription [meta] (%s) failed (%s)",
-                      this->pd->cPvName(), ca_message (status));
+                      this->pv_name.c_str(), ca_message (status));
       }
 
       this->pd->meta_event_id = NULL;
@@ -1771,13 +1767,13 @@ void ACAI::Client::updateHandler (struct event_handler_args& args)
 
    if (tpd->connectionStatus != PrivateData::csConnected) {
       reportError  ("%s: connection status is not csConnected (%d), type=%s (%ld)",
-                    tpd->cPvName(), (int) tpd->connectionStatus,
+                    this->pv_name.c_str(), (int) tpd->connectionStatus,
                     ACAI::Client::dbRequestTypeImage (args.type), args.type);
       return;
    }
 
    if (!dbr_type_is_valid (args.type)) {
-      reportError ("%s: invalid dbr type %s (%ld)", tpd->cPvName(),
+      reportError ("%s: invalid dbr type %s (%ld)", this->pv_name.c_str(),
                    ACAI::Client::dbRequestTypeImage (args.type), args.type);
       return;
    }
@@ -1915,7 +1911,8 @@ void ACAI::Client::updateHandler (struct event_handler_args& args)
 
       default:
          tpd->data_field_type = ClientFieldNO_ACCESS;
-         reportError ("(%s): unexpected buffer type %ld", tpd->cPvName(), args.type);
+         reportError ("(%s): unexpected buffer type %ld",
+                      this->pv_name.c_str(), args.type);
          return;
    }
 
@@ -1931,13 +1928,11 @@ void ACAI::Client::updateHandler (struct event_handler_args& args)
 //
 void ACAI::Client::connectionHandler (struct connection_handler_args& args)
 {
-   char temp [200];
-
    switch (args.op) {
 
       case CA_OP_CONN_UP:
          if (debugLevel >= 4) {
-            reportError ("PV connected %s", this->pd->cPvName());
+            reportError ("PV connected %s", this->pv_name.c_str());
          }
 
          this->pd->connectionStatus = PrivateData::csConnected;
@@ -1947,9 +1942,12 @@ void ACAI::Client::connectionHandler (struct connection_handler_args& args)
 
          // Copy host name.
          //
-         ca_get_host_name (this->pd->channel_id, temp, sizeof (temp));
-         temp [sizeof (temp) - 1] = '\0';                 // belts 'n' braces
-         this->pd->channel_host_name = temp;
+         {
+            char temp [200];
+            ca_get_host_name (this->pd->channel_id, temp, sizeof (temp));
+            temp [sizeof (temp) - 1] = '\0';                 // belts 'n' braces
+            this->channel_host_name = temp;
+         }
 
          this->pd->data_element_count = 0;                // no data yet
 
@@ -1964,7 +1962,7 @@ void ACAI::Client::connectionHandler (struct connection_handler_args& args)
 
       case CA_OP_CONN_DOWN:
          if (debugLevel >= 4) {
-            reportError ("PV disconnected %s", this->pd->cPvName());
+            reportError ("PV disconnected %s", this->pv_name.c_str());
          }
 
          this->pd->pending_put_callback = false;          // clear
@@ -2012,12 +2010,12 @@ void ACAI::Client::eventHandler (struct event_handler_args& args)
             this->updateHandler (args);
          } else {
             reportError ("event_handler (%s) args.dbr is null",
-                         this->pd->cPvName());
+                         this->pv_name.c_str());
          }
 
       } else {
          reportError ("event_handler Get/Sub (%s) error (%s)",
-                       this->pd->cPvName(), ca_message (args.status));
+                       this->pv_name.c_str(), ca_message (args.status));
       }
 
    } else if (args.usr == this->pd->putFuncArg) {
@@ -2029,7 +2027,7 @@ void ACAI::Client::eventHandler (struct event_handler_args& args)
 
       } else {
          reportError ("event_handler (%s) unexpected put call back",
-                      this->pd->cPvName());
+                      this->pv_name.c_str());
       }
 
    } else {
@@ -2038,7 +2036,7 @@ void ACAI::Client::eventHandler (struct event_handler_args& args)
       //
       if (debugLevel >= 2) {
          reportError ("event_handler (%s) unexpected args.usr %lu",
-                      this->pd->cPvName(), size_t (args.usr));
+                      this->pv_name.c_str(), size_t (args.usr));
       }
    }
 }
@@ -2404,13 +2402,20 @@ GET_META_DATA (double,                     lowerWarningLimit,  lower_warning_lim
 GET_META_DATA (double,                     upperWarningLimit,  upper_warning_limit,                  0.0)
 GET_META_DATA (double,                     lowerAlarmLimit,    lower_alarm_limit,                    0.0)
 GET_META_DATA (double,                     upperAlarmLimit,    upper_alarm_limit,                    0.0)
-GET_META_DATA (ACAI::ClientString,         hostName,           channel_host_name,                     "")
 GET_META_DATA (unsigned int,               hostElementCount,   channel_element_count,                  0)
 GET_META_DATA (ACAI::ClientFieldType,      hostFieldType,      host_field_type,     ClientFieldNO_ACCESS)
 GET_META_DATA (ACAI::ClientFieldType,      dataFieldType,      data_field_type,     ClientFieldNO_ACCESS)
 GET_META_DATA (unsigned int,               dataElementCount,   data_element_count,                     0)
 
 #undef GET_META_DATA
+
+
+//------------------------------------------------------------------------------
+//
+ACAI::ClientString ACAI::Client::hostName () const
+{
+   return this->channel_host_name;
+}
 
 //------------------------------------------------------------------------------
 //
