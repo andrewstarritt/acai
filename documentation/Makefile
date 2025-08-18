@@ -50,4 +50,6 @@ clean:
 
 uninstall:
 
+realclean: clean
+
 # end
