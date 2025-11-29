@@ -28,12 +28,6 @@
 //
 #define ARRAY_LENGTH(xx) ( sizeof (xx) / sizeof (xx [0]) )
 
-// Iterate over std::set or std::list (infact any std container)
-//
-#define ACAI_ITERATE(ContainerType, container, item)               \
-   for (ContainerType::iterator item = container.begin ();         \
-        item != container.end (); ++item)
-
 
 // Catch exeptions used (initially) in the callback functions
 //

@@ -158,6 +158,9 @@ private:
    //
    ACAI::Client_Set* registeredClients;
 
+   static void registerOneClient (ACAI::Client* client, void* context);
+   static void deregisterOneClient (ACAI::Client* client, void* context);
+
    friend class ACAI::Client;
 };
 

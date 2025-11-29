@@ -11,6 +11,31 @@
 #include "acai_client.h"
 #include "acai_client_set.h"
 
+//==============================================================================
+// Client_Set iterator callback functions.
+//==============================================================================
+// static
+void ACAI::Abstract_Client_User::registerOneClient (ACAI::Client* client, void* context)
+{
+   ACAI::Abstract_Client_User* self = reinterpret_cast<ACAI::Abstract_Client_User*>(context);
+
+   if (!client) return;  // sanity check
+   if (!self) return;    // sanity check
+
+   self->registerClient (client);
+}
+
+//------------------------------------------------------------------------------
+// static
+void ACAI::Abstract_Client_User::deregisterOneClient (ACAI::Client* client, void* context)
+{
+   ACAI::Abstract_Client_User* self = reinterpret_cast<ACAI::Abstract_Client_User*>(context);
+
+   if (!client) return;  // sanity check
+   if (!self) return;    // sanity check
+
+   self->deregisterClient (client);
+}
 
 //==============================================================================
 // ACAI::Abstract_Client_User methods
@@ -27,7 +52,7 @@ ACAI::Abstract_Client_User::~Abstract_Client_User ()
 {
    // Deregister all clients.
    //
-   this->registeredClients->deregisterAllClients (this);  // calls own deregisterClient
+   this->deregisterAllClients (this->registeredClients);
    this->registeredClients->clear ();
    delete this->registeredClients;
 }
@@ -49,7 +74,7 @@ void ACAI::Abstract_Client_User::registerClient (ACAI::Client* client)
 void ACAI::Abstract_Client_User::registerAllClients (ACAI::Client_Set* clientSet)
 {
    if (!clientSet) return;  // sanity check
-   clientSet->registerAllClients (this);
+   clientSet->iterateChannels (ACAI::Abstract_Client_User::registerOneClient, this);
 }
 
 //------------------------------------------------------------------------------
@@ -69,7 +94,7 @@ void ACAI::Abstract_Client_User::deregisterClient (ACAI::Client* client)
 void ACAI::Abstract_Client_User::deregisterAllClients (ACAI::Client_Set* clientSet)
 {
    if (!clientSet) return;  // sanity check
-   clientSet->deregisterAllClients (this);
+   clientSet->iterateChannels (ACAI::Abstract_Client_User::deregisterOneClient, this);
 }
 
 //------------------------------------------------------------------------------
@@ -90,7 +115,7 @@ bool ACAI::Abstract_Client_User::openRegisteredChannels ()
 //
 void ACAI::Abstract_Client_User::closeRegisteredChannels ()
 {
-    this->registeredClients->closeAllChannels ();
+   this->registeredClients->closeAllChannels ();
 }
 
 //------------------------------------------------------------------------------

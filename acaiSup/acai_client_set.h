@@ -16,8 +16,6 @@
 
 namespace ACAI {
 
-class Abstract_Client_User;     // differed declaration
-
 /// iterateChannels function signature.
 //
 typedef void (*IteratorFunction) (ACAI::Client* client, void* context);
@@ -131,15 +129,7 @@ public:
    /// is true, while for read mode NoRead the test is isConnected() is true.
    ///
    bool areAllChannelsReady () const;
-
-   /// Registers all the clients with the specified client user.
-   ///
-   void registerAllClients (ACAI::Abstract_Client_User* user);
-
-   /// Deregisters all the clients from the specified client user.
-   ///
-   void deregisterAllClients (ACAI::Abstract_Client_User* user);
-
+//
    /// This function performs a delay poll cycle until either all the channels
    /// are ready (as per the areAllChannelsReady function) or the total delay
    /// time exceeds the specified timeout.

@@ -2146,8 +2146,8 @@ void ACAI::Client::callConnectionUpdate ()
 
       // Call registered users.
       //
-      ACAI_ITERATE (RegisteredUsers, this->registeredUsers, user) {
-         (*user)->connectionUpdate (this, isConnected);
+      for (auto user : this->registeredUsers) {
+         if (user) user->connectionUpdate (this, isConnected);
       }
 
       // Call event handler.
@@ -2175,8 +2175,8 @@ void ACAI::Client::callDataUpdate (const bool isMetaUpdate)
 
       // Second update: Call registered users.
       //
-      ACAI_ITERATE (RegisteredUsers, this->registeredUsers, user) {
-         (*user)->dataUpdate (this, isMetaUpdate);
+      for (auto user : this->registeredUsers) {
+         if (user) user->dataUpdate (this, isMetaUpdate);
       }
 
       // Third update: Call event handler.
@@ -2205,8 +2205,8 @@ void ACAI::Client::callPutCallbackNotifcation (const bool isSuccessfulIn)
 
       // Second update: Call registered users.
       //
-      ACAI_ITERATE (RegisteredUsers, this->registeredUsers, user) {
-         (*user)->putCallbackNotifcation (this, isSuccessfulIn);
+      for (auto user : this->registeredUsers) {
+         if (user) user->putCallbackNotifcation (this, isSuccessfulIn);
       }
 
       // Third update: Call event handler.
@@ -2609,11 +2609,8 @@ void ACAI::Client::removeClientFromAllUserLists ()
 {
    // Client about to be deleted - remove from any interested user lists.
    //
-   ACAI_ITERATE (RegisteredUsers, this->registeredUsers, userRef) {
-      ACAI::Abstract_Client_User* user = *userRef;
-      if (user) {
-         user->removeClientFromList (this);
-      }
+   for (auto user : this->registeredUsers) {
+      if (user) user->removeClientFromList (this);
    }
    this->registeredUsers.clear ();
 }
