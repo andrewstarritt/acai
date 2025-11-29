@@ -1,0 +1,17 @@
+test abstract client user starting (ACAI 1.6.1)
+
+constucted client user
+constucted test client T1
+constucted test client T2
+constucted test client T3
+constucted test client T4
+
+open registered clients
+registered clients opened
+open T4 client
+T4 client opened
+all channels open no
+close registered clients
+destucted client user
+
+test abstract client user complete
