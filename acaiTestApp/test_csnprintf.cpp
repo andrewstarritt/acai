@@ -4,20 +4,24 @@
 #include <stdio.h>
 #include <iomanip>
 #include <iostream>
+#include <epicsTime.h>
 #include <acai_client_types.h>
 #include <acai_version.h>
 #include <string.h>
 
 //------------------------------------------------------------------------------
-// anonymise size value to avoid the pesky warning.
-// The compiler, well g++ at least, is being too clever for own good.
+// anonymise size value to avoid the pesky output truncated warning.
+// The whole purpose of the test is to verify output truncation.
+// The compiler, well g++ at least, is being too clever for it's own good.
+// Do enough mathematical high jinks to delay evaluation until run-time.
 //
 static size_t anon (size_t n)
 {
-   long temp = (long)(&anon);
-   temp = temp % 7;
-   if ((temp & 1) == 0) temp = 1;  // is now def none zero
-   return (temp * n) / temp;
+   epicsTimeStamp now;
+   epicsTimeGetCurrent (&now);
+   size_t temp = now.nsec / 1000000;
+   temp = temp + (9 - temp%9);
+   return (1 - temp%9) * n;
 }
 
 //------------------------------------------------------------------------------
