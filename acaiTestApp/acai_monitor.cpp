@@ -6,24 +6,8 @@
 // This program is intended as example and test of the ACAI library rather
 // than as a replacement for the afore mentioned programs.
 //
-// Copyright (C) 2013-2025  Andrew C. Starritt
-//
-// The ACAI library is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by 
-// the Free Software Foundation, either version 3 of the License, or (at your
-// option) any later version.
-//
-// The ACAI library is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-// License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with the ACAI library.  If not, see <http://www.gnu.org/licenses/>.
-//
-// Contact details:
-// andrew.starritt@gmail.com
-// PO Box 3118, Prahran East, Victoria 3181, Australia.
+// SPDX-FileCopyrightText: 2013-2026  Andrew C. Starritt
+// SPDX-License-Identifier: LGPL-3.0-only
 //
 
 #include <iostream>
@@ -42,7 +26,7 @@ static volatile bool onlyDoGets = false;
 static volatile bool longString = false;
 static volatile bool fullArray = false;
 static int maxPvNameLength = 0;
-
+static int connectionTimeoutCount = 0;
 static ACAI::Client_Set* clientSet = NULL;
 
 
@@ -200,6 +184,7 @@ static void reportConnectionFailures (ACAI::Client* client, void* /* context */ 
       if (!client->isConnected ()) {
          std::cerr << "Channel connect timed out: " << client->pvName ()
                    << " PV not found" <<  std::endl;
+         connectionTimeoutCount += 1;
       } else
          if (!client->dataIsAvailable ()) {
             std::cerr << "Channel read failure: " << client->pvName ()
@@ -265,9 +250,9 @@ static void help ()
          << "" << std::endl
          << "Options:" << std::endl
          << "" << std::endl
-         << "-m,--meta        show meta information, e.g precision, egu, enum values." << std::endl
+         << "-m,--meta        show meta information, e.g. precision, egu, enum values." << std::endl
          << "" << std::endl
-         << "-g,--get         only do gets, as opposed to monitoring." << std::endl
+         << "-g,--get         only do gets, as opposed to on-going monitoring." << std::endl
          << "" << std::endl
          << "-mg,-gm          combines -m and -g options." << std::endl
          << "" << std::endl
@@ -276,10 +261,10 @@ static void help ()
          << "                 'v' (value), 'a' (alarm), 'l' (log/archive), 'p' (property)." << std::endl
          << "                 The default event mask is 'va'." << std::endl
          << "" << std::endl
-         << "-l,--longstr     process PV as a long string (if we can)." << std::endl
+         << "-l,--longstr     process the PV value as a long string (if we can)." << std::endl
          << "" << std::endl
-         << "-f,--fullarray   specify acai_monitor request all the elements of an array," << std::endl
-         << "                 otherwise request only the defined elements. " << std::endl
+         << "-f,--fullarray   specify that acai_monitor request all the elements of an" << std::endl
+         << "                 array, otherwise request only the defined elements. " << std::endl
          << "                 For older versions of EPICS you should always specify this. " << std::endl
          << "" << std::endl
          << "-v,--version     show version information and exit." << std::endl
@@ -416,13 +401,18 @@ int main (int argc, char* argv [])
    //
    ok = clientSet->waitAllChannelsReady (2.0, 0.02);
    if (!ok) {
-      std::cerr << "** Not all channels connected" << std::endl;
+      std::cerr << "*** Not all channels connected" << std::endl;
    }
 
    // Check for connection failures.
    //
    if (!shutDownIsRequired ()) {
       clientSet->iterateChannels (reportConnectionFailures, NULL);
+      if (connectionTimeoutCount >= clientSet->count()) {
+         // All channels have timed out.
+         std::cerr << "All channel connects have timed out." << std::endl;
+         sigTermReceived = true;
+      }
    }
 
    // Resume event loop if in monitor mode.
