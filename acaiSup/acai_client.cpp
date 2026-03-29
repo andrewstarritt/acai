@@ -3,7 +3,7 @@
  * This file is part of the ACAI library. The class was based on the pv_client
  * module developed for the kryten application.
  *
- * SPDX-FileCopyrightText: 2013-2025  Andrew C. Starritt
+ * SPDX-FileCopyrightText: 2013-2026  Andrew C. Starritt
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  */
@@ -141,17 +141,18 @@ public:
 
    ConnectionStatus connectionStatus;  //
    bool lastIsConnected;        // previous value - allows calls to Connection_Bu to be filtered
+   bool isLongString;
+   bool request_element_count_defined;
+   bool use_put_callback;       // mode of operation control flag
+   bool pending_put_callback;   // indicated waiting for a put callback.
+   bool includeUnits;           // basic string formatting option.
+
    ACAI::ReadModes readMode;    // subscription v. single read. v. no read at all
    ACAI::EventMasks eventMask;  // event update tigger specification
 
    unsigned int priority;       // 0 .. 99
-   bool isLongString;
-   bool request_element_count_defined;
    unsigned int request_element_count;
    ACAI::ClientFieldType data_request_type;
-
-   bool use_put_callback;       // mode of operation control flag
-   bool pending_put_callback;   // indicated waiting for a put callback.
 
    // Cached channel values
    //
@@ -205,7 +206,7 @@ public:
    // a reference to the call back data - which is okay as already copied
    // once.
    //
-   char localBuffer [MINIMUM_BUFFER_SIZE];  // large enough for any scalar
+   alignas (double) char localBuffer [MINIMUM_BUFFER_SIZE];  // large enough for any scalar
 
    // When we use a reference to the call back data, this holds a copy of the
    // event_handler_args.dbr member. We need this so that we can free the data
@@ -220,11 +221,6 @@ public:
 
    time_t disconnect_time;       // system time
 
-   // Basic string formatting option. This could be expanded, but that is really
-   // the function of any GUI framework and the like, i.e. beyond the scope of
-   // this object.
-   //
-   bool includeUnits;
 private:
    ACAI::Client* owner;
    int lastMember;
@@ -234,12 +230,10 @@ private:
 //
 ACAI::Client::PrivateData::PrivateData (ACAI::Client* ownerIn)
 {
-   size_t size;
-
    // Zeroise all members, except pv_name and channel_host_name.
    // They are now a standard strings and do not like getting zapped !!!
    //   
-   size = size_t (&this->lastMember) - size_t (&this->firstMember);
+   const size_t size = size_t (&this->lastMember) - size_t (&this->firstMember);
    memset (&this->firstMember, 0, size);
 
    this->owner = ownerIn;
@@ -375,7 +369,10 @@ void ACAI::Client::commonConstruct()
 {
    // Create the private data.
    //
-   this->pd = new PrivateData (this);
+   static_assert (sizeof (this->privateData) >= sizeof (PrivateData),
+                  "the size of the privateData buffer is too small to hold a PrivateData object.");
+
+   this->pd = new (&this->privateData) PrivateData (this);
 
    // Prob over kill.
    //
@@ -435,7 +432,7 @@ ACAI::Client::~Client ()
 
    this->magic_number = 0;
 
-   delete this->pd;
+   this->pd->~PrivateData();
    this->pd = NULL;
 }
 
@@ -2229,17 +2226,13 @@ bool ACAI::Client::initialise ()
 {
    int status;
 
-   // Perform sanity check.
+   // Perform sanity checks.
    //
-   if (sizeof (ACAI::ClientInteger) != sizeof (epicsInt32)) {
-      reportError ("Size of ACAI::ClientInteger is incompatible with epicsInt32");
-      return false;
-   }
+   static_assert (sizeof (ACAI::ClientInteger) == sizeof (epicsInt32),
+                 "Size of ACAI::ClientInteger is incompatible with epicsInt32");
 
-   if (sizeof (ACAI::ClientFloating) != sizeof (epicsFloat64)) {
-      reportError ("Size of ACAI::ClientFloating is incompatible with epicsFloat64");
-      return false;
-   }
+   static_assert (sizeof (ACAI::ClientFloating) == sizeof (epicsFloat64),
+                  "Size of ACAI::ClientFloating is incompatible with epicsFloat64");
 
    initialise_buffered_callbacks ();
 

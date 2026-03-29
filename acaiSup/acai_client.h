@@ -3,7 +3,7 @@
  * This file is part of the ACAI library.
  * The class derived from pv_client developed for the kryten application.
  *
- * SPDX-FileCopyrightText: 2013-2025  Andrew C. Starritt
+ * SPDX-FileCopyrightText: 2013-2026  Andrew C. Starritt
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  */
@@ -864,6 +864,11 @@ private:
    //
    class PrivateData;
    PrivateData* pd;
+
+   // The actual private data is here, as opposed to being independently
+   // allocated/deallocated.
+   //
+   alignas (8) uint8_t privateData [728];   // This includes some spare.
 
    // Traditional callback handlers.
    //
