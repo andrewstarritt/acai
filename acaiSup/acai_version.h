@@ -2,7 +2,7 @@
  *
  * This file is part of the ACAI library.
  *
- * SPDX-FileCopyrightText: 2013-2025  Andrew C. Starritt
+ * SPDX-FileCopyrightText: 2013-2026  Andrew C. Starritt
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  */
@@ -24,7 +24,7 @@
 // Defines the patch version number, this increments for bug fixes and/or
 // backward compatible API enhancements.
 //
-#define ACAI_PATCH              1
+#define ACAI_PATCH              2
 
 // NOTE: Don't forget to update documentation/acai.cfg and acaiSup/Makefile
 
@@ -46,7 +46,7 @@
 #define ACAI_STRINGIFY_INNER(s) #s
 #define ACAI_STRINGIFY(s)       ACAI_STRINGIFY_INNER(s)
 
-// Define the string version of ACAI, e.g. "ACAI 1.8.1"
+// Define the string version of ACAI, e.g. "ACAI 1.8.2"
 //
 #define ACAI_VERSION_STRING     "ACAI " ACAI_STRINGIFY(ACAI_MAJOR) \
                                 "."     ACAI_STRINGIFY(ACAI_MINOR) \
